@@ -35,6 +35,10 @@ class LoginScreen extends StatelessWidget {
               },
               child: const Text('Iniciar Sesión'),
             ),
+            Title(
+              color: Colors.black, 
+              child: const Text("Cambio by danusita")
+            )
           ],
         ),
       ),
