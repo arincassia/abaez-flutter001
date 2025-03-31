@@ -5,7 +5,7 @@ class MockAuthService {
     // Validar que las credenciales no sean nulas ni vacías
     if (username.isEmpty || password.isEmpty) {
       throw ArgumentError('Error: El nombre de usuario y la contraseña no pueden estar vacíos.');
-      return;
+     
     }
 
     // Simula un retraso para imitar una llamada a un servicio real
@@ -15,6 +15,7 @@ class MockAuthService {
     print('Mock Login:');
     print('Username: $username');
     print('Password: $password');
+    return;
   }
 }
 
