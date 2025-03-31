@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:abaez/api/service/auth_service.dart';
-
+import 'package:abaez/views/welcom_srceen.dart';
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -71,10 +71,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     // Llama al servicio de autenticación
                     await _authService.login(username, password);
 
-                    // Muestra un mensaje de éxito
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Credenciales enviadas al servicio mock')),
-                    );
+                     // Redige a la pantalla de bienvenida
+                    Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                    builder: (context) => WelcomeScreen(username: _usernameController.text.trim()),
+                  ),
+                  );
                   }
                 },
                 child: const Text('Iniciar Sesión'),
