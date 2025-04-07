@@ -30,17 +30,23 @@ class _TaskScreenState extends State<TaskScreen> {
           : ListView.builder(
               itemCount: _tasks.length,
               itemBuilder: (context, index) {
-                return ListTile(
-                  leading: Icon(
-                    _tasks[index].type == 'urgente' ? Icons.warning : Icons.task,
-                  ),
-                  title: Text(_tasks[index].title),
-                   onTap: () => _showTaskOptionsModal(context, index),
-                  
-                );
-                
-              },
-            ),
+             return Card(
+              margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: ListTile(
+              leading: Icon(
+              _tasks[index].type == 'urgente' ? Icons.warning : Icons.task,
+              color: _tasks[index].type == 'urgente' ? Colors.red : Colors.blue,
+              ),
+              title: Text(_tasks[index].title),
+              subtitle: Text('${AppConstants.TASK_TYPE_LABEL} ${_tasks[index].type}'),
+              trailing: IconButton(
+              icon: Icon(Icons.edit),
+              onPressed: () => _showTaskOptionsModal(context, index),
+              ),
+             ),
+            );         
+           },
+         ),
 
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showTaskModal(context),
