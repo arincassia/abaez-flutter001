@@ -1,5 +1,4 @@
 import 'package:abaez/domain/task.dart';
-
 class TaskRepository {
   List<Task> getTasks() {
     return [

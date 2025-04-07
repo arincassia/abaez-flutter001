@@ -3,7 +3,6 @@ import 'package:abaez/domain/task.dart';
 
 class TaskService {
   final TaskRepository _repository;
-
   TaskService(this._repository);
 
   List<Task> getAllTasks() {
