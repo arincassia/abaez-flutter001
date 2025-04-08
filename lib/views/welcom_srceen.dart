@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:abaez/views/tasks.dart';
+import 'package:abaez/presentation/task_screen.dart'; 
 
 class WelcomeScreen extends StatelessWidget {
   final String username;
@@ -24,18 +24,17 @@ class WelcomeScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => TasksScreen(), // Asegúrate de crear esta pantalla
+                    builder: (context) => TaskScreen(),
                   ),
                 );
-                // Aquí puedes agregar la navegación a la pantalla de cotizaciones
-                // Por ejemplo: Navigator.push(context, MaterialPageRoute(builder: (context) => QuotesScreen()));
+                
               },
               child: const Text('Lista de Tareas'),
             ),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
-                Navigator.pop(context); // Regresa a la pantalla anterior
+                Navigator.pop(context); 
               },
               child: const Text('Cerrar'),
             ),
