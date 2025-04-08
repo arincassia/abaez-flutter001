@@ -3,7 +3,7 @@ class Task {
   final String tipo;
   final String descripcion; 
   final DateTime fechaLimite; 
-  final List<String> pasos; // Lista de pasos generados por IA
+  final List<String> pasos; 
 
   Task({
     required this.titulo,

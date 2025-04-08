@@ -48,13 +48,6 @@ class TaskService {
     _tasks.addAll(_repository.getMoreTasks());
   }
 
-    List<String> obtenerPasos(String titulo) {
-    // Simula una consulta a un asistente de IA para generar pasos según el título de la tarea.
-    return [
-      'Paso 1: Planificar $titulo',
-      'Paso 2: Ejecutar $titulo',
-      'Paso 3: Revisar $titulo',
-    ];
-  }
+   
 
 }

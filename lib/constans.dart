@@ -13,4 +13,5 @@ class AppConstants {
   static const String DELETE_BUTTON = 'Eliminar';
   static const String EMPTY_FIELDS_ERROR = 'Por favor, completa todos los campos obligatorios.';
   static const String PASOS_TITULO = 'Pasos para completar:';
+  static const String FECHA_LIMITE = 'Fecha límite: ';
 }
