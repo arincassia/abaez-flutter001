@@ -84,35 +84,30 @@ class _TaskScreenState extends State<TaskScreen> {
               controller: _scrollController, 
               itemCount: _tasks.length + (_isLoading ? 1 : 0),
               itemBuilder: (context, index) {
-  if (index == _tasks.length) {
-    return Center(child: CircularProgressIndicator());
-  }
-  final task = _tasks[index];
-  return Dismissible(
-    key: Key(task.titulo),
-    background: Container(
-      color: Colors.red,
-      alignment: Alignment.centerLeft,
-      padding: EdgeInsets.only(left: 20.0),
-      child: Icon(Icons.delete, color: Colors.white),
-    ),
-    direction: DismissDirection.startToEnd,
-    onDismissed: (direction) {
-      setState(() {
-        _tasks.removeAt(index);
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${task.titulo} eliminada')),
+       if (index == _tasks.length) {
+        return Center(child: CircularProgressIndicator());
+       }
+       final task = _tasks[index];
+       return Dismissible(
+         key: Key(task.title), 
+         background: Container(
+         color: Colors.red,
+         alignment: Alignment.centerLeft,
+         padding: EdgeInsets.only(left: 20.0),
+         child: Icon(Icons.delete, color: Colors.white),
+        ),
+        direction: DismissDirection.startToEnd,
+        onDismissed: (direction) {
+        setState(() {
+        _tasks.removeAt(index); 
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${task.title} eliminada')),
       );
     },
-    child: TaskCardHelper.buildTaskCard(
-      context,
-      task,
-      index,
-      (context, index) => _showTaskOptionsModal(context, index),
-    ),
-  );
-},
+        child: TaskCardHelper.buildTaskCard(context, task, index, _showTaskOptionsModal),
+   );
+  },
 ),
     ),
     floatingActionButton: FloatingActionButton(
@@ -176,10 +171,10 @@ class _TaskScreenState extends State<TaskScreen> {
               if (titleController.text.isNotEmpty && selectedDate != null) {
                 setState(() {
                   _tasks.add(Task(
-                    titulo: titleController.text,
-                    tipo: typeController.text.isNotEmpty ? typeController.text : '',
-                    descripcion: descriptionController.text,
-                    fechaLimite: selectedDate!,
+                    title: titleController.text,
+                    type: typeController.text.isNotEmpty ? typeController.text : '',
+                    description: descriptionController.text,
+                    date: selectedDate!,
                   ));
                 });
                 Navigator.of(context).pop();
@@ -198,19 +193,15 @@ class _TaskScreenState extends State<TaskScreen> {
 }
 void _showTaskOptionsModal(BuildContext context, int index) {
   final task = _tasks[index];
-  final TextEditingController titleController = TextEditingController(text: task.titulo);
-  final TextEditingController typeController = TextEditingController(text: task.tipo);
-  final TextEditingController descriptionController = TextEditingController(text: task.descripcion);
-  final TextEditingController stepsController = TextEditingController(
-    text: task.pasos.join('\n'), 
-  );
-
+  final TextEditingController titleController = TextEditingController(text: task.title);
+  final TextEditingController typeController = TextEditingController(text: task.type);
+  final TextEditingController descriptionController = TextEditingController(text: task.description);
   final TextEditingController dateController = TextEditingController(
-    text: task.fechaLimite != "null"
-        ? '${task.fechaLimite.day.toString().padLeft(2, '0')}/${task.fechaLimite.month.toString().padLeft(2, '0')}/${task.fechaLimite.year}'
+    text: task.date != "null"
+        ? '${task.date.day.toString().padLeft(2, '0')}/${task.date.month.toString().padLeft(2, '0')}/${task.date.year}'
         : '',
   );
-  DateTime? selectedDate = task.fechaLimite;
+  DateTime? selectedDate = task.date;
 
   showDialog(
     context: context,
@@ -248,22 +239,11 @@ void _showTaskOptionsModal(BuildContext context, int index) {
                     lastDate: DateTime(2100),
                   );
                   if (pickedDate != null) {
-                    selectedDate = pickedDate;
+                    selectedDate = pickedDate; 
                     dateController.text =
                         '${pickedDate.day.toString().padLeft(2, '0')}/${pickedDate.month.toString().padLeft(2, '0')}/${pickedDate.year}';
-
-                   
-                    final updatedSteps = TaskRepository().obtenerPasos(task.titulo, selectedDate!);
-                    stepsController.text = updatedSteps.join('\n'); 
                   }
                 },
-              ),
-              TextField(
-                controller: stepsController,
-                decoration: InputDecoration(
-                  labelText: 'Pasos (separados por líneas)',
-                ),
-                maxLines: 3, 
               ),
             ],
           ),
@@ -281,11 +261,10 @@ void _showTaskOptionsModal(BuildContext context, int index) {
                   selectedDate != null) {
                 setState(() {
                   _tasks[index] = Task(
-                    titulo: titleController.text,
-                    tipo: typeController.text,
-                    descripcion: descriptionController.text,
-                    fechaLimite: selectedDate!,
-                    pasos: stepsController.text.split('\n'), 
+                    title: titleController.text,
+                    type: typeController.text,
+                    description: descriptionController.text,
+                    date: selectedDate!,
                   );
                 });
                 Navigator.of(context).pop();
