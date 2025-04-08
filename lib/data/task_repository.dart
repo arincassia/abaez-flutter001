@@ -4,11 +4,11 @@ class TaskRepository {
 
   List<Task> getTasks() {
     return [
-      Task(title: 'Tarea 1', type: 'urgente', description: 'Descripción de la tarea 1', date: DateTime.now()),
-      Task(title: 'Tarea 2', type: 'normal', description: 'Descripción de la tarea 2', date: DateTime.now()),
-      Task(title: 'Tarea 3', type: 'urgente', description: 'Descripción de la tarea 3', date: DateTime.now()),
-      Task(title: 'Tarea 4', type: 'normal', description: 'Descripción de la tarea 4', date: DateTime.now()), 
-      Task(title: 'Tarea 5', type: 'urgente', description: 'Descripción de la tarea 5', date: DateTime.now()),
+      Task(titulo: 'Tarea 1', tipo: 'urgente', descripcion: 'Descripción de la tarea 1',  fechaLimite: DateTime.now().add(Duration(days: 3))),
+      Task(titulo: 'Tarea 2', tipo: 'normal', descripcion: 'Descripción de la tarea 2', fechaLimite: DateTime.now().add(Duration(days: 5))),
+      Task(titulo: 'Tarea 3', tipo: 'urgente', descripcion: 'Descripción de la tarea 3', fechaLimite: DateTime.now().add(Duration(days: 7))),
+      Task(titulo: 'Tarea 4', tipo: 'normal', descripcion: 'Descripción de la tarea 4', fechaLimite: DateTime.now().add(Duration(days: 10))), 
+      Task(titulo: 'Tarea 5', tipo: 'urgente', descripcion: 'Descripción de la tarea 5', fechaLimite: DateTime.now().add(Duration(days: 12))),
     
     ];
   }
@@ -18,10 +18,10 @@ class TaskRepository {
   return List.generate(limit, (index) {
     final taskNumber = offset + index + 1;
     return Task(
-      title: 'Tarea $taskNumber',
-      type: taskNumber % 2 == 0 ? 'normal' : 'urgente',
-      description: 'Descripción de la tarea $taskNumber', 
-      date: DateTime.now().add(Duration(days: taskNumber)), 
+      titulo: 'Tarea $taskNumber',
+      tipo: taskNumber % 2 == 0 ? 'normal' : 'urgente',
+      descripcion: 'Descripción de la tarea $taskNumber', 
+      fechaLimite: DateTime.now().add(Duration(days: taskNumber)), 
     );
   });
 }

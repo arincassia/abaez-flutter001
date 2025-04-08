@@ -89,7 +89,7 @@ class _TaskScreenState extends State<TaskScreen> {
        }
        final task = _tasks[index];
        return Dismissible(
-         key: Key(task.title), 
+         key: Key(task.titulo), 
          background: Container(
          color: Colors.red,
          alignment: Alignment.centerLeft,
@@ -102,7 +102,7 @@ class _TaskScreenState extends State<TaskScreen> {
         _tasks.removeAt(index); 
         });
         ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${task.title} eliminada')),
+        SnackBar(content: Text('${task.titulo} eliminada')),
       );
     },
         child: TaskCardHelper.buildTaskCard(context, task, index, _showTaskOptionsModal),
@@ -171,10 +171,10 @@ class _TaskScreenState extends State<TaskScreen> {
               if (titleController.text.isNotEmpty && selectedDate != null) {
                 setState(() {
                   _tasks.add(Task(
-                    title: titleController.text,
-                    type: typeController.text.isNotEmpty ? typeController.text : '',
-                    description: descriptionController.text,
-                    date: selectedDate!,
+                    titulo: titleController.text,
+                    tipo: typeController.text.isNotEmpty ? typeController.text : '',
+                    descripcion: descriptionController.text,
+                    fechaLimite: selectedDate!,
                   ));
                 });
                 Navigator.of(context).pop();
@@ -193,15 +193,15 @@ class _TaskScreenState extends State<TaskScreen> {
 }
 void _showTaskOptionsModal(BuildContext context, int index) {
   final task = _tasks[index];
-  final TextEditingController titleController = TextEditingController(text: task.title);
-  final TextEditingController typeController = TextEditingController(text: task.type);
-  final TextEditingController descriptionController = TextEditingController(text: task.description);
+  final TextEditingController titleController = TextEditingController(text: task.titulo);
+  final TextEditingController typeController = TextEditingController(text: task.tipo);
+  final TextEditingController descriptionController = TextEditingController(text: task.descripcion);
   final TextEditingController dateController = TextEditingController(
-    text: task.date != "null"
-        ? '${task.date.day.toString().padLeft(2, '0')}/${task.date.month.toString().padLeft(2, '0')}/${task.date.year}'
+    text: task.fechaLimite != "null"
+        ? '${task.fechaLimite.day.toString().padLeft(2, '0')}/${task.fechaLimite.month.toString().padLeft(2, '0')}/${task.fechaLimite.year}'
         : '',
   );
-  DateTime? selectedDate = task.date;
+  DateTime? selectedDate = task.fechaLimite;
 
   showDialog(
     context: context,
@@ -261,10 +261,10 @@ void _showTaskOptionsModal(BuildContext context, int index) {
                   selectedDate != null) {
                 setState(() {
                   _tasks[index] = Task(
-                    title: titleController.text,
-                    type: typeController.text,
-                    description: descriptionController.text,
-                    date: selectedDate!,
+                    titulo: titleController.text,
+                    tipo: typeController.text,
+                    descripcion: descriptionController.text,
+                    fechaLimite: selectedDate!,
                   );
                 });
                 Navigator.of(context).pop();
