@@ -105,12 +105,12 @@ class _TaskScreenState extends State<TaskScreen> {
         SnackBar(content: Text('${task.titulo} eliminada')),
       );
     },
-    child: TaskCardHelper.buildTaskCard(
-      context,
-      task,
-      index,
-      (context, index) => _showTaskOptionsModal(context, index),
-    ),
+    child: TaskCardHelper.construirTarjetaDeportiva(
+  context,
+  task,
+  index,
+  onEdit: (context, index) => _showTaskOptionsModal(context, index),
+),
   );
 },
 ),
@@ -297,15 +297,7 @@ void _showTaskOptionsModal(BuildContext context, int index) {
             },
             child: Text(AppConstants.SAVE_BUTTON),
           ),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                _tasks.removeAt(index);
-              });
-              Navigator.of(context).pop();
-            },
-            child: Text(AppConstants.DELETE_BUTTON),
-          ),
+          
         ],
       );
     },
