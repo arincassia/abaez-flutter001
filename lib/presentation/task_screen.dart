@@ -1,5 +1,6 @@
 
 
+import 'package:abaez/data/api_repository.dart';
 import 'package:abaez/helpers/tasks_card_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:abaez/constans.dart';
@@ -22,7 +23,7 @@ class _TaskScreenState extends State<TaskScreen> {
   @override
   void initState() {
     super.initState();
-    _taskService = TaskService(TaskRepository());  // Inicializa el servicio
+    _taskService = TaskService(TaskRepository(), ApiRepository());  // Inicializa el servicio
     _tasks = [];
     _loadTasks();
 
@@ -78,58 +79,59 @@ class _TaskScreenState extends State<TaskScreen> {
   Widget build(BuildContext context) {
   return Scaffold(
     appBar: AppBar(title: Text(AppConstants.TITLE_APPBAR)),
-    body: Container(
-      color: Colors.grey[200],
-      child: _tasks.isEmpty
-          ? Center(child: Text(AppConstants.EMPTY_LIST))
-          : ListView.builder(
-              controller: _scrollController, 
-              itemCount: _tasks.length + (_isLoading ? 1 : 0),
-              itemBuilder: (context, index) {
-  if (index == _tasks.length) {
-    return Center(child: CircularProgressIndicator());
-  }
-  final task = _tasks[index];
-  return Dismissible(
-    key: Key(task.titulo),
-    background: Container(
-      color: Colors.red,
-      alignment: Alignment.centerLeft,
-      padding: EdgeInsets.only(left: 20.0),
-      child: Icon(Icons.delete, color: Colors.white),
-    ),
-    direction: DismissDirection.startToEnd,
-    onDismissed: (direction) {
-      setState(() {
-        _tasks.removeAt(index);
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${task.titulo} eliminada')),
-      );
-    },
-    child: TaskCardHelper.buildTaskCard(
-  context,
-  task,
-  index,
-  onEdit: (context, index) => _showTaskOptionsModal(context, index),
+body: SafeArea(
+  child: ColoredBox(
+    color: Colors.grey[200]!,
+    child: _tasks.isEmpty
+        ? Center(child: Text(AppConstants.EMPTY_LIST))
+        : ListView.builder(
+            controller: _scrollController,
+            itemCount: _tasks.length + (_isLoading ? 1 : 0),
+            itemBuilder: (context, index) {
+              if (index == _tasks.length) {
+                return Center(child: CircularProgressIndicator());
+              }
+              final task = _tasks[index];
+              return Dismissible(
+                key: Key(task.titulo),
+                background: Container(
+                  color: Colors.red,
+                  alignment: Alignment.centerLeft,
+                  padding: EdgeInsets.only(left: 20.0),
+                  child: Icon(Icons.delete, color: Colors.white),
+                ),
+                direction: DismissDirection.startToEnd,
+                onDismissed: (direction) {
+                  setState(() {
+                    _tasks.removeAt(index);
+                  });
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('${task.titulo} eliminada')),
+                  );
+                },
+                child: TaskCardHelper.buildTaskCard(
+                  context,
+                  _tasks,
+                  index,
+                  onEdit: (context, index) => _showTaskOptionsModal(context, index),
+                ),
+              );
+            },
+          ),
+  ),
 ),
-  );
-},
-),
-    ),
     floatingActionButton: FloatingActionButton(
       onPressed: () => _showTaskModal(context),
       child: Icon(Icons.add),
     ),
   );
 }
-
-  void _showTaskModal(BuildContext context) {
+void _showTaskModal(BuildContext context) {
   final TextEditingController titleController = TextEditingController();
   final TextEditingController typeController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
+  final TextEditingController stepsController = TextEditingController(); // Controlador para los pasos
   DateTime? selectedDate;
-   final TextEditingController stepsController = TextEditingController(); 
 
   showDialog(
     context: context,
@@ -152,6 +154,13 @@ class _TaskScreenState extends State<TaskScreen> {
                 controller: descriptionController,
                 decoration: InputDecoration(labelText: AppConstants.DESCRIPTION_LABEL),
               ),
+              TextField(
+                controller: stepsController,
+                decoration: InputDecoration(
+                  labelText: 'Pasos (separados por líneas)', // Etiqueta para los pasos
+                ),
+                maxLines: 3, // Permitir múltiples líneas
+              ),
               TextButton(
                 onPressed: () async {
                   final pickedDate = await showDatePicker(
@@ -162,6 +171,21 @@ class _TaskScreenState extends State<TaskScreen> {
                   );
                   if (pickedDate != null) {
                     selectedDate = pickedDate;
+
+                    // Llamar al servicio para obtener los pasos
+                    if (titleController.text.isNotEmpty) {
+                      try {
+                        final pasos = await _taskService.obtenerPasos(
+                          titleController.text,
+                          selectedDate!,
+                        );
+                        stepsController.text = pasos.join('\n'); // Actualizar el controlador
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error al obtener los pasos')),
+                        );
+                      }
+                    }
                   }
                 },
                 child: Text(AppConstants.SELECT_DATE_BUTTON),
@@ -183,7 +207,7 @@ class _TaskScreenState extends State<TaskScreen> {
                     tipo: typeController.text.isNotEmpty ? typeController.text : '',
                     descripcion: descriptionController.text,
                     fechaLimite: selectedDate!,
-                    pasos: stepsController.text.split('\n'),
+                    pasos: stepsController.text.split('\n'), // Procesar los pasos
                   ));
                 });
                 Navigator.of(context).pop();

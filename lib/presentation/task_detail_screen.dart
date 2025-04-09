@@ -3,19 +3,25 @@ import 'package:abaez/domain/task.dart';
 import 'package:abaez/helpers/tasks_card_helper.dart';
 
 class TaskDetailScreen extends StatelessWidget {
-  final Task task;
-  final int indice;
+  final List<Task> tasks;
+  final int initialIndex;
 
-  const TaskDetailScreen({Key? key, required this.task, required this.indice}) : super(key: key);
+  const TaskDetailScreen({Key? key, required this.tasks, required this.initialIndex}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
-        title: Text(task.titulo),
+        title: Text('Detalles de la Tarea'),
       ),
-    body: TaskCardHelper.construirTarjetaDeportiva(context, task, indice),
+      body: PageView.builder(
+        controller: PageController(initialPage: initialIndex),
+        itemCount: tasks.length,
+        itemBuilder: (context, index) {
+          return TaskCardHelper.construirTarjetaDeportiva(context, tasks[index], index);
+        },
+      ),
     );
   }
 }

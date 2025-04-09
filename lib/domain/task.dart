@@ -4,7 +4,7 @@ class Task {
   final String tipo;
   final String descripcion; 
   final DateTime fechaLimite; 
-  final List<String> pasos; 
+  List<String> pasos; 
 
 
   Task({
