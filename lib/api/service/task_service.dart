@@ -1,3 +1,5 @@
+
+
 import 'package:abaez/data/task_repository.dart';
 import 'package:abaez/domain/task.dart';
 
@@ -12,7 +14,7 @@ class TaskService {
   }
 
   List<Task> getUrgentTasks() {
-    return _repository.getTasks().where((task) => task.type == 'urgente').toList();
+    return _repository.getTasks().where((task) => task.tipo == 'urgente').toList();
   }
 
   Future<List<Task>> getMoreTasks(int offset) async {
@@ -24,17 +26,18 @@ class TaskService {
     if (index < 0 || index >= _tasks.length) return false;
     final task = _tasks[index];
     _tasks[index] = Task(
-      title: title ?? task.title,
-      type: type ?? task.type,
-      description: description ?? task.description,
-      date: date ?? task.date,
+      titulo: title ?? task.titulo,
+      tipo: type ?? task.tipo,
+      descripcion: description ?? task.descripcion,
+      fechaLimite: date ?? task.fechaLimite,
+      pasos: task.pasos,
     );
     return true;
   }
 
   bool addTask(Task task) {
     _tasks.add(task);
-    print("Task added: ${task.title}, type: ${task.type}, description: ${task.description}, date: ${task.date}");
+    print("Task added: ${task.titulo}, type: ${task.tipo}, description: ${task.descripcion}, date: ${task.fechaLimite}");
     return true;
   }
 
@@ -47,4 +50,7 @@ class TaskService {
   void fetchMoreTasks() {
     _tasks.addAll(_repository.getMoreTasks());
   }
+
+   
+
 }

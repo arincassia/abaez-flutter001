@@ -1,3 +1,4 @@
+
 class AppConstants {
   static const String TITLE_APPBAR = 'Lista de Tareas';
   static const String EMPTY_LIST = 'No hay tareas disponibles';
@@ -12,4 +13,5 @@ class AppConstants {
   static const String SAVE_BUTTON = 'Guardar';
   static const String DELETE_BUTTON = 'Eliminar';
   static const String EMPTY_FIELDS_ERROR = 'Por favor, completa todos los campos obligatorios.';
+  static const String FECHA_LIMITE = 'Fecha límite: ';
 }
