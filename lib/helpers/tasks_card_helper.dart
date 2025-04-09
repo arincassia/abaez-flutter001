@@ -33,7 +33,7 @@ class TaskCardHelper {
 
   static Widget buildTaskCard(
     BuildContext context,
-    Task task,
+    List<Task> tasks,
     int indice, {
     Function(BuildContext, int)? onEdit,
   }) {
@@ -42,11 +42,12 @@ class TaskCardHelper {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => TaskDetailScreen(task: task, indice: indice),
+            builder: (context) => TaskDetailScreen(tasks: tasks, initialIndex: indice),
           ),
         );
       },
       child: Card(
+        color: Colors.white,
         elevation: 8,
         margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
         child: Column(
@@ -66,7 +67,7 @@ class TaskCardHelper {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    task.titulo,
+                    tasks[indice].titulo,
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -75,42 +76,53 @@ class TaskCardHelper {
                 ),
               ],
             ),
+            
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (task.pasos.isNotEmpty)
-                    Text('${task.pasos[0]}'),
-                  const SizedBox(height: 8),
-                 
-                 const SizedBox(height: 8),
-                 Text('Descripción: ${task.descripcion}'),
+
+                const SizedBox(height: 16),
+                 Text('Descripción: ${tasks[indice].descripcion}'),
+
+                const SizedBox(height: 16), 
+                  if (tasks[indice].pasos.isNotEmpty)
+                  Text('${tasks[indice].pasos[0]}',style: TextStyle(color: Colors.grey)),
+                
                 const SizedBox(height: 16),
                 Text(
-                    task.fechaLimite != "null"
-                        ? '${AppConstants.FECHA_LIMITE} ${task.fechaLimite.day.toString().padLeft(2, '0')}/${task.fechaLimite.month.toString().padLeft(2, '0')}/${task.fechaLimite.year}'
-                        : '${AppConstants.FECHA_LIMITE} Sin fecha',
+                    tasks[indice].fechaLimite != "null"
+                        ? '${AppConstants.FECHA_LIMITE} ${tasks[indice].fechaLimite.day.toString().padLeft(2, '0')}/${tasks[indice].fechaLimite.month.toString().padLeft(2, '0')}/${tasks[indice].fechaLimite.year}'
+                        : '${AppConstants.FECHA_LIMITE} Sin fecha', style: TextStyle(fontStyle: FontStyle.normal, fontSize: 16),
                   ),
                     const SizedBox(height: 16),
                 Row(
                 children: [
                 Icon(
-                 task.tipo.toLowerCase() == 'urgente' ? Icons.warning : Icons.task,
-                 color: task.tipo.toLowerCase() == 'urgente' ? Colors.red : Colors.blue,
+                 tasks[indice].tipo.toLowerCase() == 'urgente' ? Icons.warning : Icons.task,
+                 color: tasks[indice].tipo.toLowerCase() == 'urgente' ? Colors.red : Colors.blue,
                 ),
                 const SizedBox(width: 8),
-                Text('Tipo: ${task.tipo}'),
+                Text('Tipo: ${tasks[indice].tipo}'),
                 ],
                 ),
                 ],
               ),
             ),
             if (onEdit != null)
-              IconButton(
-                icon: const Icon(Icons.edit),
-                onPressed: () => onEdit(context, indice),
-              ),
+             Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+    child: Row(
+      children: [
+        Spacer(), 
+        IconButton(
+          icon: const Icon(Icons.edit),
+          onPressed: () => onEdit(context, indice),
+        ),
+      ],
+    ),
+  ),
           ],
         ),
       ),
