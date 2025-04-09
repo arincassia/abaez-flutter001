@@ -1,4 +1,5 @@
 
+
 import 'package:abaez/helpers/tasks_card_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:abaez/constans.dart';
@@ -21,7 +22,7 @@ class _TaskScreenState extends State<TaskScreen> {
   @override
   void initState() {
     super.initState();
-    _taskService = TaskService(TaskRepository()); // Inicializa el servicio
+    _taskService = TaskService(TaskRepository());  // Inicializa el servicio
     _tasks = [];
     _loadTasks();
 
@@ -106,7 +107,7 @@ class _TaskScreenState extends State<TaskScreen> {
         SnackBar(content: Text('${task.titulo} eliminada')),
       );
     },
-    child: TaskCardHelper.construirTarjetaDeportiva(
+    child: TaskCardHelper.buildTaskCard(
   context,
   task,
   index,
@@ -256,7 +257,7 @@ void _showTaskOptionsModal(BuildContext context, int index) {
                         '${pickedDate.day.toString().padLeft(2, '0')}/${pickedDate.month.toString().padLeft(2, '0')}/${pickedDate.year}';
 
                    
-                    final updatedSteps = TaskRepository().obtenerPasos(task.titulo, selectedDate!);
+                    final updatedSteps = await _taskService.obtenerPasos(task.titulo, selectedDate!);
                     stepsController.text = updatedSteps.join('\n'); 
                   }
                 },
