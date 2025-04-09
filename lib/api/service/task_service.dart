@@ -1,11 +1,16 @@
 
 
 import 'package:abaez/data/task_repository.dart';
+
 import 'package:abaez/domain/task.dart';
 
 class TaskService {
   final TaskRepository _repository;
+  
   TaskService(this._repository);
+
+
+ 
   final List<Task> _tasks = [];
 
   Future<List<Task>> getAllTasks() async {
@@ -21,6 +26,11 @@ class TaskService {
     await Future.delayed(Duration(seconds: 2));
     return _repository.getMoreTasks(offset: offset, limit: 5);
   }
+
+   Future<List<String>> obtenerPasos(String titulo, DateTime fecha) async {
+    return _repository.obtenerPasos(titulo, fecha);
+  }
+
 
   bool updateTask(int index, {String? title, String? type, String? description, DateTime? date}) {
     if (index < 0 || index >= _tasks.length) return false;
