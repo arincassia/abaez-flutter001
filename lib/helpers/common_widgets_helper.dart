@@ -17,7 +17,7 @@ class CommonWidgetsHelper {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(line1),
+        Text(line1, style: TextStyle(fontStyle: FontStyle.normal, fontWeight: FontWeight.w100, fontFamily: 'Arial')),
         if (line2 != null) Text(line2),
         if (line3 != null) Text(line3),
       ],
@@ -30,6 +30,7 @@ class CommonWidgetsHelper {
       footer,
       style: const TextStyle(
         fontWeight: FontWeight.bold,
+        color: Colors.grey //Modificacion 3.3
       ),
     );
   }

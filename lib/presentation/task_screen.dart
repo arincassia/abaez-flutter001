@@ -78,7 +78,9 @@ class _TaskScreenState extends State<TaskScreen> {
   @override
   Widget build(BuildContext context) {
   return Scaffold(
-    appBar: AppBar(title: Text(AppConstants.TITULO_APPBAR)),
+    appBar: AppBar(
+      title: Text('${AppConstants.TITULO_APPBAR} - Total: ${_tasks.length}'), //Modificacion 3.2
+    ),
     body: Container(
     color: Colors.grey[200]!,
     child: _tasks.isEmpty
@@ -125,12 +127,15 @@ class _TaskScreenState extends State<TaskScreen> {
     ),
   );
 }
+
 void _showTaskModal(BuildContext context) {
   final TextEditingController titleController = TextEditingController();
-  final TextEditingController typeController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
   final TextEditingController stepsController = TextEditingController(); // Controlador para los pasos
   DateTime? selectedDate;
+
+  
+  String selectedPriority = 'normal';
 
   showDialog(
     context: context,
@@ -145,20 +150,24 @@ void _showTaskModal(BuildContext context) {
                 controller: titleController,
                 decoration: InputDecoration(labelText: AppConstants.TITULO_TAREA),
               ),
-              TextField(
-                controller: typeController,
-                decoration: InputDecoration(labelText: AppConstants.TIPO_TAREA),
+              DropdownButtonFormField<String>(
+                value: selectedPriority,
+                items: ['normal', 'urgente']
+                    .map((priority) => DropdownMenuItem(
+                          value: priority,
+                          child: Text(priority),
+                        ))
+                    .toList(),
+                onChanged: (value) {
+                  if (value != null) {
+                    selectedPriority = value;
+                  }
+                },
+                decoration: InputDecoration(labelText: 'Prioridad'),
               ),
               TextField(
                 controller: descriptionController,
                 decoration: InputDecoration(labelText: AppConstants.DESCRIPCION_TAREA),
-              ),
-              TextField(
-                controller: stepsController,
-                decoration: InputDecoration(
-                  labelText: 'Pasos (separados por líneas)', // Etiqueta para los pasos
-                ),
-                maxLines: 3, // Permitir múltiples líneas
               ),
               TextButton(
                 onPressed: () async {
@@ -174,13 +183,13 @@ void _showTaskModal(BuildContext context) {
                     // Llamar al servicio para obtener los pasos
                     if (titleController.text.isNotEmpty) {
                       try {
-                        final int numeroDePasos = 3;
+                        final int numeroDePasos = 2;
                         final pasos = await _taskService.obtenerPasos(
                           titleController.text,
                           selectedDate!,
-                          numeroDePasos
+                          numeroDePasos,
                         );
-                        stepsController.text = pasos.join('\n'); // Actualizar el controlador
+                        stepsController.text = pasos.join('\n'); 
                       } catch (e) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text('Error al obtener los pasos')),
@@ -190,6 +199,13 @@ void _showTaskModal(BuildContext context) {
                   }
                 },
                 child: Text(AppConstants.SELECCIONAR_FECHA),
+              ),
+              TextField(
+                controller: stepsController,
+                decoration: InputDecoration(
+                  labelText: 'Pasos (separados por líneas)', 
+                ),
+                maxLines: 3, 
               ),
             ],
           ),
@@ -205,10 +221,10 @@ void _showTaskModal(BuildContext context) {
                 setState(() {
                   _tasks.add(Task(
                     titulo: titleController.text,
-                    tipo: typeController.text.isNotEmpty ? typeController.text : '',
+                    tipo: selectedPriority, 
                     descripcion: descriptionController.text,
                     fechaLimite: selectedDate!,
-                    pasos: stepsController.text.split('\n'), // Procesar los pasos
+                    pasos: stepsController.text.split('\n'), 
                   ));
                 });
                 Navigator.of(context).pop();
@@ -225,10 +241,10 @@ void _showTaskModal(BuildContext context) {
     },
   );
 }
+
 void _showTaskOptionsModal(BuildContext context, int index) {
   final task = _tasks[index];
   final TextEditingController titleController = TextEditingController(text: task.titulo);
-  final TextEditingController typeController = TextEditingController(text: task.tipo);
   final TextEditingController descriptionController = TextEditingController(text: task.descripcion);
   final TextEditingController stepsController = TextEditingController(
     text: task.pasos.join('\n'), 
@@ -240,6 +256,9 @@ void _showTaskOptionsModal(BuildContext context, int index) {
         : '',
   );
   DateTime? selectedDate = task.fechaLimite;
+
+  // Nueva variable para el valor seleccionado en el dropdown
+  String selectedPriority = task.tipo.isNotEmpty ? task.tipo : 'normal';
 
   showDialog(
     context: context,
@@ -254,9 +273,20 @@ void _showTaskOptionsModal(BuildContext context, int index) {
                 controller: titleController,
                 decoration: InputDecoration(labelText: AppConstants.TITULO_TAREA),
               ),
-              TextField(
-                controller: typeController,
-                decoration: InputDecoration(labelText: AppConstants.TIPO_TAREA),
+              DropdownButtonFormField<String>(
+                value: selectedPriority,
+                items: ['normal', 'urgente']
+                    .map((priority) => DropdownMenuItem(
+                          value: priority,
+                          child: Text(priority),
+                        ))
+                    .toList(),
+                onChanged: (value) {
+                  if (value != null) {
+                    selectedPriority = value;
+                  }
+                },
+                decoration: InputDecoration(labelText: 'Prioridad'),
               ),
               TextField(
                 controller: descriptionController,
@@ -281,7 +311,7 @@ void _showTaskOptionsModal(BuildContext context, int index) {
                     dateController.text =
                         '${pickedDate.day.toString().padLeft(2, '0')}/${pickedDate.month.toString().padLeft(2, '0')}/${pickedDate.year}';
 
-                    final int numeroDePasos = 3;
+                    final int numeroDePasos = 2;
                     final updatedSteps = await _taskService.obtenerPasos(task.titulo, selectedDate!, numeroDePasos);
                     stepsController.text = updatedSteps.join('\n'); 
                   }
@@ -305,13 +335,13 @@ void _showTaskOptionsModal(BuildContext context, int index) {
           ElevatedButton(
             onPressed: () {
               if (titleController.text.isNotEmpty &&
-                  typeController.text.isNotEmpty &&
+                  selectedPriority.isNotEmpty &&
                   descriptionController.text.isNotEmpty &&
                   selectedDate != null) {
                 setState(() {
                   _tasks[index] = Task(
                     titulo: titleController.text,
-                    tipo: typeController.text,
+                    tipo: selectedPriority, // Guardar la prioridad seleccionada
                     descripcion: descriptionController.text,
                     fechaLimite: selectedDate!,
                     pasos: stepsController.text.split('\n'), 
@@ -326,7 +356,6 @@ void _showTaskOptionsModal(BuildContext context, int index) {
             },
             child: Text(AppConstants.GUARDAR),
           ),
-          
         ],
       );
     },
