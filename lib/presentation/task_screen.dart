@@ -43,7 +43,7 @@ class _TaskScreenState extends State<TaskScreen> {
     try {
       
       final initialTasks = await _taskService.getTasksWithSteps();
-      final moreTasks = await _taskService.getMoreTasks(5);
+      final moreTasks = await _taskService.getMoreTaskWithSteps(5);
       setState(() {
         _tasks = [...initialTasks, ...moreTasks];
 
@@ -63,7 +63,7 @@ class _TaskScreenState extends State<TaskScreen> {
     });
 
     try {
-      final newTasks = await _taskService.getMoreTasks(_tasks.length);
+      final newTasks = await _taskService.getMoreTaskWithSteps(_tasks.length);
 
       setState(() {
         _tasks.addAll(newTasks);

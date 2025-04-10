@@ -16,12 +16,12 @@ Future<List<Task>> getTasksWithSteps() async {
   final updatedTasks = await Future.wait(tasks.map((task) async {
     try {
       var pasos = await _apiRepository.obtenerPasos(task.titulo, task.fechaLimite, 2); 
-      pasos = pasos.take(2).toList(); // Limitar a solo dos pasos
+      pasos = pasos.take(2).toList(); // Modificacion 1.2
       return Task(
         titulo: task.titulo,
         tipo: task.tipo,
         descripcion: task.descripcion,
-        fechaLimite: task.fechaLimite,
+        fechaLimite: task.fechaLimite, 
         pasos: pasos, 
       );
     } catch (e) {
@@ -33,8 +33,27 @@ Future<List<Task>> getTasksWithSteps() async {
   return updatedTasks;
 }
  
-Future<List<Task>> getMoreTasks(int offset) async {
-  return await _repository.getMoreTasks(offset: offset, limit: 5);
+Future<List<Task>> getMoreTaskWithSteps(int offset) async {
+   final tasks = await _repository.getMoreTasks(offset: offset, limit: 5);
+
+  final updatedTasks = await Future.wait(tasks.map((task) async {
+    try {
+      var pasos = await _apiRepository.obtenerPasos(task.titulo, task.fechaLimite, 2);
+      pasos = pasos.take(2).toList(); 
+      return Task(
+        titulo: task.titulo,
+        tipo: task.tipo,
+        descripcion: task.descripcion,
+        fechaLimite: DateTime.now().add(const Duration(days:1)), // Modificacion 2.1
+        pasos: pasos,
+      );
+    } catch (e) {
+      print("Error al obtener pasos para la tarea '${task.titulo}': $e");
+      return task; 
+    }
+  }).toList());
+
+  return updatedTasks; // Devuelve la lista de tareas actualizadas
 }
   List<String> obtenerPasos(String titulo, DateTime fecha, int numeroDePasos) {
     return _apiRepository.obtenerPasos(titulo, fecha, numeroDePasos);

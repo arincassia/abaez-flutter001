@@ -87,9 +87,17 @@ class TaskCardHelper {
                  Text('Descripción: ${tasks[indice].descripcion}'),
 
                 const SizedBox(height: 16), 
-                  if (tasks[indice].pasos.isNotEmpty)
-                  Text('${tasks[indice].pasos[0]}',style: TextStyle(color: Colors.grey)),
-                  
+                if (tasks[indice].pasos.isNotEmpty) ...[
+                  Text(
+                    AppConstants.PASOS_TITULO,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                  tasks[indice].pasos[0],
+                  style: const TextStyle(color: Colors.grey),
+                ),
+                ],
                 
                 const SizedBox(height: 16),
                 Text(
@@ -98,16 +106,16 @@ class TaskCardHelper {
                         : '${AppConstants.FECHA_LIMITE} Sin fecha', style: TextStyle(fontStyle: FontStyle.normal, fontSize: 16),
                   ),
                     const SizedBox(height: 16),
-                Row(
-                children: [
-                Icon(
-                 tasks[indice].tipo.toLowerCase() == 'urgente' ? Icons.warning : Icons.task,
-                 color: tasks[indice].tipo.toLowerCase() == 'urgente' ? Colors.red : Colors.blue,
+                ListTile(
+                leading: Icon(
+                tasks[indice].tipo.toLowerCase() == 'urgente' ? Icons.warning : Icons.task,
+                color: tasks[indice].tipo.toLowerCase() == 'urgente' ? Colors.red : Colors.blue,
                 ),
-                const SizedBox(width: 8),
-                Text('Tipo: ${tasks[indice].tipo}'),
-                ],
-                ),
+                title: Text(
+                  '${AppConstants.TIPO_TAREA}: ${tasks[indice].tipo}',
+                  style: const TextStyle(fontSize: 16),
+                ), 
+                ), //Moficacion 2.2
                 ],
               ),
             ),

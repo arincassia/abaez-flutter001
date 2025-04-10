@@ -12,7 +12,7 @@ class TaskRepository {
         titulo: 'Tarea 1',
         tipo: 'urgente',
         descripcion: 'Descripción de la tarea 1',
-        fechaLimite: DateTime(2025, 4, 10),
+        fechaLimite: DateTime(2025, 4, 10), //Modificacion 1.3
         pasos: [],
       ),
       Task(
