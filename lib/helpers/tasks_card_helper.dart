@@ -89,6 +89,7 @@ class TaskCardHelper {
                 const SizedBox(height: 16), 
                   if (tasks[indice].pasos.isNotEmpty)
                   Text('${tasks[indice].pasos[0]}',style: TextStyle(color: Colors.grey)),
+                  
                 
                 const SizedBox(height: 16),
                 Text(
