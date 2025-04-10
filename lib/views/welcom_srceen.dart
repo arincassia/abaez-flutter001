@@ -49,9 +49,9 @@ class WelcomeScreen extends StatelessWidget {
                Navigator.pop(context); 
                Navigator.push(
                context,
-              MaterialPageRoute(
-              builder: (context) => MyAppContador(),
-              ),
+             MaterialPageRoute(
+             builder: (context) => MyHomePage(title: 'Contador'),
+             ),
               );
                 },
             ),

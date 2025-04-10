@@ -1,17 +1,18 @@
 
 class AppConstants {
-  static const String TITLE_APPBAR = 'Lista de Tareas';
-  static const String EMPTY_LIST = 'No hay tareas disponibles';
-  static const String ADD_TASK_TITLE = 'Agregar Tarea';
-  static const String EDIT_TASK_TITLE = 'Editar Tarea';
-  static const String TITLE_LABEL = 'Título';
-  static const String TYPE_LABEL = 'Tipo';
-  static const String DESCRIPTION_LABEL = 'Descripción';
-  static const String DATE_LABEL = 'Fecha'; 
-  static const String SELECT_DATE_BUTTON = 'Seleccionar Fecha'; 
-  static const String CANCEL_BUTTON = 'Cancelar';
-  static const String SAVE_BUTTON = 'Guardar';
-  static const String DELETE_BUTTON = 'Eliminar';
-  static const String EMPTY_FIELDS_ERROR = 'Por favor, completa todos los campos obligatorios.';
+  static const String TITULO_APPBAR = 'Mis tareas';
+  static const String LISTA_VACIA  = 'No hay tareas disponibles';
+  static const String AGREGAR_TAREA = 'Agregar Tarea';
+  static const String EDITAR_TAREA = 'Editar Tarea';
+  static const String TITULO_TAREA = 'Título';
+  static const String TIPO_TAREA = 'Tipo'; //Modificacion 1.1
+  static const String DESCRIPCION_TAREA = 'Descripción';
+  static const String FECHA_TAREA = 'Fecha'; 
+  static const String SELECCIONAR_FECHA = 'Seleccionar Fecha'; 
+  static const String CANCELAR = 'Cancelar';
+  static const String GUARDAR = 'Guardar';
+  static const String TAREA_ELIMINADA = 'Tarea eliminada';
+  static const String CAMPOS_VACIOS = 'Por favor, completa todos los campos obligatorios.';
   static const String FECHA_LIMITE = 'Fecha límite: ';
+  static const String PASOS_TITULO = 'Pasos para completar: '; 
 }
