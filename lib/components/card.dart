@@ -7,17 +7,17 @@ class BaseCard extends StatelessWidget {
   final Widget trailing;
 
   const BaseCard({
-    Key? key,
+    super.key, // Usa super parameter para 'key'
     required this.leading,
     required this.title,
     required this.subtitle,
     required this.trailing,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: ListTile(
         leading: leading,

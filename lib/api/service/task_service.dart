@@ -2,59 +2,65 @@ import 'package:abaez/data/api_repository.dart';
 import 'package:abaez/data/task_repository.dart';
 import 'package:abaez/domain/task.dart';
 
+
 class TaskService {
   final TaskRepository _repository;
   final ApiRepository _apiRepository;
+  
 
   TaskService(this._repository, this._apiRepository);
 
   final List<Task> _tasks = [];
-Future<List<Task>> getTasksWithSteps() async {
-  final tasks = await _repository.getTasks(); 
 
-  // Crear una nueva lista de tareas con los pasos actualizados
-  final updatedTasks = await Future.wait(tasks.map((task) async {
-    try {
-      var pasos = await _apiRepository.obtenerPasos(task.titulo, task.fechaLimite, 2); 
-      pasos = pasos.take(2).toList(); // Modificacion 1.2
-      return Task(
-        titulo: task.titulo,
-        tipo: task.tipo,
-        descripcion: task.descripcion,
-        fechaLimite: task.fechaLimite, 
-        pasos: pasos, 
-      );
-    } catch (e) {
-      print("Error al obtener pasos para la tarea '${task.titulo}': $e");
-      return task; 
-    }
-  }).toList());
+  Future<List<Task>> getTasksWithSteps() async {
+    final tasks = await _repository.getTasks();
 
-  return updatedTasks;
-}
- 
-Future<List<Task>> getMoreTaskWithSteps(int offset) async {
-   final tasks = await _repository.getMoreTasks(offset: offset, limit: 5);
+    final updatedTasks = await Future.wait(tasks.map((task) async {
+      try {
+        // Elimina el 'await' si obtenerPasos no es asíncrono
+        var pasos = _apiRepository.obtenerPasos(task.titulo, task.fechaLimite, 2);
+        pasos = pasos.take(2).toList();
+        return Task(
+          titulo: task.titulo,
+          tipo: task.tipo,
+          descripcion: task.descripcion,
+          fechaLimite: task.fechaLimite,
+          pasos: pasos,
+        );
+      } catch (e) {
+        //print("Error al obtener pasos para la tarea '${task.titulo}': $e");
+        return task;
+      }
+    }).toList());
 
-  final updatedTasks = await Future.wait(tasks.map((task) async {
-    try {
-      var pasos = await _apiRepository.obtenerPasos(task.titulo, task.fechaLimite, 2);
-      pasos = pasos.take(2).toList(); 
-      return Task(
-        titulo: task.titulo,
-        tipo: task.tipo,
-        descripcion: task.descripcion,
-        fechaLimite: DateTime.now().add(const Duration(days:1)), // Modificacion 2.1
-        pasos: pasos,
-      );
-    } catch (e) {
-      print("Error al obtener pasos para la tarea '${task.titulo}': $e");
-      return task; 
-    }
-  }).toList());
+    return updatedTasks;
+  }
 
-  return updatedTasks; // Devuelve la lista de tareas actualizadas
-}
+  Future<List<Task>> getMoreTaskWithSteps(int offset) async {
+    final tasks = await _repository.getMoreTasks(offset: offset, limit: 5);
+
+    final updatedTasks = await Future.wait(tasks.map((task) async {
+      try {
+        // Elimina el 'await' si obtenerPasos no es asíncrono
+        var pasos = _apiRepository.obtenerPasos(task.titulo, task.fechaLimite, 2);
+        pasos = pasos.take(2).toList();
+        return Task(
+          titulo: task.titulo,
+          tipo: task.tipo,
+          descripcion: task.descripcion,
+          fechaLimite: DateTime.now().add(const Duration(days: 1)),
+          pasos: pasos,
+        );
+      } catch (e) {
+        //print("Error al obtener pasos para la tarea '${task.titulo}': $e");
+        return task;
+      }
+    }).toList());
+
+    return updatedTasks;
+  }
+
+
   List<String> obtenerPasos(String titulo, DateTime fecha, int numeroDePasos) {
     return _apiRepository.obtenerPasos(titulo, fecha, numeroDePasos);
   }
@@ -74,7 +80,7 @@ Future<List<Task>> getMoreTaskWithSteps(int offset) async {
 
   bool addTask(Task task) {
     _tasks.add(task);
-    print("Task added: ${task.titulo}, type: ${task.tipo}, description: ${task.descripcion}, date: ${task.fechaLimite}");
+    //print("Task added: ${task.titulo}, type: ${task.tipo}, description: ${task.descripcion}, date: ${task.fechaLimite}"); // Replace print
     return true;
   }
 
@@ -85,7 +91,7 @@ Future<List<Task>> getMoreTaskWithSteps(int offset) async {
   }
 
   Future<void> fetchMoreTasks() async {
-  final moreTasks = await _repository.getMoreTasks(offset: _tasks.length, limit: 5);
-  _tasks.addAll(moreTasks);
-}
+    final moreTasks = await _repository.getMoreTasks(offset: _tasks.length, limit: 5);
+    _tasks.addAll(moreTasks);
+  }
 }
