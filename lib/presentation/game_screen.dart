@@ -33,7 +33,9 @@ class GameScreenState extends State<GameScreen> {
       questionCounterText =
           'Pregunta ${currentQuestionIndex + 1} de ${questionsList.length}';
     });
-  }void handleAnswer(int selectedIndex) {
+  }
+
+  void handleAnswer(int selectedIndex) {
   setState(() {
     selectedAnswerIndex = selectedIndex;
     isCorrectAnswer = questionsList[currentQuestionIndex].correctAnswerIndex == selectedIndex;
@@ -41,8 +43,22 @@ class GameScreenState extends State<GameScreen> {
     print('Is Correct Answer: $isCorrectAnswer');
   });
 
+  
+  final String snackBarMessage = isCorrectAnswer == true ? '¡Correcto!' : 'Incorrecto';
+  final Color snackBarColor = isCorrectAnswer == true ? Colors.green : Colors.red;
+
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(snackBarMessage),
+      backgroundColor: snackBarColor,
+      duration: const Duration(seconds: 1),
+    ),
+  );
+
+
   Future.delayed(const Duration(seconds: 1), () {
-    if (!context.mounted) return;
+    if (!mounted) return; 
     if (isCorrectAnswer == true) {
       userScore++;
     }
@@ -55,24 +71,22 @@ class GameScreenState extends State<GameScreen> {
         questionCounterText =
             'Pregunta ${currentQuestionIndex + 1} de ${questionsList.length}';
       });
-    } else {
-      if (context.mounted){
+  } else {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => ResultScreen(userScore: userScore),
+          builder: (context) => ResultScreen(
+            finalScore: userScore,
+            totalQuestions: questionsList.length,
+          ),
         ),
       );
-      }
-    }
+   }
   });
-}
-
-
+ }
   @override
   Widget build(BuildContext context) {
-    print('Widget reconstruido');
-    const double spacingHeight = 16.0; // Modificacion 2.1
+    const double spacingHeight = 16.0; 
     if (questionsList.isEmpty) {
       return const Scaffold(
         backgroundColor: Colors.white,
@@ -97,7 +111,7 @@ class GameScreenState extends State<GameScreen> {
           children: [
             Text(
               questionCounterText,
-              style: const TextStyle(fontSize: 16, color: Colors.grey), //Modificacion 2.3
+              style: const TextStyle(fontSize: 16, color: Colors.grey),
             ),
             const SizedBox(height: spacingHeight),
             Text(
@@ -126,7 +140,7 @@ class GameScreenState extends State<GameScreen> {
               }
               return Colors.blue; 
             },
-          ), //Modificacion 2.2
+          ), 
           padding: WidgetStateProperty.all(
             const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
           ),
