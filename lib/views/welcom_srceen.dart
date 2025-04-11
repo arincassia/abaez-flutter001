@@ -1,7 +1,8 @@
+
 import 'package:abaez/views/contador.dart';
 import 'package:flutter/material.dart';
 import 'package:abaez/presentation/task_screen.dart';
-
+import 'package:abaez/presentation/start_screen.dart';
 class WelcomeScreen extends StatelessWidget {
   final String username;
 
@@ -43,7 +44,7 @@ class WelcomeScreen extends StatelessWidget {
                 },
             ),
              ListTile(
-              leading: const Icon(Icons.list),
+              leading: const Icon(Icons.timer),
               title: const Text('Contador'),
               onTap: () {
                Navigator.pop(context); 
@@ -51,6 +52,19 @@ class WelcomeScreen extends StatelessWidget {
                context,
              MaterialPageRoute(
              builder: (context) => const MyHomePage(title: 'Contador'),
+             ),
+              );
+                },
+            ),
+             ListTile(
+              leading: const Icon(Icons.videogame_asset),
+              title: const Text('Juego de preguntas'),
+              onTap: () {
+               Navigator.pop(context); 
+               Navigator.push(
+               context,
+             MaterialPageRoute(
+             builder: (context) => const StartScreen(),
              ),
               );
                 },
