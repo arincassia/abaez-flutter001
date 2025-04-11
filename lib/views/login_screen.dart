@@ -72,12 +72,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     await _authService.login(username, password);
 
                      // Redige a la pantalla de bienvenida
+                    if (context.mounted) {
                     Navigator.push(
                     context,
                     MaterialPageRoute(
                     builder: (context) => WelcomeScreen(username: _usernameController.text.trim()),
                   ),
                   );
+                  }
                   }
                 },
                 child: const Text('Iniciar Sesión'),
