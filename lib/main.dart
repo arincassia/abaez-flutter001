@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 254, 70, 85)),
       ),
     //  home: const MyHomePage(title: 'Flutter Demo Alejandra Home Page '),
-      home: LoginScreen(),
+      home: const LoginScreen(),
     );
   }
 }

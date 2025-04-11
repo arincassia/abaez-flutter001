@@ -6,7 +6,7 @@ class TaskRepository {
   final ApiRepository apiRepository = ApiRepository(); 
   final Random random = Random();
   Future<List<Task>> getTasks() async {
-    await Future.delayed(Duration(seconds: 2));
+    await Future.delayed(const Duration(seconds: 2));
     return [
       Task(
         titulo: 'Tarea 1',
@@ -47,7 +47,7 @@ class TaskRepository {
   }
 
  Future<List<Task>>getMoreTasks({int offset = 0, int limit = 5}) async {
-    await Future.delayed(Duration(seconds: 2));// Simula la obtención de más tareas
+    await Future.delayed(const Duration(seconds: 2));// Simula la obtención de más tareas
     return List.generate(limit, (index) {
       final taskNumber = offset + index + 1;
       final fechaLimite = DateTime.now().add(Duration(days: random.nextInt(5) + 1));

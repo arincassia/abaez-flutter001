@@ -86,13 +86,13 @@ class TaskScreenState extends State<TaskScreen> {
     body: Container(
     color: Colors.grey[200]!,
     child: _tasks.isEmpty
-        ? Center(child: Text(AppConstants.listaVacia))
+        ? const Center(child: Text(AppConstants.listaVacia))
         : ListView.builder(
             controller: _scrollController,
             itemCount: _tasks.length + (_isLoading ? 1 : 0),
             itemBuilder: (context, index) {
               if (index == _tasks.length) {
-                return Center(child: CircularProgressIndicator());
+                return const Center(child: CircularProgressIndicator());
               }
               final task = _tasks[index];
               return Dismissible(
@@ -100,8 +100,8 @@ class TaskScreenState extends State<TaskScreen> {
                 background: Container(
                   color: Colors.red,
                   alignment: Alignment.centerLeft,
-                  padding: EdgeInsets.only(left: 20.0),
-                  child: Icon(Icons.delete, color: Colors.white),
+                  padding: const EdgeInsets.only(left: 20.0),
+                  child: const Icon(Icons.delete, color: Colors.white),
                 ),
                 direction: DismissDirection.startToEnd,
                 onDismissed: (direction) {
@@ -125,7 +125,7 @@ class TaskScreenState extends State<TaskScreen> {
 
     floatingActionButton: FloatingActionButton(
       onPressed: () => _showTaskModal(context),
-      child: Icon(Icons.add),
+      child: const Icon(Icons.add),
     ),
   );
 }
@@ -143,14 +143,14 @@ void _showTaskModal(BuildContext context) {
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
-        title: Text(AppConstants.agregarTarea),
+        title: const Text(AppConstants.agregarTarea),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: titleController,
-                decoration: InputDecoration(labelText: AppConstants.tituloTarea),
+                decoration: const InputDecoration(labelText: AppConstants.tituloTarea),
               ),
               DropdownButtonFormField<String>(
                 value: selectedPriority,
@@ -165,11 +165,11 @@ void _showTaskModal(BuildContext context) {
                     selectedPriority = value;
                   }
                 },
-                decoration: InputDecoration(labelText: 'Prioridad'),
+                decoration: const InputDecoration(labelText: 'Prioridad'),
               ),
               TextField(
                 controller: descriptionController,
-                decoration: InputDecoration(labelText: AppConstants.descripcionTarea),
+                decoration: const InputDecoration(labelText: AppConstants.descripcionTarea),
               ),
               TextButton(
                 onPressed: () async {
@@ -194,17 +194,17 @@ void _showTaskModal(BuildContext context) {
                         stepsController.text = pasos.join('\n'); 
                       } catch (e) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error al obtener los pasos')),
+                          const SnackBar(content: Text('Error al obtener los pasos')),
                         );
                       }
                     }
                   }
                 },
-                child: Text(AppConstants.seleccionarFecha),
+                child: const Text(AppConstants.seleccionarFecha),
               ),
               TextField(
                 controller: stepsController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Pasos (separados por líneas)', 
                 ),
                 maxLines: 3, 
@@ -215,7 +215,7 @@ void _showTaskModal(BuildContext context) {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text(AppConstants.cancelar),
+            child: const Text(AppConstants.cancelar),
           ),
           ElevatedButton(
             onPressed: () {
@@ -232,11 +232,11 @@ void _showTaskModal(BuildContext context) {
                 Navigator.of(context).pop();
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(AppConstants.camposVacios)),
+                  const SnackBar(content: Text(AppConstants.camposVacios)),
                 );
               }
             },
-            child: Text(AppConstants.guardar),
+            child: const Text(AppConstants.guardar),
           ),
         ],
       );
@@ -265,14 +265,14 @@ void _showTaskOptionsModal(BuildContext context, int index) {
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
-        title: Text(AppConstants.editarTarea),
+        title: const Text(AppConstants.editarTarea),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: titleController,
-                decoration: InputDecoration(labelText: AppConstants.tituloTarea),
+                decoration: const InputDecoration(labelText: AppConstants.tituloTarea),
               ),
               DropdownButtonFormField<String>(
                 value: selectedPriority,
@@ -287,16 +287,16 @@ void _showTaskOptionsModal(BuildContext context, int index) {
                     selectedPriority = value;
                   }
                 },
-                decoration: InputDecoration(labelText: 'Prioridad'),
+                decoration: const InputDecoration(labelText: 'Prioridad'),
               ),
               TextField(
                 controller: descriptionController,
-                decoration: InputDecoration(labelText: AppConstants.descripcionTarea),
+                decoration: const InputDecoration(labelText: AppConstants.descripcionTarea),
               ),
               TextFormField(
                 controller: dateController,
                 readOnly: true,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: AppConstants.fechaTarea,
                   hintText: 'Seleccionar fecha',
                 ),
@@ -320,7 +320,7 @@ void _showTaskOptionsModal(BuildContext context, int index) {
               ),
               TextField(
                 controller: stepsController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Pasos (separados por líneas)',
                 ),
                 maxLines: 3, 
@@ -331,7 +331,7 @@ void _showTaskOptionsModal(BuildContext context, int index) {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text(AppConstants.cancelar),
+            child: const Text(AppConstants.cancelar),
           ),
           ElevatedButton(
             onPressed: () {
@@ -351,11 +351,11 @@ void _showTaskOptionsModal(BuildContext context, int index) {
                 Navigator.of(context).pop();
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(AppConstants.camposVacios)),
+                  const SnackBar(content: Text(AppConstants.camposVacios)),
                 );
               }
             },
-            child: Text(AppConstants.guardar),
+            child: const Text(AppConstants.guardar),
           ),
         ],
       );

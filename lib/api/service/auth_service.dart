@@ -9,7 +9,7 @@ class MockAuthService {
     }
 
     // Simula un retraso para imitar una llamada a un servicio real
-    await Future.delayed(Duration(seconds: 1));
+    await Future.delayed(const Duration(seconds: 1));
 
     // Imprime las credenciales en la consola
     //print('Mock Login:');

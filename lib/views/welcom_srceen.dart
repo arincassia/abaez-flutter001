@@ -17,9 +17,9 @@ class WelcomeScreen extends StatelessWidget {
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
-            DrawerHeader(
+            const DrawerHeader(
               decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 248, 174, 206),
+                color: Color.fromARGB(255, 248, 174, 206),
               ),
               child: Text(
                 'Menú',
@@ -30,34 +30,34 @@ class WelcomeScreen extends StatelessWidget {
               ),
             ),
             ListTile(
-              leading: Icon(Icons.list),
-              title: Text('Lista de Tareas'),
+              leading: const Icon(Icons.list),
+              title: const Text('Lista de Tareas'),
               onTap: () {
                Navigator.pop(context); 
                Navigator.push(
                context,
               MaterialPageRoute(
-              builder: (context) => TaskScreen(),
+              builder: (context) => const TaskScreen(),
               ),
               );
                 },
             ),
              ListTile(
-              leading: Icon(Icons.list),
-              title: Text('Contador'),
+              leading: const Icon(Icons.list),
+              title: const Text('Contador'),
               onTap: () {
                Navigator.pop(context); 
                Navigator.push(
                context,
              MaterialPageRoute(
-             builder: (context) => MyHomePage(title: 'Contador'),
+             builder: (context) => const MyHomePage(title: 'Contador'),
              ),
               );
                 },
             ),
               ListTile(
-              leading: Icon(Icons.exit_to_app),
-              title: Text('Cerrar'),
+              leading: const Icon(Icons.exit_to_app),
+              title: const Text('Cerrar'),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.pop(context); 
