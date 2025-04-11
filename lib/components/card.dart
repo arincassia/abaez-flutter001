@@ -7,12 +7,12 @@ class BaseCard extends StatelessWidget {
   final Widget trailing;
 
   const BaseCard({
-    Key? key,
+    super.key, // Usa super parameter para 'key'
     required this.leading,
     required this.title,
     required this.subtitle,
     required this.trailing,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

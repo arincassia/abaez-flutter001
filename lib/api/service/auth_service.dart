@@ -12,9 +12,9 @@ class MockAuthService {
     await Future.delayed(Duration(seconds: 1));
 
     // Imprime las credenciales en la consola
-    print('Mock Login:');
-    print('Username: $username');
-    print('Password: $password');
+    //print('Mock Login:');
+    //print('Username: $username');
+    //print('Password: $password');
     return;
   }
 }

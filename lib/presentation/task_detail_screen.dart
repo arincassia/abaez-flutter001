@@ -6,7 +6,8 @@ class TaskDetailScreen extends StatelessWidget {
   final List<Task> tasks;
   final int initialIndex;
 
-  const TaskDetailScreen({Key? key, required this.tasks, required this.initialIndex}) : super(key: key);
+  const TaskDetailScreen({
+    super.key, required this.tasks, required this.initialIndex});
 
   @override
   Widget build(BuildContext context) {

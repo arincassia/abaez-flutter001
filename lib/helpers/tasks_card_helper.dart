@@ -68,7 +68,7 @@ static Widget buildTaskCard(
                 Row(
                   children: [
                     Text(
-                      '${AppConstants.TIPO_TAREA}: ${task.tipo}',
+                      '${AppConstants.tipoTarea}: ${task.tipo}',
                       style: const TextStyle(fontSize: 16),
                     ),
                     const SizedBox(width: 8),
@@ -99,7 +99,7 @@ static Widget buildTaskCard(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    AppConstants.PASOS_TITULO,
+                    AppConstants.pasosTitulo,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
@@ -112,15 +112,13 @@ static Widget buildTaskCard(
             ),
 
           // Fecha límite
-          Padding(
+           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            child: Text(
-              task.fechaLimite != "null"
-                  ? '${AppConstants.FECHA_LIMITE} ${task.fechaLimite.day.toString().padLeft(2, '0')}/${task.fechaLimite.month.toString().padLeft(2, '0')}/${task.fechaLimite.year}'
-                  : '${AppConstants.FECHA_LIMITE} Sin fecha',
+           child: Text(
+             '${AppConstants.fechaLimite} ${task.fechaLimite.day.toString().padLeft(2, '0')}/${task.fechaLimite.month.toString().padLeft(2, '0')}/${task.fechaLimite.year}',
               style: const TextStyle(fontSize: 16),
             ),
-          ),
+           ),
 
           // Botón de edición
           if (onEdit != null)
