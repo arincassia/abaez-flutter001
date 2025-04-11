@@ -2,14 +2,14 @@ import  'package:abaez/data/question_repository.dart';
 import 'package:abaez/domain/question.dart';
 
 class QuestionService {
-  final QuestionRepository _repository;
+  final QuestionRepository repository;
 
-  QuestionService(this._repository);
+  QuestionService(this.repository);
 
   final List<Question> questions = [];
 
   Future<List<Question>> getQuestions() async {
-    final questions = await _repository.getQuestions();
+    final questions = await repository.getQuestions();
     return questions;
   }
 }
