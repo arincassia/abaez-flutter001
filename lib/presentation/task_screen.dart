@@ -133,10 +133,10 @@ class TaskScreenState extends State<TaskScreen> {
 void _showTaskModal(BuildContext context) {
   final TextEditingController titleController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
-  final TextEditingController stepsController = TextEditingController(); // Controlador para los pasos
+  final TextEditingController stepsController = TextEditingController();
+  final TextEditingController dateController = TextEditingController(); // Controlador para la fecha
   DateTime? selectedDate;
 
-  
   String selectedPriority = 'normal';
 
   showDialog(
@@ -171,8 +171,14 @@ void _showTaskModal(BuildContext context) {
                 controller: descriptionController,
                 decoration: const InputDecoration(labelText: AppConstants.descripcionTarea),
               ),
-              TextButton(
-                onPressed: () async {
+              TextFormField(
+                controller: dateController,
+                readOnly: true,
+                decoration: const InputDecoration(
+                  labelText: AppConstants.fechaTarea,
+                  hintText: 'Seleccionar fecha',
+                ),
+                onTap: () async {
                   final pickedDate = await showDatePicker(
                     context: context,
                     initialDate: DateTime.now(),
@@ -181,6 +187,8 @@ void _showTaskModal(BuildContext context) {
                   );
                   if (pickedDate != null) {
                     selectedDate = pickedDate;
+                    dateController.text =
+                        '${pickedDate.day.toString().padLeft(2, '0')}/${pickedDate.month.toString().padLeft(2, '0')}/${pickedDate.year}';
 
                     // Llamar al servicio para obtener los pasos
                     if (titleController.text.isNotEmpty) {
@@ -191,23 +199,24 @@ void _showTaskModal(BuildContext context) {
                           selectedDate!,
                           numeroDePasos,
                         );
-                        stepsController.text = pasos.join('\n'); 
+                        stepsController.text = pasos.join('\n');
                       } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Error al obtener los pasos')),
-                        );
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Error al obtener los pasos')),
+                          );
+                        }
                       }
                     }
                   }
                 },
-                child: const Text(AppConstants.seleccionarFecha),
               ),
               TextField(
                 controller: stepsController,
                 decoration: const InputDecoration(
-                  labelText: 'Pasos (separados por líneas)', 
+                  labelText: 'Pasos (separados por líneas)',
                 ),
-                maxLines: 3, 
+                maxLines: 3,
               ),
             ],
           ),
@@ -223,10 +232,10 @@ void _showTaskModal(BuildContext context) {
                 setState(() {
                   _tasks.add(Task(
                     titulo: titleController.text,
-                    tipo: selectedPriority, 
+                    tipo: selectedPriority,
                     descripcion: descriptionController.text,
                     fechaLimite: selectedDate!,
-                    pasos: stepsController.text.split('\n'), 
+                    pasos: stepsController.text.split('\n'),
                   ));
                 });
                 Navigator.of(context).pop();
@@ -258,7 +267,7 @@ void _showTaskOptionsModal(BuildContext context, int index) {
   );
   DateTime? selectedDate = task.fechaLimite;
 
-  // Nueva variable para el valor seleccionado en el dropdown
+  
   String selectedPriority = task.tipo.isNotEmpty ? task.tipo : 'normal';
 
   showDialog(
