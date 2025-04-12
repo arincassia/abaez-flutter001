@@ -38,24 +38,27 @@ class TaskScreenState extends State<TaskScreen> {
   }
 
   Future<void> _loadTasks() async {
-    setState(() {
-      _isLoading = true;
-    });
+  setState(() {
+    _isLoading = true;
+  });
 
-    try {
-      
-      final initialTasks = await _taskService.getTasksWithSteps();
-      final moreTasks = await _taskService.getMoreTaskWithSteps(5);
+  try {
+    final initialTasks = await _taskService.getTasksWithSteps();
+    final moreTasks = await _taskService.getMoreTaskWithSteps(5);
+
+    if (mounted) { 
       setState(() {
         _tasks = [...initialTasks, ...moreTasks];
-
       });
-    } finally {
+    }
+  } finally {
+    if (mounted) { 
       setState(() {
         _isLoading = false;
       });
     }
   }
+}
 
   Future<void> _loadMoreTasks() async {
     if (_isLoading) return; 
