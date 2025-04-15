@@ -31,18 +31,14 @@ class AppConstants {
   static const String loadingmessage = 'Cargando cotizaciones...';
   static const String emptyList = 'No hay cotizaciones';
   static const String companyName = 'Nombre de la Empresa';
-  static const String stockPrice = 'Precio de la Acción';
-  static const String changePercentage = 'Porcentaje de Cambio';
-  static const String lastUpdated = 'Última Actualización';
+  static const String stockPrice = 'Precio de la Acción:';
+  static const String changePercentage = 'Porcentaje de Cambio:';
+  static const String lastUpdated = 'Última Actualización:';
   static const String errorMessage = 'Error al cargar cotizaciones';
- 
- /*
-  title_app = 'Cotizaciones Financieras', 
-  loading_message = 'Cargando cotizaciones...', 
-  y empty_list = 'No hay cotizaciones'. 
-  El modelo 'quote.dart' debe tener campos 'companyName' (String), 
-  'stockPrice' (double), y 
-  'changePercentage' (double, porcentaje de cambio).
- */
+  static const int pageSize = 10;
+  static const String dateFormat = 'dd/MM/yyyy HH:mm'; 
+
+
+
 
 }

@@ -3,6 +3,7 @@ import 'package:abaez/views/contador.dart';
 import 'package:flutter/material.dart';
 import 'package:abaez/presentation/task_screen.dart';
 import 'package:abaez/presentation/start_screen.dart';
+import 'package:abaez/views/quote_screen.dart';
 class WelcomeScreen extends StatelessWidget {
   final String username;
 
@@ -65,6 +66,19 @@ class WelcomeScreen extends StatelessWidget {
                context,
              MaterialPageRoute(
              builder: (context) => const StartScreen(),
+             ),
+              );
+                },
+            ),
+             ListTile(
+              leading: const Icon(Icons.attach_money),
+              title: const Text('Cotizaciones'),
+              onTap: () {
+               Navigator.pop(context); 
+               Navigator.push(
+               context,
+             MaterialPageRoute(
+             builder: (context) => const QuoteScreen(),
              ),
               );
                 },

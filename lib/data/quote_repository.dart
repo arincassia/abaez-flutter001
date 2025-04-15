@@ -1,7 +1,32 @@
 import 'package:abaez/domain/quote.dart';
-
+import 'dart:math';
 
 class QuoteRepository {
+  final random = Random();  
+  final List<String> companyNames = [
+    'Apple',
+    'Google',
+    'Amazon',
+    'Microsoft',
+    'Tesla',
+    'Meta',
+    'IBM',
+    'Adobe',
+    'Netflix',
+    'Spotify',
+    'Intel',
+    'NVIDIA',
+    'Samsung',
+    'Oracle',
+    'Cisco',
+    'Salesforce',
+    'Twitter',
+    'Snapchat',
+    'Zoom',
+    'PayPal',
+  ];
+
+ 
   Future<List<Quote>> fetchQuotes() async {
     // Simula un retraso de 2 segundos
     await Future.delayed(const Duration(seconds: 2));
@@ -21,4 +46,22 @@ class QuoteRepository {
 
     ];
   }
+  Future<List<Quote>> getPaginatedQuotes({required int pageNumber, int pageSize = 5}) async {
+  await Future.delayed(const Duration(seconds: 2)); 
+  final offset = (pageNumber - 1) * pageSize;
+
+  return List.generate(pageSize, (index) {
+    final quoteNumber = offset + index + 1; 
+    final companyName = companyNames[random.nextInt(companyNames.length)];
+    final stockPrice = (random.nextDouble() * 3000 + 50).toStringAsFixed(2); 
+    final changePercentage = (random.nextDouble() * 10 - 5).toStringAsFixed(2); 
+    return Quote(
+      companyName: '$companyName $quoteNumber',
+      stockPrice: double.parse(stockPrice),
+      changePercentage: double.parse(changePercentage),
+      lastUpdated: DateTime.now(),
+    );
+  });
+}
+ 
 }
