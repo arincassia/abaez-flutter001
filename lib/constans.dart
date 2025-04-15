@@ -26,4 +26,19 @@ class AppConstants {
   static const String finalScore = 'Puntuación Final: ';
   static const String playAgain = 'Jugar de Nuevo';
 
+  //Constantes para la aplicación de cotizaciones financieras
+  static const String titleAppFinance = 'Cotizaciones Financieras';
+  static const String loadingmessage = 'Cargando cotizaciones...';
+  static const String emptyList = 'No hay cotizaciones';
+  static const String companyName = 'Nombre de la Empresa';
+  static const String stockPrice = 'Precio de la Acción:';
+  static const String changePercentage = 'Porcentaje de Cambio:';
+  static const String lastUpdated = 'Última Actualización:';
+  static const String errorMessage = 'Error al cargar cotizaciones';
+  static const int pageSize = 10;
+  static const String dateFormat = 'dd/MM/yyyy HH:mm'; 
+
+
+
+
 }
