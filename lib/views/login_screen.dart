@@ -1,3 +1,4 @@
+import 'package:abaez/views/market_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:abaez/api/service/auth_service.dart';
 import 'package:abaez/views/welcom_srceen.dart';
@@ -76,7 +77,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     Navigator.push(
                     context,
                     MaterialPageRoute(
-                    builder: (context) => WelcomeScreen(username: _usernameController.text.trim()),
+                    builder: (context) => MarketScreen(),
                   ),
                   );
                   }
