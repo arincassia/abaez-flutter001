@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:abaez/api/noticia_service.dart';
+import 'package:abaez/api/service/noticia_service.dart';
 import 'package:abaez/data/noticia_repository.dart';
 import 'package:abaez/components/noticia_card.dart';
 import 'package:abaez/constans.dart';
