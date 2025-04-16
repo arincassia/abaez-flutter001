@@ -35,7 +35,7 @@ class NoticiaCard extends StatelessWidget {
                       noticia.titulo,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: 18,
                       ),
                     ),
                     const SizedBox(height: 4),
