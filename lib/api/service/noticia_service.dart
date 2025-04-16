@@ -1,4 +1,5 @@
 import 'package:abaez/data/noticia_repository.dart';
+import 'package:abaez/constans.dart';
 
 class NoticiaService {
   final NoticiaRepository _noticiaRepository;
@@ -37,7 +38,7 @@ class NoticiaService {
   
   Future<List<Noticia>> obtenerNoticiasPaginadas({
     required int numeroPagina,
-    int tamanoPagina = 5,
+    int tamanoPagina = AppConstants.tamanoPaginaConst, // Usar la constante
   }) async {
     
     if (numeroPagina < 1) {
