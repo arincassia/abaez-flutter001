@@ -43,6 +43,12 @@ class NoticiaCard extends StatelessWidget {
                       noticia.fuente,
                       style: const TextStyle(fontStyle: FontStyle.italic, fontWeight: FontWeight.w300),
                     ),
+                    Text(
+                      noticia.contenido,
+                      maxLines: 3, 
+                      overflow: TextOverflow.ellipsis, 
+                      style: const TextStyle(fontSize: 14),
+                    ),
                     const SizedBox(height: 4),
                     Text(
                       '${AppConstants.publicadaEl} ${_formatDate(noticia.publicadaEl)}',
