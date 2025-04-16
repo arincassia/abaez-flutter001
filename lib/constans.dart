@@ -38,6 +38,21 @@ class AppConstants {
   static const int pageSize = 10;
   static const String dateFormat = 'dd/MM/yyyy HH:mm'; 
 
+  //Constantes para la aplicación de noticias técnicas
+  static const String tituloApp = 'Noticias Técnicas';
+  static const String mensajeCargando = 'Cargando noticias...';
+  static const String listasVacia = 'No hay noticias disponibles';
+  static const String mensajeError = 'Error al cargar noticias';
+  static const String formatoFecha = 'dd/MM/yyyy HH:mm';
+  static const int tamanoPaginaConst = 10;
+  static const double espaciadoAlto = 10;
+  static const String tituloNoticias = 'Noticias';
+  static const String descripcionNoticia = 'Descripción';
+  static const String fuente = 'Fuente';
+  static const String publicadaEl = 'Publicado el';
+
+
+
 
 
 

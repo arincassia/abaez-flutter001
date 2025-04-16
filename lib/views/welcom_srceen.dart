@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:abaez/presentation/task_screen.dart';
 import 'package:abaez/presentation/start_screen.dart';
 import 'package:abaez/views/quote_screen.dart';
+import 'package:abaez/views/noticias_screen.dart';
 class WelcomeScreen extends StatelessWidget {
   final String username;
 
@@ -79,6 +80,19 @@ class WelcomeScreen extends StatelessWidget {
                context,
              MaterialPageRoute(
              builder: (context) => const QuoteScreen(),
+             ),
+              );
+                },
+            ),
+            ListTile(
+              leading: const Icon(Icons.article),
+              title: const Text('Noticias'),
+              onTap: () {
+               Navigator.pop(context); 
+               Navigator.push(
+               context,
+             MaterialPageRoute(
+             builder: (context) => const NoticiasScreen(),
              ),
               );
                 },
