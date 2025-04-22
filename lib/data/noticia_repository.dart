@@ -1,107 +1,73 @@
-import 'dart:math';
 
-class Noticia {
-  final String titulo;
-  final String contenido;
-  final String fuente;
-  final DateTime publicadaEl;
-
-  Noticia({
-    required this.titulo,
-    required this.contenido,
-    required this.fuente,
-    required this.publicadaEl,
-  });
-}
+import 'package:dio/dio.dart';
+import 'package:abaez/constans.dart';
+import 'package:abaez/domain/noticia.dart';
 
 class NoticiaRepository {
-  final Random _random = Random();
-  final List<String> fuentes = [
-    'El Diario',
-    'Noticias Globales',
-    'La Voz',
-    'Mundo Actual',
-    'Reporte Diario',
-    'El Informador',
-    'Noticias Hoy',
-    'La Prensa',
-    'Actualidad Mundial',
-    'El Observador',
-  ];
-  // Método para obtener noticias iniciales
-  Future<List<Noticia>> getNoticias() async {
-    await Future.delayed(const Duration(seconds: 2)); 
+  final Dio dio = Dio();
 
-    final List<String> titulosPredefinidos = [
-      'Noticia sobre tecnología',
-      'Avances en inteligencia artificial',
-      'Descubrimientos científicos recientes',
-      'Noticias del mundo financiero',
-      'Tendencias en redes sociales',
-      'Innovaciones en el sector salud',
-      'Noticias sobre cambio climático',
-      'Avances en exploración espacial',
-      'Actualización sobre criptomonedas',
-      'Noticias del sector educativo',
-      'Nuevas leyes tecnológicas',
-      'Impacto de la tecnología en la sociedad',
-      'Noticias sobre ciberseguridad',
-      'Avances en energías renovables',
-      'Noticias del sector automotriz',
-    ];
+Future<List<Map<String, dynamic>>> obtenerNoticias({
+  required int page,
+  required int pageSize,
+  required bool ordenarPorFecha,
+}) async {
+ try {
+  final response = await Dio().get(
+  AppConstants.newsurl,
+  queryParameters: {
+    'page': page,
+    'pageSize': pageSize,
+    'sortBy': ordenarPorFecha ? 'publishedAt' : 'source.name',
+    'language': 'es',
+    
+  },
+);
 
-    return List.generate(15, (index) {
-      final fuente = fuentes[_random.nextInt(fuentes.length)];
-      final publicadaEl = DateTime.now().subtract(Duration(days: _random.nextInt(30)));
-
-      return Noticia(
-        titulo: titulosPredefinidos[index],
-        contenido: 'Este es el contenido de la noticia: ${titulosPredefinidos[index]}.',
-        fuente: fuente,
-        publicadaEl: publicadaEl,
-      );
-    });
+  if (response.statusCode == 200) {
+    return List<Map<String, dynamic>>.from(response.data['articles']);
+  } else {
+    throw Exception('Error al obtener noticias: ${response.statusCode}');
   }
-  // Método para obtener noticias paginadas
-  Future<List<Noticia>> getPaginatedNoticias({required int pageNumber, int pageSize = 5}) async {
-  await Future.delayed(const Duration(seconds: 2));
+} catch (e) {
+  throw Exception('Error al conectar con la API: $e');
+}
+}
 
-  final offset = (pageNumber - 1) * pageSize;
+Future<List<Noticia>> listarNoticiasDesdeAPI() async {
+  try {
+    final response = await Dio().get(AppConstants.newsurl);
+    print('Respuesta de la API: ${response.data}');
+    
+    if (response.statusCode == 200) {
+      final List<dynamic> data = response.data;
+      return data.map((json) => Noticia.fromJson(json)).toList();
+    } else {
+      throw Exception('Error al obtener noticias: ${response.statusCode}');
+    }
+  } catch (e) {
+    print('Error al conectar con la API: $e');
+    throw Exception('Error al conectar con la API: $e');
+  }
+}
 
- 
-  final List<String> palabrasClave = [
-    'Tecnología',
-    'Inteligencia Artificial',
-    'Ciencia',
-    'Finanzas',
-    'Redes Sociales',
-    'Salud',
-    'Cambio Climático',
-    'Exploración Espacial',
-    'Criptomonedas',
-    'Educación',
-    'Leyes',
-    'Ciberseguridad',
-    'Energías Renovables',
-    'Automotriz',
-    'Innovación',
-  ];
-
-   //Generar noticias aleatorias
-  return List.generate(pageSize, (index) {
-    final noticiaNumber = offset + index + 1;
-    final fuente = fuentes[_random.nextInt(fuentes.length)];
-    final publicadaEl = DateTime.now().subtract(Duration(days: _random.nextInt(30)));
-
-    final palabra1 = palabrasClave[_random.nextInt(palabrasClave.length)];
-    final titulo = 'Noticias sobre $palabra1';
-
-    return Noticia(
-      titulo: titulo,
-      contenido: 'Este es el contenido de la noticia número $noticiaNumber sobre $palabra1',
-      fuente: fuente,
-      publicadaEl: publicadaEl,
+Future<void> crearNoticia(Noticia noticia) async {
+  try {
+    final response = await Dio().post(
+      AppConstants.newsurl,
+      data: {
+        'titulo': noticia.titulo,
+        'descripcion': noticia.contenido,
+        'fuente': noticia.fuente,
+        'publicadaEl': noticia.publicadaEl.toIso8601String(),
+        'urlImagen': noticia.imagenUrl,
+      },
     );
-  });
- }  
+
+    if (response.statusCode != 201) {
+      throw Exception('Error al crear la noticia: ${response.statusCode}');
+    }
+  } catch (e) {
+    throw Exception('Error al conectar con la API: $e');
+  }
+}
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:abaez/constans.dart';
-import 'package:abaez/data/noticia_repository.dart';
+import 'package:abaez/domain/noticia.dart';
 
 class NoticiaCard extends StatelessWidget {
   final Noticia noticia;
@@ -65,15 +65,17 @@ class NoticiaCard extends StatelessWidget {
               Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.network(
-                      'https://picsum.photos/100/100?random=$index',
-                      width: 80,
-                      height: 80,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
+                ClipRRect(
+  borderRadius: BorderRadius.circular(8),
+  child: noticia.imagenUrl != null // Mostrar la imagen solo si existe
+      ? Image.network(
+          noticia.imagenUrl!,
+          fit: BoxFit.cover,
+          width: 100, // Ajustar el ancho según el diseño
+          height: 100, // Ajustar la altura según el diseño
+        )
+      : const SizedBox(), // Mostrar un espacio vacío si no hay imagen
+),
                   const SizedBox(height: 8),
                   const Row(
                     mainAxisSize: MainAxisSize.min,

@@ -50,8 +50,9 @@ class AppConstants {
   static const String descripcionNoticia = 'Descripción';
   static const String fuente = 'Fuente';
   static const String publicadaEl = 'Publicado el';
-
-
+  static const String tooltipOrden = 'Cambiar orden';
+ // static const String newsurl = 'https://newsapi.org/v2/everything';
+  static const String newsurl = 'https://crudcrud.com/api/API_KEY/noticias';
 
 
 
