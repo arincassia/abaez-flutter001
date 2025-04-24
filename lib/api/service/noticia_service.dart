@@ -13,13 +13,22 @@ class NoticiaService {
   required int pageSize,
   required bool ordenarPorFecha,
 }) async {
-  final noticiasJson = await _noticiaRepository.obtenerNoticias(
-    page: page,
-    pageSize: pageSize,
-    ordenarPorFecha: ordenarPorFecha,
-  );
+  try {
+    final noticiasJson = await _noticiaRepository.obtenerNoticias(
+      page: page,
+      pageSize: pageSize,
+      ordenarPorFecha: ordenarPorFecha,
+    );
 
-  return noticiasJson.map((json) => Noticia.fromJson(json)).toList();
+    return noticiasJson.map((json) => Noticia.fromJson(json)).toList();
+  } catch (e) {
+    // Verificar si el mensaje de error contiene un código 4xx
+    if (e.toString().contains('4')) {
+      throw Exception('Error 4xx: El endpoint está inactivo o ha alcanzado su límite.');
+    }
+    // Relanzar cualquier otro error
+    throw Exception('Error al obtener noticias: $e');
+  }
 }
 Future<List<Noticia>> listarNoticiasDesdeAPI() async {
   try {
@@ -55,6 +64,22 @@ Future<void> crearNoticia(Noticia noticia) async {
     await _noticiaRepository.crearNoticia(noticia);
   } catch (e) {
     throw Exception('Error al crear la noticia: $e');
+  }
+}
+
+Future<void> editarNoticia(Noticia noticia) async {
+  try {
+    await _noticiaRepository.editarNoticia(noticia); // Llama al método del repositorio
+  } catch (e) {
+    throw Exception('Error al editar la noticia: $e');
+  }
+}
+
+Future<void> eliminarNoticia(String id) async {
+  try {
+    await _noticiaRepository.eliminarNoticia(id); // Llama al método del repositorio
+  } catch (e) {
+    throw Exception('Error al eliminar la noticia: $e');
   }
 }
 }

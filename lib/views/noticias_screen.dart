@@ -25,6 +25,7 @@ class NoticiasScreenState extends State<NoticiasScreen> {
 
   @override
   void initState() {
+    print('NoticiasScreenState initState() llamado'); // Mensaje de depuración
     super.initState();
     _loadNoticias(reset: true); // Carga inicial de noticias
 
@@ -72,6 +73,7 @@ class NoticiasScreenState extends State<NoticiasScreen> {
 }
 @override
   Widget build(BuildContext context) {
+      print('NoticiasScreenState build() llamado');
     return Scaffold(
      appBar: AppBar(
   title: const Text(AppConstants.tituloNoticias),
@@ -88,7 +90,9 @@ class NoticiasScreenState extends State<NoticiasScreen> {
     ),
   ],
 ),
+
       body: Container(
+        
         color: Colors.grey[200],
         child: isLoading && noticiasList.isEmpty
             ? const Center(
@@ -116,17 +120,54 @@ class NoticiasScreenState extends State<NoticiasScreen> {
                         ),
                       )
                     : ListView.builder(
-                        controller: _scrollController,
-                        itemCount: noticiasList.length + (isLoading ? 1 : 0),
-                        itemBuilder: (context, index) {
-                          if (index == noticiasList.length) {
-                            return const Center(child: CircularProgressIndicator());
-                          }
+  controller: _scrollController,
+  itemCount: noticiasList.length + (isLoading ? 1 : 0),
+  itemBuilder: (context, index) {
+  if (index == noticiasList.length) {
+    return const Center(child: CircularProgressIndicator());
+  }
 
-                          final noticia = noticiasList[index];
-                          return NoticiaCard(noticia: noticia, index: index); //realiza el llamado al card de noticias
-                        },
-                      ),
+  final noticia = noticiasList[index];
+
+  return Dismissible(
+    key: Key(noticia.id), // Usa un identificador único para cada noticia
+    direction: DismissDirection.startToEnd, // Permite deslizar solo de izquierda a derecha
+    background: Container(
+      color: Colors.red,
+      alignment: Alignment.centerLeft,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: const Icon(Icons.delete, color: Colors.white),
+    ),
+    onDismissed: (direction) async {
+      try {
+        // Eliminar la noticia del backend
+        await noticiaService.eliminarNoticia(noticia.id);
+
+        // Eliminar la noticia de la lista local
+        setState(() {
+          noticiasList.removeAt(index);
+        });
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Noticia eliminada')),
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error al eliminar noticia: $e')),
+          );
+        }
+      }
+    },
+    child: NoticiaCard(
+      noticia: noticia,
+      index: index,
+      onEdit: () => showEditNoticiaForm(context, noticia, index), // Callback para editar
+    ),
+  );
+},
+),
                       
                ),
                floatingActionButton: FloatingActionButton(
@@ -134,15 +175,32 @@ class NoticiasScreenState extends State<NoticiasScreen> {
       tooltip: 'Agregar Noticia',
       child: const Icon(Icons.add),
     ),
+      // Mensaje de depuración
       );
+     
   }
 
-  void _showAddNoticiaForm(BuildContext context) {
+  @protected
+  void didupdateWidget(NoticiasScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    print('NoticiasScreenState didUpdateWidget() llamado'); // Mensaje de depuración
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    print('NoticiasScreenState didChangeDependencies() llamado'); // Mensaje de depuración
+  }
+
+
+void _showAddNoticiaForm(BuildContext context) {
   final formKey = GlobalKey<FormState>();
   final TextEditingController tituloController = TextEditingController();
   final TextEditingController descripcionController = TextEditingController();
   final TextEditingController fuenteController = TextEditingController();
-  final TextEditingController fechaController = TextEditingController();
+  final TextEditingController fechaController = TextEditingController(
+    text: '${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}', // Fecha actual por defecto
+  );
   final TextEditingController imagenUrlController = TextEditingController();
 
   showDialog(
@@ -186,10 +244,10 @@ class NoticiasScreenState extends State<NoticiasScreen> {
                     return null;
                   },
                 ),
-               TextFormField(
-                 controller: fechaController,
-                 decoration: const InputDecoration(labelText: 'Fecha (DD/MM/YYYY)'),
-                 validator: (value) => validarFecha(value), // Llamar directamente a la función validarFecha
+                TextFormField(
+                  controller: fechaController,
+                  decoration: const InputDecoration(labelText: 'Fecha (DD/MM/YYYY)'),
+                  validator: (value) => validarFecha(value), // Validar la fecha ingresada
                 ),
                 TextFormField(
                   controller: imagenUrlController,
@@ -206,50 +264,182 @@ class NoticiasScreenState extends State<NoticiasScreen> {
             },
             child: const Text('Cancelar'),
           ),
-             ElevatedButton(
-  onPressed: () async {
-    if (formKey.currentState!.validate()) {
-      final nuevaNoticia = Noticia(
-        id: DateTime.now().toIso8601String(),
-        titulo: tituloController.text,
-        contenido: descripcionController.text,
-        fuente: fuenteController.text,
-        publicadaEl: DateTime.now(),
-        imagenUrl: imagenUrlController.text.isNotEmpty
-            ? imagenUrlController.text
-            : null, // Imagen por defecto
-      );
+          ElevatedButton(
+            onPressed: () async {
+              if (formKey.currentState!.validate()) {
+                // Combina la fecha ingresada con la hora actual
+                final nuevaFecha = convertirFecha(fechaController.text);
+                final fechaConHoraActual = DateTime(
+                  nuevaFecha.year,
+                  nuevaFecha.month,
+                  nuevaFecha.day,
+                  DateTime.now().hour,
+                  DateTime.now().minute,
+                  DateTime.now().second,
+                );
 
-      try {
-        await noticiaService.crearNoticia(nuevaNoticia);
+                final nuevaNoticia = Noticia(
+                  id: DateTime.now().toIso8601String(),
+                  titulo: tituloController.text,
+                  contenido: descripcionController.text,
+                  fuente: fuenteController.text,
+                  publicadaEl: fechaConHoraActual, // Fecha con la hora actual
+                  imagenUrl: imagenUrlController.text.isNotEmpty
+                      ? imagenUrlController.text
+                      : null, // Imagen por defecto
+                );
 
-        if (!context.mounted) return; // Verificar si el widget sigue montado
+                try {
+                  await noticiaService.crearNoticia(nuevaNoticia);
 
-        setState(() {
-          noticiasList.insert(0, nuevaNoticia); // Agregar al inicio de la lista
-        });
+                  if (!context.mounted) return; // Verificar si el widget sigue montado
 
-        Navigator.pop(context); // Cerrar el diálogo
-      } catch (e) {
-        if (!mounted) return; // Verificar si el widget sigue montado
+                  setState(() {
+                    noticiasList.insert(0, nuevaNoticia); // Agregar al inicio de la lista
+                  });
 
-        debugPrint('Error al crear noticia: $e');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al crear noticia: $e')),
-        );
-      }
-    }
-  },
-  child: const Text('Agregar'),
-),
-              
+                  Navigator.pop(context); // Cerrar el diálogo
+                } catch (e) {
+                  if (!mounted) return; // Verificar si el widget sigue montado
+
+                  debugPrint('Error al crear noticia: $e');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error al crear noticia: $e')),
+                  );
+                }
+              }
+            },
+            child: const Text('Agregar'),
+          ),
         ],
       );
     },
   );
 }
+  
+void showEditNoticiaForm(BuildContext context, Noticia noticia, int index) {
+  final formKey = GlobalKey<FormState>();
+  final TextEditingController tituloController = TextEditingController(text: noticia.titulo);
+  final TextEditingController descripcionController = TextEditingController(text: noticia.contenido);
+  final TextEditingController fuenteController = TextEditingController(text: noticia.fuente);
+  final TextEditingController fechaController = TextEditingController(
+    text: '${noticia.publicadaEl.day}/${noticia.publicadaEl.month}/${noticia.publicadaEl.year}',
+  );
+  final TextEditingController imagenUrlController = TextEditingController(text: noticia.imagenUrl ?? '');
 
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text('Editar Noticia'),
+        content: SingleChildScrollView(
+          child: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: tituloController,
+                  decoration: const InputDecoration(labelText: 'Título'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'El título es obligatorio';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: descripcionController,
+                  decoration: const InputDecoration(labelText: 'Descripción'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'La descripción es obligatoria';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: fuenteController,
+                  decoration: const InputDecoration(labelText: 'Fuente'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'La fuente es obligatoria';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: fechaController,
+                  decoration: const InputDecoration(labelText: 'Fecha (DD/MM/YYYY)'),
+                  validator: (value) => validarFecha(value),
+                ),
+                TextFormField(
+                  controller: imagenUrlController,
+                  decoration: const InputDecoration(labelText: 'URL de la Imagen'),
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context); // Cerrar el diálogo
+            },
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (formKey.currentState!.validate()) {
+                // Combina la fecha ingresada con la hora actual
+                final nuevaFecha = convertirFecha(fechaController.text);
+                final fechaConHoraActual = DateTime(
+                  nuevaFecha.year,
+                  nuevaFecha.month,
+                  nuevaFecha.day,
+                  DateTime.now().hour,
+                  DateTime.now().minute,
+                  DateTime.now().second,
+                );
 
+                final noticiaEditada = Noticia(
+                  id: noticia.id,
+                  titulo: tituloController.text,
+                  contenido: descripcionController.text,
+                  fuente: fuenteController.text,
+                  publicadaEl: fechaConHoraActual, // Fecha con la hora actual
+                  imagenUrl: imagenUrlController.text.isNotEmpty
+                      ? imagenUrlController.text
+                      : null, // Imagen por defecto
+                );
+
+                try {
+                  await noticiaService.editarNoticia(noticiaEditada); // Llama al método para editar la noticia
+
+                  if (!context.mounted) return; // Verificar si el widget sigue montado
+
+                  setState(() {
+                    noticiasList[index] = noticiaEditada; // Actualizar la lista local
+                  });
+
+                  Navigator.pop(context); // Cerrar el diálogo
+                } catch (e) {
+                  if (!mounted) return; // Verificar si el widget sigue montado
+
+                  debugPrint('Error al editar noticia: $e');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error al editar noticia: $e')),
+                  );
+                }
+              }
+            },
+            child: const Text('Guardar'),
+          ),
+        ],
+      );
+    },
+  );
+}
 String? validarFecha(String? value) {
   if (value == null || value.isEmpty) {
     return 'La fecha es obligatoria';
@@ -289,5 +479,12 @@ DateTime convertirFecha(String value) {
   void dispose() {
     _scrollController.dispose();
     super.dispose();
+    print('NoticiasScreenState dispose() llamado'); // Mensaje de depuración
+  }
+
+  @override
+  void deactivate() {
+    super.deactivate();
+    print('NoticiasScreenState deactivate() llamado'); // Mensaje de depuración
   }
 }
