@@ -1,107 +1,126 @@
-import 'dart:math';
-
-class Noticia {
-  final String titulo;
-  final String contenido;
-  final String fuente;
-  final DateTime publicadaEl;
-
-  Noticia({
-    required this.titulo,
-    required this.contenido,
-    required this.fuente,
-    required this.publicadaEl,
-  });
-}
+import 'package:dio/dio.dart';
+import 'package:abaez/constans.dart';
+import 'package:abaez/domain/noticia.dart';
 
 class NoticiaRepository {
-  final Random _random = Random();
-  final List<String> fuentes = [
-    'El Diario',
-    'Noticias Globales',
-    'La Voz',
-    'Mundo Actual',
-    'Reporte Diario',
-    'El Informador',
-    'Noticias Hoy',
-    'La Prensa',
-    'Actualidad Mundial',
-    'El Observador',
-  ];
-  // Método para obtener noticias iniciales
-  Future<List<Noticia>> getNoticias() async {
-    await Future.delayed(const Duration(seconds: 2)); 
+  final Dio dio = Dio();
 
-    final List<String> titulosPredefinidos = [
-      'Noticia sobre tecnología',
-      'Avances en inteligencia artificial',
-      'Descubrimientos científicos recientes',
-      'Noticias del mundo financiero',
-      'Tendencias en redes sociales',
-      'Innovaciones en el sector salud',
-      'Noticias sobre cambio climático',
-      'Avances en exploración espacial',
-      'Actualización sobre criptomonedas',
-      'Noticias del sector educativo',
-      'Nuevas leyes tecnológicas',
-      'Impacto de la tecnología en la sociedad',
-      'Noticias sobre ciberseguridad',
-      'Avances en energías renovables',
-      'Noticias del sector automotriz',
-    ];
-
-    return List.generate(15, (index) {
-      final fuente = fuentes[_random.nextInt(fuentes.length)];
-      final publicadaEl = DateTime.now().subtract(Duration(days: _random.nextInt(30)));
-
-      return Noticia(
-        titulo: titulosPredefinidos[index],
-        contenido: 'Este es el contenido de la noticia: ${titulosPredefinidos[index]}.',
-        fuente: fuente,
-        publicadaEl: publicadaEl,
+  Future<List<Map<String, dynamic>>> obtenerNoticias({
+    required int page,
+    required int pageSize,
+    required bool ordenarPorFecha,
+  }) async {
+    try {
+      final response = await dio.get(
+        AppConstants.newsurl,
+        queryParameters: {
+          'page': page,
+          'pageSize': pageSize,
+          'sortBy': ordenarPorFecha ? 'publishedAt' : 'source.name',
+          'language': 'es',
+        },
       );
-    });
+
+      if (response.statusCode == 200) {
+        return List<Map<String, dynamic>>.from(response.data['articles']);
+      } else {
+        throw Exception('Error al obtener noticias: ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      _handle4xxError(e); // Manejo de errores 4xx
+      throw Exception('Error al conectar con la API: ${e.message}');
+    }
   }
-  // Método para obtener noticias paginadas
-  Future<List<Noticia>> getPaginatedNoticias({required int pageNumber, int pageSize = 5}) async {
-  await Future.delayed(const Duration(seconds: 2));
 
-  final offset = (pageNumber - 1) * pageSize;
+  Future<List<Noticia>> listarNoticiasDesdeAPI() async {
+    try {
+      final response = await dio.get(AppConstants.newsurl);
 
- 
-  final List<String> palabrasClave = [
-    'Tecnología',
-    'Inteligencia Artificial',
-    'Ciencia',
-    'Finanzas',
-    'Redes Sociales',
-    'Salud',
-    'Cambio Climático',
-    'Exploración Espacial',
-    'Criptomonedas',
-    'Educación',
-    'Leyes',
-    'Ciberseguridad',
-    'Energías Renovables',
-    'Automotriz',
-    'Innovación',
-  ];
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data;
+        return data.map((json) => Noticia.fromJson(json)).toList();
+      } else {
+        throw Exception('Error al obtener noticias: ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      _handle4xxError(e); // Manejo de errores 4xx
+      throw Exception('Error al conectar con la API: ${e.message}');
+    }
+  }
 
-   //Generar noticias aleatorias
-  return List.generate(pageSize, (index) {
-    final noticiaNumber = offset + index + 1;
-    final fuente = fuentes[_random.nextInt(fuentes.length)];
-    final publicadaEl = DateTime.now().subtract(Duration(days: _random.nextInt(30)));
+  Future<void> crearNoticia(Noticia noticia) async {
+    try {
+      final response = await dio.post(
+        AppConstants.newsurl,
+        data: {
+          'titulo': noticia.titulo,
+          'descripcion': noticia.contenido,
+          'fuente': noticia.fuente,
+          'publicadaEl': noticia.publicadaEl.toIso8601String(),
+          'urlImagen': noticia.imagenUrl,
+        },
+      );
 
-    final palabra1 = palabrasClave[_random.nextInt(palabrasClave.length)];
-    final titulo = 'Noticias sobre $palabra1';
+      if (response.statusCode != 201) {
+        throw Exception('Error al crear la noticia: ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      _handle4xxError(e); // Manejo de errores 4xx
+      throw Exception('Error al conectar con la API: ${e.message}');
+    }
+  }
 
-    return Noticia(
-      titulo: titulo,
-      contenido: 'Este es el contenido de la noticia número $noticiaNumber sobre $palabra1',
-      fuente: fuente,
-      publicadaEl: publicadaEl,
+  void _handle4xxError(DioException e) {
+    if (e.response?.statusCode != null &&
+        e.response!.statusCode! >= 400 &&
+        e.response!.statusCode! < 500) {
+      final errorMessage = _extractErrorMessage(e.response!.data);
+      throw Exception('Error ${e.response?.statusCode}: $errorMessage');
+    }
+  }
+
+  String _extractErrorMessage(dynamic errorData) {
+    if (errorData is Map<String, dynamic>) {
+      return errorData['message'] ?? errorData.toString();
+    }
+    if (errorData is String) {
+      return errorData;
+    }
+    return 'Error desconocido en la operación';
+  }
+
+  Future<void> editarNoticia(Noticia noticia) async {
+  final url = '${AppConstants.newsurl}/${noticia.id}'; // Construye la URL para editar la noticia
+  try {
+    final response = await dio.put(
+      url,
+      data: {
+        'titulo': noticia.titulo,
+        'descripcion': noticia.contenido,
+        'fuente': noticia.fuente,
+        'publicadaEl': noticia.publicadaEl.toIso8601String(),
+        'urlImagen': noticia.imagenUrl,
+      },
     );
-  });
- }  
+
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception('Error al editar la noticia: ${response.statusCode}');
+    }
+  } catch (e) {
+    throw Exception('Error al conectar con el servidor: $e');
+  }
+}
+
+  Future<void> eliminarNoticia(String id) async {
+  final url = '${AppConstants.newsurl}/$id'; // Construye la URL para eliminar la noticia
+  try {
+    final response = await dio.delete(url);
+
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception('Error al eliminar la noticia: ${response.statusCode}');
+    }
+  } catch (e) {
+    throw Exception('Error al conectar con el servidor: $e');
+  }
+}
 }

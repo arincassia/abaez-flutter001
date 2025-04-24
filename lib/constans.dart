@@ -1,3 +1,4 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 
 class AppConstants {
@@ -50,7 +51,9 @@ class AppConstants {
   static const String descripcionNoticia = 'Descripción';
   static const String fuente = 'Fuente';
   static const String publicadaEl = 'Publicado el';
-
+  static const String tooltipOrden = 'Cambiar orden';
+ // static const String newsurl = 'https://newsapi.org/v2/everything';
+  static final String newsurl = dotenv.env['NEWS_URL'] ?? 'URL_NO_DEFINIDA';
 
 
 

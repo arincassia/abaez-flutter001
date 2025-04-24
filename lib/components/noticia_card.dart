@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:abaez/constans.dart';
-import 'package:abaez/data/noticia_repository.dart';
+import 'package:abaez/domain/noticia.dart';
 
 class NoticiaCard extends StatelessWidget {
   final Noticia noticia;
   final int index;
+  final VoidCallback onEdit;
 
   const NoticiaCard({
     super.key,
     required this.noticia,
     required this.index,
+    required this.onEdit,
   });
 
   @override
@@ -41,12 +43,15 @@ class NoticiaCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       noticia.fuente,
-                      style: const TextStyle(fontStyle: FontStyle.italic, fontWeight: FontWeight.w300),
+                      style: const TextStyle(
+                        fontStyle: FontStyle.italic,
+                        fontWeight: FontWeight.w300,
+                      ),
                     ),
                     Text(
                       noticia.contenido,
-                      maxLines: 3, 
-                      overflow: TextOverflow.ellipsis, 
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(fontSize: 14),
                     ),
                     const SizedBox(height: 4),
@@ -61,28 +66,44 @@ class NoticiaCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              
               Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: Image.network(
-                      'https://picsum.photos/100/100?random=$index',
-                      width: 80,
-                      height: 80,
-                      fit: BoxFit.cover,
-                    ),
+                    child: noticia.imagenUrl != null
+                        ? Image.network(
+                            noticia.imagenUrl!,
+                            fit: BoxFit.cover,
+                            width: 100,
+                            height: 100,
+                          )
+                        : const SizedBox(),
                   ),
                   const SizedBox(height: 8),
-                  const Row(
+                  Row(
                     mainAxisSize: MainAxisSize.min,
+                    
                     children: [
-                      Icon(Icons.star_border, size: 20),
-                      SizedBox(width: 8),
-                      Icon(Icons.share, size: 20),
-                      SizedBox(width: 8),
-                      Icon(Icons.more_vert, size: 20),
+                      const SizedBox(width: 8),
+                      const Icon(Icons.star_border, size: 20),
+                      const SizedBox(width: 9),
+                      const Icon(Icons.share, size: 20),
+                   
+                      PopupMenuButton<String>(
+                        icon: const Icon(Icons.more_vert),
+                        onSelected: (value) {
+                          if (value == 'edit') {
+                            onEdit(); // Llama al callback para abrir el modal de edición
+                          }
+                        },
+                        itemBuilder: (BuildContext context) => [
+                          const PopupMenuItem<String>(
+                            value: 'edit',
+                            child: Text('Editar'),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ],
