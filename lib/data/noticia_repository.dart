@@ -1,229 +1,87 @@
-import 'package:dio/dio.dart';
-import 'package:abaez/constans.dart';
+import 'package:abaez/api/service/noticia_sevice.dart';
 import 'package:abaez/domain/noticia.dart';
-import 'dart:convert';
 
 class NoticiaRepository {
-  final Dio dio;
+  final NoticiaService _noticiaService;
 
-  NoticiaRepository()
-      : dio = Dio(BaseOptions(
-          baseUrl: ApiConstants.noticiasUrl,
-          connectTimeout: const Duration(seconds: ApiConstants.timeoutSeconds), // Usar Duration
-          receiveTimeout: const Duration(seconds: ApiConstants.timeoutSeconds), // Usar Duration
-          validateStatus: (status) {
-           return status != null && status < 500; // Permite manejar errores 4xx manualmente
-  },
-        ));
- 
-  Future<List<Map<String, dynamic>>> obtenerNoticias({
-  required int page,
-  required int pageSize,
-  required bool ordenarPorFecha,
-}) async {
-  try {
-    final response = await dio.get(
-      ApiConstants.noticiasUrl, // Usar noticiasEndpoint
-      queryParameters: {
-        'page': page,
-        'pageSize': pageSize,
-        'sortBy': ordenarPorFecha ? 'publishedAt' : 'source.name',
-        'language': 'es',
-      },
-    );
+  NoticiaRepository(this._noticiaService);
 
-    if (response.statusCode == 200) {
-      // Éxito: Devuelve las noticias
-      return List<Map<String, dynamic>>.from(response.data['articles']);
-    } else {
-      // Manejo de errores HTTP
-      _handleHttpError(response.statusCode);
-    }
-  } on DioException catch (e) {
-    // Manejo de errores de red
-    _handleDioError(e);
-  }
-  throw Exception('Error desconocido al obtener noticias');
-}
+  /// Obtiene una lista de noticias desde la API con paginación y ordenamiento
+  Future<List<Noticia>> fetchNoticias({
+    required int page,
+    required int pageSize,
+    required bool ordenarPorFecha,
+  }) async {
+    try {
+      final noticiasJson = await _noticiaService.obtenerNoticias(
+        page: page,
+        pageSize: pageSize,
+        ordenarPorFecha: ordenarPorFecha,
+      );
 
-void _handleHttpError(int? statusCode) {
-  switch (statusCode) {
-    case 400:
-      throw Exception(AppConstants.mensajeError); // Mensaje de error definido
-    case 401:
-      throw Exception('No autorizado');
-    case 404:
-      throw Exception('Noticias no encontradas');
-    case 500:
-      throw Exception('Error del servidor');
-    default:
-      throw Exception('Error desconocido: Código de estado $statusCode');
-  }
-}
-
-void _handleDioError(DioException e) {
-  if (e.type == DioExceptionType.connectionTimeout ||
-      e.type == DioExceptionType.receiveTimeout) {
-    throw Exception(ApiConstants.errorTimeout); // Timeout
-  } else if (e.type == DioExceptionType.badResponse) {
-    _handleHttpError(e.response?.statusCode); // Manejo de errores HTTP
-  } else if (e.type == DioExceptionType.cancel) {
-    throw Exception('Solicitud cancelada');
-  } else {
-    throw Exception('Error desconocido: ${e.message}');
-  }
-}
-
-  Future<List<Noticia>> listarNoticiasDesdeAPI() async {
-  try {
-    final response = await dio.get(ApiConstants.noticiasUrl);
-
-    if (response.statusCode == 200) {
-      final data = response.data;
-
-      // Imprime la respuesta para inspeccionar su estructura
-      //print('Respuesta de la API: $data');
-
-      // Verifica si la respuesta es un String y decodifícala
-      final decodedData = data is String ? jsonDecode(data) : data;
-
-      // Verifica si la respuesta es una lista
-      if (decodedData is List) {
-        // Mapea cada elemento de la lista a un objeto Noticia
-        return decodedData.map((json) {
-          if (json is Map<String, dynamic>) {
-            return Noticia.fromJson(json);
-          } else {
-            throw Exception('Elemento de la lista no es un Map<String, dynamic>');
-          }
-        }).toList();
-      } else if (decodedData is Map<String, dynamic>) {
-        // Si la respuesta es un único objeto JSON, conviértelo en una lista
-        return [Noticia.fromJson(decodedData)];
-      } else {
-        throw Exception('Estructura de respuesta inesperada: $decodedData');
+      return noticiasJson.map((json) => Noticia.fromJson(json)).toList();
+    } catch (e) {
+      if (e.toString().contains('4')) {
+        throw Exception('Error 4xx: El endpoint está inactivo o ha alcanzado su límite.');
       }
-    } else {
-      throw Exception('Error al obtener noticias: ${response.statusCode}');
+      throw Exception('Error al obtener noticias: $e');
     }
-  } on DioException catch (e) {
-    _handle4xxError(e); // Manejo de errores 4xx
-    throw Exception('Error al conectar con la API: ${e.message}');
-  } catch (e) {
-    throw Exception('Error inesperado: $e');
   }
-}
- 
- Future<Noticia> crearNoticia(Noticia noticia) async {
-  try {
-    final response = await dio.post(
-      ApiConstants.noticiasUrl,
-      data: {
-        'titulo': noticia.titulo,
-        'descripcion': noticia.contenido,
-        'fuente': noticia.fuente,
-        'publicadaEl': noticia.publicadaEl.toIso8601String(),
-        'urlImagen': noticia.imagenUrl,
-        'categoriaId': noticia.categoriaId, // ID de la categoría asociada
-      },
-    );
 
-    if (response.statusCode == 201) {
-      // Devuelve la noticia creada con el ID generado por el servidor
-      final data = response.data;
-      final nuevaNoticia = Noticia.fromJson(data);
+  /// Lista todas las noticias desde la API y realiza validaciones
+  Future<List<Noticia>> listarNoticiasDesdeAPI() async {
+    try {
+      final noticias = await _noticiaService.listarNoticiasDesdeAPI();
 
-      // Verifica que la noticia exista en el servidor
-      await _verificarNoticiaEnServidor(nuevaNoticia.id);
+      // Validaciones de los campos, que no estén vacíos
+      for (final noticia in noticias) {
+        if (noticia.titulo.isEmpty) {
+          throw Exception('El título de la noticia no puede estar vacío.');
+        }
+        if (noticia.contenido.isEmpty) {
+          throw Exception('La descripción de la noticia no puede estar vacía.');
+        }
+        if (noticia.fuente.isEmpty) {
+          throw Exception('La fuente de la noticia no puede estar vacía.');
+        }
+        if (noticia.publicadaEl.isAfter(DateTime.now())) {
+          throw Exception('La fecha de publicación no puede estar en el futuro.');
+        }
+      }
 
-      return nuevaNoticia;
-    } else {
-      throw Exception('Error al crear la noticia: ${response.statusCode}');
+      // Ordenar las noticias por fecha de publicación (más reciente primero)
+      noticias.sort((a, b) => b.publicadaEl.compareTo(a.publicadaEl));
+
+      return noticias;
+    } catch (e) {
+      throw Exception('Error al listar noticias desde la API: $e');
     }
-  } on DioException catch (e) {
-    _handle4xxError(e); // Manejo de errores 4xx
-    throw Exception('Error al conectar con la API: ${e.message}');
   }
-}
 
-Future<void> _verificarNoticiaEnServidor(String id) async {
-  final url = '${ApiConstants.noticiasUrl}/$id';
-  final response = await dio.get(url);
-
-  if (response.statusCode != 200) {
-    throw Exception('La noticia no está disponible en el servidor: ${response.statusCode}');
-  }
-}
- void _handle4xxError(DioException e) {
-  if (e.response?.statusCode != null &&
-      e.response!.statusCode! >= 400 &&
-      e.response!.statusCode! < 500) {
-    final errorMessage = _extractErrorMessage(e.response!.data);
-    throw Exception('Error ${e.response?.statusCode}: $errorMessage');
-  }
-}
-
-String _extractErrorMessage(dynamic errorData) {
-  if (errorData is Map<String, dynamic>) {
-    return errorData['message'] ?? errorData.toString();
-  }
-  if (errorData is String) {
-    return errorData;
-  }
-  return ApiConstants.errorServer; // Usar constante para error desconocido
-}
-
-Future<void> editarNoticia(Noticia noticia) async {
-  final url = '${ApiConstants.noticiasUrl}/${noticia.id}'; // Construye la URL para editar la noticia
-  try {
-    final response = await dio.put(
-      url,
-      data: {
-        'titulo': noticia.titulo,
-        'descripcion': noticia.contenido,
-        'fuente': noticia.fuente,
-        'publicadaEl': noticia.publicadaEl.toIso8601String(),
-        'urlImagen': noticia.imagenUrl,
-        'categoriaId': noticia.categoriaId,
-      },
-    );
-
-    if (response.statusCode != 200 && response.statusCode != 204) {
-      throw Exception(ApiConstants.errorServer); // Usar constante para error del servidor
+  /// Crea una nueva noticia
+  Future<void> crearNoticia(Noticia noticia) async {
+    try {
+      await _noticiaService.crearNoticia(noticia);
+    } catch (e) {
+      throw Exception('Error al crear la noticia: $e');
     }
-  } catch (e) {
-    throw Exception('${ApiConstants.errorServer}: $e'); // Usar constante para error del servidor
   }
-}
 
-Future<void> eliminarNoticia(Noticia noticia) async {
-  final url = '${ApiConstants.noticiasUrl}/${noticia.id}';
-  try {
-    final response = await dio.delete(url);
-
-    if (response.statusCode == 405) {
-      throw Exception('Método no permitido: Verifica el endpoint o el método HTTP');
+  /// Edita una noticia existente
+  Future<void> editarNoticia(Noticia noticia) async {
+    try {
+      await _noticiaService.editarNoticia(noticia);
+    } catch (e) {
+      throw Exception('Error al editar la noticia: $e');
     }
+  }
 
-    if (response.statusCode != 200 && response.statusCode != 204) {
-      throw Exception('Error al eliminar la noticia: ${response.statusCode}');
+  /// Elimina una noticia
+  Future<void> eliminarNoticia(Noticia noticia) async {
+    try {
+      await _noticiaService.eliminarNoticia(noticia);
+    } catch (e) {
+      throw Exception('Error al eliminar la noticia: $e');
     }
-  } on DioException catch (e) {
-    throw Exception('Error al conectar con la API: ${e.message}');
-  } catch (e) {
-    throw Exception('Error inesperado: $e');
   }
-}
-void handleHttpError(int? statusCode) {
-  switch (statusCode) {
-    case 401:
-      throw Exception(ApiConstants.errorUnauthorized); // Usar constante para error 401
-    case 404:
-      throw Exception(ApiConstants.errorNotFound); // Usar constante para error 404
-    case 500:
-      throw Exception(ApiConstants.errorServer); // Usar constante para error 500
-    default:
-      throw Exception('Error desconocido: Código de estado $statusCode');
-  }
-}
 }

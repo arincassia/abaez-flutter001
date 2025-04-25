@@ -6,7 +6,7 @@ class Noticia {
   final String fuente;
   final DateTime publicadaEl;
   final String? imagenUrl; // Nuevo campo para la URL de la imagen
-  final String categoriaId; // ID de la categoría asociada
+  final String? categoriaId; // ID de la categoría asociada
 
   Noticia({
     required this.id,
@@ -15,7 +15,7 @@ class Noticia {
     required this.fuente,
     required this.publicadaEl,
     this.imagenUrl, // Campo opcional
-    required this.categoriaId, // ID de la categoría asociada
+    this.categoriaId, // ID de la categoría asociada
   });
 
   factory Noticia.fromJson(Map<String, dynamic> json) {

@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:abaez/api/service/noticia_service.dart';
 import 'package:abaez/data/noticia_repository.dart';
+import 'package:abaez/api/service/noticia_sevice.dart';
 import 'package:abaez/components/noticia_card.dart';
-import 'package:abaez/constans.dart';
+import 'package:abaez/constantes/constants.dart';
 import 'package:abaez/domain/noticia.dart';
 import 'package:dio/dio.dart';
 import 'package:abaez/helpers/api_error_helper.dart';
 import 'package:abaez/exceptions/api_exception.dart';
 import 'package:abaez/views/categorias_screen.dart';
-import 'package:abaez/api/service/categorias_service.dart';
-import 'package:abaez/data/categoria_repository.dart';
+import 'package:abaez/api/service/categoria_service.dart';
 
 import 'package:abaez/domain/categoria.dart';
 
@@ -22,8 +21,8 @@ class NoticiasScreen extends StatefulWidget {
 }
 
 class NoticiasScreenState extends State<NoticiasScreen> {
-  final NoticiaService noticiaService = NoticiaService(NoticiaRepository());
-  final ScrollController _scrollController = ScrollController();
+final NoticiaRepository noticiaService = NoticiaRepository(NoticiaService());  
+final ScrollController _scrollController = ScrollController();
 
   List<Noticia> noticiasList = [];
   int currentPage = 1;
@@ -190,9 +189,9 @@ Future<void> _loadNoticias({bool reset = false}) async {
     return NoticiaCard(
       noticia: noticia,
       index: index,
-      categoriaNombre: noticia.categoriaId.isEmpty
-          ? 'Sin categoría'
-          : noticia.categoriaId, // Cambia esto para mostrar el nombre de la categoría
+      categoriaNombre: (noticia.categoriaId ?? '').isEmpty
+    ? 'Sin categoría'
+    : noticia.categoriaId!,
       onEdit: () => showEditNoticiaForm(context, noticia, index),
       onDelete: () async {
   try {
@@ -249,15 +248,19 @@ void _showAddNoticiaForm(BuildContext context) async {
   final TextEditingController descripcionController = TextEditingController();
   final TextEditingController fuenteController = TextEditingController();
   final TextEditingController fechaController = TextEditingController(
-    text: '${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}', // Fecha actual por defecto
+    text: '${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}', 
   );
   final TextEditingController imagenUrlController = TextEditingController();
 
   List<Categoria> categorias = [];
   String? categoriaSeleccionada;
+
   try {
-    final categoriaService = CategoriasService(CategoriaRepository());
-    categorias = await categoriaService.listarCategoriasDesdeAPI();  } catch (e) {
+    final categoriaService = CategoriaService();
+    categorias = await categoriaService.listarCategoriasDesdeAPI();
+     // Agregar la opción "Sin categoría" al inicio de la lista
+    categorias.insert(0, Categoria(id: '', nombre: 'Sin categoría', descripcion: 'Sin categoría'));
+  } catch (e) {
     debugPrint('Error al cargar categorías: $e');
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -266,7 +269,9 @@ void _showAddNoticiaForm(BuildContext context) async {
     }
     return;
   }
+
   if (!context.mounted) return;
+
   showDialog(
     context: context,
     builder: (context) {
@@ -327,16 +332,9 @@ void _showAddNoticiaForm(BuildContext context) async {
                     );
                   }).toList(),
                   onChanged: (value) {
-                    setState(() {
-                      categoriaSeleccionada = value;
-                    });
+                    categoriaSeleccionada = value;
                   },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'La categoría es obligatoria';
-                    }
-                    return null;
-                  },
+                  // Eliminamos la validación para que no sea obligatoria
                 ),
               ],
             ),
@@ -372,7 +370,7 @@ void _showAddNoticiaForm(BuildContext context) async {
                   imagenUrl: imagenUrlController.text.isNotEmpty
                       ? imagenUrlController.text
                       : null, // Imagen por defecto
-                  categoriaId: categoriaSeleccionada!, // ID de categoría seleccionada
+                  categoriaId: categoriaSeleccionada, // Puede ser null
                 );
 
                 try {
@@ -409,7 +407,7 @@ void _showAddNoticiaForm(BuildContext context) async {
   );
 }
   
-void showEditNoticiaForm(BuildContext context, Noticia noticia, int index) {
+void showEditNoticiaForm(BuildContext context, Noticia noticia, int index) async {
   final formKey = GlobalKey<FormState>();
   final TextEditingController tituloController = TextEditingController(text: noticia.titulo);
   final TextEditingController descripcionController = TextEditingController(text: noticia.contenido);
@@ -418,6 +416,27 @@ void showEditNoticiaForm(BuildContext context, Noticia noticia, int index) {
     text: '${noticia.publicadaEl.day}/${noticia.publicadaEl.month}/${noticia.publicadaEl.year}',
   );
   final TextEditingController imagenUrlController = TextEditingController(text: noticia.imagenUrl ?? '');
+
+  List<Categoria> categorias = [];
+  String? categoriaSeleccionada = noticia.categoriaId;
+
+  try {
+    final categoriaService = CategoriaService();
+    categorias = await categoriaService.listarCategoriasDesdeAPI();
+
+    // Agregar la opción "Sin categoría" al inicio de la lista
+    categorias.insert(0, Categoria(id: '', nombre: 'Sin categoría', descripcion: 'Sin categoría'));
+  } catch (e) {
+    debugPrint('Error al cargar categorías: $e');
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al cargar categorías: $e')),
+      );
+    }
+    return;
+  }
+
+  if (!context.mounted) return;
 
   showDialog(
     context: context,
@@ -469,6 +488,19 @@ void showEditNoticiaForm(BuildContext context, Noticia noticia, int index) {
                   controller: imagenUrlController,
                   decoration: const InputDecoration(labelText: 'URL de la Imagen'),
                 ),
+                DropdownButtonFormField<String>(
+                  value: categoriaSeleccionada ?? '', // Asegurar que no sea null
+                  decoration: const InputDecoration(labelText: 'Categoría'),
+                  items: categorias.map((categoria) {
+                    return DropdownMenuItem<String>(
+                      value: categoria.id,
+                      child: Text(categoria.nombre),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    categoriaSeleccionada = value;
+                  },
+                ),
               ],
             ),
           ),
@@ -483,7 +515,6 @@ void showEditNoticiaForm(BuildContext context, Noticia noticia, int index) {
           ElevatedButton(
             onPressed: () async {
               if (formKey.currentState!.validate()) {
-                // Combina la fecha ingresada con la hora actual
                 final nuevaFecha = convertirFecha(fechaController.text);
                 final fechaConHoraActual = DateTime(
                   nuevaFecha.year,
@@ -499,25 +530,25 @@ void showEditNoticiaForm(BuildContext context, Noticia noticia, int index) {
                   titulo: tituloController.text,
                   contenido: descripcionController.text,
                   fuente: fuenteController.text,
-                  publicadaEl: fechaConHoraActual, // Fecha con la hora actual
+                  publicadaEl: fechaConHoraActual,
                   imagenUrl: imagenUrlController.text.isNotEmpty
                       ? imagenUrlController.text
-                      : null, // Imagen por defecto
-                  categoriaId: noticia.categoriaId, // Mantener la categoría original
+                      : null,
+                  categoriaId: categoriaSeleccionada, // Actualizar la categoría
                 );
 
                 try {
-                  await noticiaService.editarNoticia(noticiaEditada); // Llama al método para editar la noticia
+                  await noticiaService.editarNoticia(noticiaEditada);
 
-                  if (!context.mounted) return; // Verificar si el widget sigue montado
+                  if (!context.mounted) return;
 
                   setState(() {
-                    noticiasList[index] = noticiaEditada; // Actualizar la lista local
+                    noticiasList[index] = noticiaEditada;
                   });
 
                   Navigator.pop(context); // Cerrar el diálogo
                 } catch (e) {
-                  if (!mounted) return; // Verificar si el widget sigue montado
+                  if (!mounted) return;
 
                   debugPrint('Error al editar noticia: $e');
                   ScaffoldMessenger.of(context).showSnackBar(
