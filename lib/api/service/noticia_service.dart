@@ -75,9 +75,9 @@ Future<void> editarNoticia(Noticia noticia) async {
   }
 }
 
-Future<void> eliminarNoticia(String id) async {
+Future<void> eliminarNoticia(Noticia noticia) async {
   try {
-    await _noticiaRepository.eliminarNoticia(id); // Llama al método del repositorio
+    await _noticiaRepository.eliminarNoticia(noticia); // Llama al método del repositorio
   } catch (e) {
     throw Exception('Error al eliminar la noticia: $e');
   }

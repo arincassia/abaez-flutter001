@@ -4,6 +4,15 @@ import 'package:abaez/data/noticia_repository.dart';
 import 'package:abaez/components/noticia_card.dart';
 import 'package:abaez/constans.dart';
 import 'package:abaez/domain/noticia.dart';
+import 'package:dio/dio.dart';
+import 'package:abaez/helpers/api_error_helper.dart';
+import 'package:abaez/exceptions/api_exception.dart';
+import 'package:abaez/views/categorias_screen.dart';
+import 'package:abaez/api/service/categorias_service.dart';
+import 'package:abaez/data/categoria_repository.dart';
+
+import 'package:abaez/domain/categoria.dart';
+
 
 class NoticiasScreen extends StatefulWidget {
   const NoticiasScreen({super.key});
@@ -35,8 +44,20 @@ class NoticiasScreenState extends State<NoticiasScreen> {
       }
     });
   }
+void _mostrarSnackBarError(BuildContext context, ApiException exception) {
+  final errorDetails = getErrorDetails(exception);
 
-  Future<void> _loadNoticias({bool reset = false}) async {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(errorDetails.message),
+      backgroundColor: errorDetails.color,
+      duration: const Duration(seconds: 3),
+    ),
+  );
+}
+
+
+Future<void> _loadNoticias({bool reset = false}) async {
   if (isLoading) return;
 
   setState(() {
@@ -52,6 +73,8 @@ class NoticiasScreenState extends State<NoticiasScreen> {
   try {
     final newNoticias = await noticiaService.listarNoticiasDesdeAPI();
 
+    if (!mounted) return; // Verificar si el widget sigue montado
+
     setState(() {
       if (newNoticias.isEmpty) {
         hasMore = false; // No hay más noticias para cargar
@@ -62,20 +85,43 @@ class NoticiasScreenState extends State<NoticiasScreen> {
     });
   } catch (e) {
     debugPrint('Error al cargar noticias: $e');
+
+    if (!mounted) return; // Verificar si el widget sigue montado
+
     setState(() {
       mensajeError = 'Error al cargar noticias. Por favor, inténtalo de nuevo.';
     });
-  } finally {
-    setState(() {
-      isLoading = false;
-    });
+
+    // Mostrar SnackBar con el mensaje de error
+    if (e is DioException) {
+  if (mounted) {
+    final apiException = ApiException(
+      e.message ?? 'Error desconocido',
+      statusCode: e.response?.statusCode,
+    );
+    _mostrarSnackBarError(context, apiException);
+  }
+} else {
+  if (mounted) {
+    final apiException = ApiException('Error desconocido');
+    _mostrarSnackBarError(context, apiException);
   }
 }
+  } finally {
+    if (mounted) {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+}
+
+
 @override
   Widget build(BuildContext context) {
       print('NoticiasScreenState build() llamado');
     return Scaffold(
-     appBar: AppBar(
+    appBar: AppBar(
   title: const Text(AppConstants.tituloNoticias),
   actions: [
     IconButton(
@@ -88,6 +134,18 @@ class NoticiasScreenState extends State<NoticiasScreen> {
         });
       },
     ),
+    IconButton(
+  icon: const Icon(Icons.category),
+  tooltip: 'Categorías',
+  onPressed: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const CategoriasScreen(),
+      ),
+    ); // Navegar directamente a CategoriasScreen
+  },
+),
   ],
 ),
 
@@ -119,56 +177,48 @@ class NoticiasScreenState extends State<NoticiasScreen> {
                           style: TextStyle(fontSize: 16),
                         ),
                       )
-                    : ListView.builder(
+               : ListView.builder(
   controller: _scrollController,
   itemCount: noticiasList.length + (isLoading ? 1 : 0),
   itemBuilder: (context, index) {
-  if (index == noticiasList.length) {
-    return const Center(child: CircularProgressIndicator());
-  }
+    if (index == noticiasList.length) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
-  final noticia = noticiasList[index];
+    final noticia = noticiasList[index];
 
-  return Dismissible(
-    key: Key(noticia.id), // Usa un identificador único para cada noticia
-    direction: DismissDirection.startToEnd, // Permite deslizar solo de izquierda a derecha
-    background: Container(
-      color: Colors.red,
-      alignment: Alignment.centerLeft,
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: const Icon(Icons.delete, color: Colors.white),
-    ),
-    onDismissed: (direction) async {
-      try {
-        // Eliminar la noticia del backend
-        await noticiaService.eliminarNoticia(noticia.id);
-
-        // Eliminar la noticia de la lista local
-        setState(() {
-          noticiasList.removeAt(index);
-        });
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Noticia eliminada')),
-          );
-        }
-      } catch (e) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error al eliminar noticia: $e')),
-          );
-        }
-      }
-    },
-    child: NoticiaCard(
+    return NoticiaCard(
       noticia: noticia,
       index: index,
-      onEdit: () => showEditNoticiaForm(context, noticia, index), // Callback para editar
-    ),
-  );
+      categoriaNombre: noticia.categoriaId.isEmpty
+          ? 'Sin categoría'
+          : noticia.categoriaId, // Cambia esto para mostrar el nombre de la categoría
+      onEdit: () => showEditNoticiaForm(context, noticia, index),
+      onDelete: () async {
+  try {
+    await noticiaService.eliminarNoticia(noticia); // Llama al método del servicio
+
+    setState(() {
+      noticiasList.removeAt(index); // Elimina la noticia de la lista local
+    });
+    if (context.mounted){
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Noticia eliminada')),
+    );
+    }
+  } catch (e) {
+      if (context.mounted){
+    debugPrint('Error al eliminar noticia: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error al eliminar noticia: $e')),
+    );
+  }
+  }
+  
 },
-),
-                      
+    );
+  },
+),                 
                ),
                floatingActionButton: FloatingActionButton(
       onPressed: () => _showAddNoticiaForm(context),
@@ -193,7 +243,7 @@ class NoticiasScreenState extends State<NoticiasScreen> {
   }
 
 
-void _showAddNoticiaForm(BuildContext context) {
+void _showAddNoticiaForm(BuildContext context) async {
   final formKey = GlobalKey<FormState>();
   final TextEditingController tituloController = TextEditingController();
   final TextEditingController descripcionController = TextEditingController();
@@ -203,6 +253,20 @@ void _showAddNoticiaForm(BuildContext context) {
   );
   final TextEditingController imagenUrlController = TextEditingController();
 
+  List<Categoria> categorias = [];
+  String? categoriaSeleccionada;
+  try {
+    final categoriaService = CategoriasService(CategoriaRepository());
+    categorias = await categoriaService.listarCategoriasDesdeAPI();  } catch (e) {
+    debugPrint('Error al cargar categorías: $e');
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al cargar categorías: $e')),
+      );
+    }
+    return;
+  }
+  if (!context.mounted) return;
   showDialog(
     context: context,
     builder: (context) {
@@ -253,6 +317,27 @@ void _showAddNoticiaForm(BuildContext context) {
                   controller: imagenUrlController,
                   decoration: const InputDecoration(labelText: 'URL de la Imagen'),
                 ),
+                DropdownButtonFormField<String>(
+                  value: categoriaSeleccionada,
+                  decoration: const InputDecoration(labelText: 'Categoría'),
+                  items: categorias.map((categoria) {
+                    return DropdownMenuItem<String>(
+                      value: categoria.id,
+                      child: Text(categoria.nombre),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      categoriaSeleccionada = value;
+                    });
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'La categoría es obligatoria';
+                    }
+                    return null;
+                  },
+                ),
               ],
             ),
           ),
@@ -287,6 +372,7 @@ void _showAddNoticiaForm(BuildContext context) {
                   imagenUrl: imagenUrlController.text.isNotEmpty
                       ? imagenUrlController.text
                       : null, // Imagen por defecto
+                  categoriaId: categoriaSeleccionada!, // ID de categoría seleccionada
                 );
 
                 try {
@@ -299,6 +385,12 @@ void _showAddNoticiaForm(BuildContext context) {
                   });
 
                   Navigator.pop(context); // Cerrar el diálogo
+
+                  _loadNoticias(reset: true);
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Noticia agregada con éxito')),
+                  );
                 } catch (e) {
                   if (!mounted) return; // Verificar si el widget sigue montado
 
@@ -411,6 +503,7 @@ void showEditNoticiaForm(BuildContext context, Noticia noticia, int index) {
                   imagenUrl: imagenUrlController.text.isNotEmpty
                       ? imagenUrlController.text
                       : null, // Imagen por defecto
+                  categoriaId: noticia.categoriaId, // Mantener la categoría original
                 );
 
                 try {

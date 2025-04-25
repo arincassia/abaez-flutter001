@@ -53,10 +53,27 @@ class AppConstants {
   static const String publicadaEl = 'Publicado el';
   static const String tooltipOrden = 'Cambiar orden';
  // static const String newsurl = 'https://newsapi.org/v2/everything';
-  static final String newsurl = dotenv.env['NEWS_URL'] ?? 'URL_NO_DEFINIDA';
+  
+}
 
 
+class ApiConstants {
+   static final String newsurl = dotenv.env['NEWS_URL'] ?? 'URL_NO_DEFINIDA';
+  static final String noticiasUrl = '$newsurl/noticias';
+  static final String categoriasUrl = '$newsurl/categorias';
+  static const int timeoutSeconds = 10; 
+  static const String errorTimeout = 'Tiempo de espera agotado'; 
+  static const String errorNoCategory = 'Categoría no encontrada'; 
+  static const String defaultcategoriaId = 'sin_categoria'; 
+  static const String listasVacia = 'No hay categorias disponibles';
+  static const String mensajeCargando = 'Cargando categorias...';
+  static const String successCreated = 'Noticia/Categoría creada';
+  static const String successUpdated = 'Noticia/Categoría actualizada';
+  static const String successDeleted = 'Noticia/Categoría eliminada';
 
 
+  static const String errorUnauthorized = 'No autorizado'; 
+  static const String errorNotFound = 'Noticias no encontradas';
+  static const String errorServer = 'Error del servidor';
 
 }
