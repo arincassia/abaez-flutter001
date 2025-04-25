@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:abaez/constans.dart';
+import 'package:abaez/constantes/constants.dart';
 import 'package:abaez/domain/noticia.dart';
-import 'package:abaez/api/service/categorias_service.dart';
-import 'package:abaez/data/categoria_repository.dart';
+import 'package:abaez/api/service/categoria_service.dart';
 
 class NoticiaCard extends StatelessWidget {
   final Noticia noticia;
@@ -11,24 +10,25 @@ class NoticiaCard extends StatelessWidget {
   final VoidCallback onDelete;
   final String categoriaNombre;
 
-  const NoticiaCard({
+  final CategoriaService categoriaService;
+
+  NoticiaCard({
     super.key,
     required this.noticia,
     required this.index,
     required this.onEdit,
     required this.onDelete,
     required this.categoriaNombre,
-  });
+  }) : categoriaService = CategoriaService();
 
   Future<String> _obtenerNombreCategoria(String categoriaId) async {
-  try {
-    final categoriaService = CategoriasService(CategoriaRepository());
-    final categoria = await categoriaService.obtenerCategoriaPorId(categoriaId);
-    return categoria.nombre;
-  } catch (e) {
-    return 'Sin categoría';
+    try {
+      final categoria = await categoriaService.obtenerCategoriaPorId(categoriaId);
+      return categoria.nombre;
+    } catch (e) {
+      return 'Sin categoría';
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -80,9 +80,8 @@ class NoticiaCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    const SizedBox(height: 4),
                     FutureBuilder<String>(
-                      future: _obtenerNombreCategoria(noticia.categoriaId),
+                    future: _obtenerNombreCategoria(noticia.categoriaId ?? ''),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState == ConnectionState.waiting) {
                           return const Text(

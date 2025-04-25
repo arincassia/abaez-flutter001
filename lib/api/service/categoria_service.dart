@@ -1,12 +1,12 @@
 import 'package:abaez/domain/categoria.dart';
-import 'package:abaez/constans.dart'; 
+import 'package:abaez/constantes/constants.dart';
 import 'package:dio/dio.dart';
 import 'package:abaez/exceptions/api_exception.dart';
 
-class CategoriaRepository {
+class CategoriaService {
   final Dio dio;
 
-  CategoriaRepository()
+  CategoriaService()
       : dio = Dio(BaseOptions(
           baseUrl: ApiConstants.categoriasUrl,
           connectTimeout: const Duration(seconds: ApiConstants.timeoutSeconds), 
