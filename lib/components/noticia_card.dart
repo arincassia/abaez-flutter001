@@ -1,18 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:abaez/constans.dart';
 import 'package:abaez/domain/noticia.dart';
+import 'package:abaez/api/service/categorias_service.dart';
+import 'package:abaez/data/categoria_repository.dart';
 
 class NoticiaCard extends StatelessWidget {
   final Noticia noticia;
   final int index;
   final VoidCallback onEdit;
+  final VoidCallback onDelete;
+  final String categoriaNombre;
 
   const NoticiaCard({
     super.key,
     required this.noticia,
     required this.index,
     required this.onEdit,
+    required this.onDelete,
+    required this.categoriaNombre,
   });
+
+  Future<String> _obtenerNombreCategoria(String categoriaId) async {
+  try {
+    final categoriaService = CategoriasService(CategoriaRepository());
+    final categoria = await categoriaService.obtenerCategoriaPorId(categoriaId);
+    return categoria.nombre;
+  } catch (e) {
+    return 'Sin categoría';
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +64,7 @@ class NoticiaCard extends StatelessWidget {
                         fontWeight: FontWeight.w300,
                       ),
                     ),
+                    const SizedBox(height: 4),
                     Text(
                       noticia.contenido,
                       maxLines: 3,
@@ -61,6 +78,39 @@ class NoticiaCard extends StatelessWidget {
                         fontSize: 12,
                         color: Colors.grey,
                       ),
+                    ),
+                    const SizedBox(height: 4),
+                    const SizedBox(height: 4),
+                    FutureBuilder<String>(
+                      future: _obtenerNombreCategoria(noticia.categoriaId),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const Text(
+                            'Cargando categoría...',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          );
+                        }
+                        if (snapshot.hasError) {
+                          return const Text(
+                            'Error al cargar categoría',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.red,
+                            ),
+                          );
+                        }
+                        final categoriaNombre = snapshot.data ?? 'Sin categoría';
+                        return Text(
+                          'Categoría: $categoriaNombre',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -83,26 +133,16 @@ class NoticiaCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   Row(
                     mainAxisSize: MainAxisSize.min,
-                    
                     children: [
-                      const SizedBox(width: 8),
-                      const Icon(Icons.star_border, size: 20),
-                      const SizedBox(width: 9),
-                      const Icon(Icons.share, size: 20),
-                   
-                      PopupMenuButton<String>(
-                        icon: const Icon(Icons.more_vert),
-                        onSelected: (value) {
-                          if (value == 'edit') {
-                            onEdit(); // Llama al callback para abrir el modal de edición
-                          }
-                        },
-                        itemBuilder: (BuildContext context) => [
-                          const PopupMenuItem<String>(
-                            value: 'edit',
-                            child: Text('Editar'),
-                          ),
-                        ],
+                      IconButton(
+                        icon: const Icon(Icons.edit, color: Colors.blue),
+                        tooltip: 'Editar',
+                        onPressed: onEdit,
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        tooltip: 'Eliminar',
+                        onPressed: () => _confirmDelete(context),
                       ),
                     ],
                   ),
@@ -117,5 +157,32 @@ class NoticiaCard extends StatelessWidget {
 
   String _formatDate(DateTime date) {
     return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+  }
+
+  void _confirmDelete(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Eliminar Noticia'),
+          content: const Text('¿Estás seguro de que deseas eliminar esta noticia?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Cerrar el diálogo
+              },
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                onDelete(); // Llama al callback para manejar la eliminación
+                Navigator.of(context).pop(); // Cerrar el diálogo
+              },
+              child: const Text('Eliminar'),
+            ),
+          ],
+        );
+      },
+    );
   }
 }
