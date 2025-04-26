@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:abaez/constantes/constants.dart';
 import 'package:abaez/domain/noticia.dart';
+import 'package:abaez/exceptions/api_exception.dart';
 import 'dart:convert';
 
 class NoticiaService {
@@ -173,7 +174,7 @@ String _extractErrorMessage(dynamic errorData) {
   return ApiConstants.errorServer; // Usar constante para error desconocido
 }
 
-Future<void> editarNoticia(Noticia noticia) async {
+Future<void> actualizarNoticia(Noticia noticia) async {
   final url = '${ApiConstants.noticiasUrl}/${noticia.id}'; // Construye la URL para editar la noticia
   try {
     final response = await dio.put(
@@ -184,15 +185,22 @@ Future<void> editarNoticia(Noticia noticia) async {
         'fuente': noticia.fuente,
         'publicadaEl': noticia.publicadaEl.toIso8601String(),
         'urlImagen': noticia.imagenUrl,
-        'categoriaId': noticia.categoriaId,
+        'categoriaId': noticia.categoriaId, // Puede ser null
       },
     );
 
-    if (response.statusCode != 200 && response.statusCode != 204) {
-      throw Exception(ApiConstants.errorServer); // Usar constante para error del servidor
+    if (response.statusCode == 200 || response.statusCode == 204) {
+      // Éxito: La noticia se actualizó correctamente
+      return;
+    } else {
+      // Manejo de errores HTTP
+      _handleHttpError(response.statusCode);
     }
+  } on DioException catch (e) {
+    // Manejo de errores de red
+    _handleDioError(e);
   } catch (e) {
-    throw Exception('${ApiConstants.errorServer}: $e'); // Usar constante para error del servidor
+    throw ApiException('Error inesperado al actualizar la noticia', statusCode: 500);
   }
 }
 

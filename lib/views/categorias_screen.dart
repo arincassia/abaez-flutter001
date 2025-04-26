@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:abaez/api/service/categoria_service.dart';
 import 'package:abaez/domain/categoria.dart';
 import 'package:abaez/constantes/constants.dart';
+import 'package:abaez/exceptions/api_exception.dart';
+import 'package:abaez/helpers/snackbar_helper.dart';
 
 class CategoriasScreen extends StatefulWidget {
   const CategoriasScreen({super.key});
@@ -53,175 +55,196 @@ final CategoriaRepository categoriaService = CategoriaRepository(CategoriaServic
   }
 
   void _showAddCategoriaForm(BuildContext context) {
-    final formKey = GlobalKey<FormState>();
-    final TextEditingController nameController = TextEditingController();
-    final TextEditingController descriptionController = TextEditingController();
-    final TextEditingController imagenUrlController = TextEditingController();
+  final formKey = GlobalKey<FormState>();
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController descriptionController = TextEditingController();
+  final TextEditingController imagenUrlController = TextEditingController();
 
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Agregar Categoría'),
-          content: SingleChildScrollView(
-            child: Form(
-              key: formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextFormField(
-                    controller: nameController,
-                    decoration: const InputDecoration(labelText: 'Nombre'),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'El nombre es obligatorio';
-                      }
-                      return null;
-                    },
-                  ),
-                  TextFormField(
-                    controller: descriptionController,
-                    decoration: const InputDecoration(labelText: 'Descripción'),
-                  ),
-                  TextFormField(
-                    controller: imagenUrlController,
-                    decoration: const InputDecoration(labelText: 'URL de la Imagen'),
-                  ),
-                ],
-              ),
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text('Agregar Categoría'),
+        content: SingleChildScrollView(
+          child: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: nameController,
+                  decoration: const InputDecoration(labelText: 'Nombre'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'El nombre es obligatorio';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: descriptionController,
+                  decoration: const InputDecoration(labelText: 'Descripción'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'La descripción es obligatoria';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: imagenUrlController,
+                  decoration: const InputDecoration(labelText: 'URL de la Imagen'),
+                ),
+              ],
             ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Cerrar el diálogo
-              },
-              child: const Text('Cancelar'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                if (formKey.currentState!.validate()) {
-                  final nuevaCategoria = Categoria(
-                    id: '', // El ID será generado por el servidor
-                    nombre: nameController.text,
-                    descripcion: descriptionController.text,
-                    imagenUrl: imagenUrlController.text.isNotEmpty
-                        ? imagenUrlController.text
-                        : null, // Imagen por defecto
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context); // Cerrar el diálogo
+            },
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (formKey.currentState!.validate()) {
+                final nuevaCategoria = Categoria(
+                  id: '', // El ID será generado por el servidor
+                  nombre: nameController.text,
+                  descripcion: descriptionController.text,
+                  imagenUrl: imagenUrlController.text.isNotEmpty
+                      ? imagenUrlController.text
+                      : null, // Imagen por defecto
+                );
+
+                try {
+                  await categoriaService.crearCategoria(nuevaCategoria);
+
+                  if (!context.mounted) return;
+
+                  Navigator.pop(context); // Cerrar el diálogo
+                  _loadCategorias();
+                  if (!context.mounted) return;
+                  SnackBarHelper.showSnackBar(
+                    context,
+                    ApiConstants.categorysuccessCreated,
+                    statusCode: 200, // Código de éxito
                   );
-
-                  try {
-                    await categoriaService.crearCategoria(nuevaCategoria);
-
-                    if (!context.mounted) return;
-
-                    Navigator.pop(context); // Cerrar el diálogo
-                    _loadCategorias();
-
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text(ApiConstants.successCreated)),
-                    );
-                  } catch (e) {
-                    debugPrint('Error al crear categoría: $e');
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error al crear categoría: $e')),
-                    );
-                  }
+                } catch (e) {
+                  debugPrint('Error al crear categoría: $e');
+                  final statusCode = e is ApiException ? e.statusCode : null;
+                  SnackBarHelper.showSnackBar(
+                    context,
+                    'Error al crear categoría: $e',
+                    statusCode: statusCode,
+                  );
                 }
-              },
-              child: const Text('Agregar'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+              }
+            },
+            child: const Text('Agregar'),
+          ),
+        ],
+      );
+    },
+  );
+}
 
   void _showEditCategoriaForm(BuildContext context, Categoria categoria) {
-    final formKey = GlobalKey<FormState>();
-    final TextEditingController nameController = TextEditingController(text: categoria.nombre);
-    final TextEditingController descriptionController = TextEditingController(text: categoria.descripcion);
-    final TextEditingController imagenUrlController = TextEditingController(text: categoria.imagenUrl ?? '');
+  final formKey = GlobalKey<FormState>();
+  final TextEditingController nameController = TextEditingController(text: categoria.nombre);
+  final TextEditingController descriptionController = TextEditingController(text: categoria.descripcion);
+  final TextEditingController imagenUrlController = TextEditingController(text: categoria.imagenUrl ?? '');
 
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Editar Categoría'),
-          content: SingleChildScrollView(
-            child: Form(
-              key: formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextFormField(
-                    controller: nameController,
-                    decoration: const InputDecoration(labelText: 'Nombre'),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'El nombre es obligatorio';
-                      }
-                      return null;
-                    },
-                  ),
-                  TextFormField(
-                    controller: descriptionController,
-                    decoration: const InputDecoration(labelText: 'Descripción'),
-                  ),
-                  TextFormField(
-                    controller: imagenUrlController,
-                    decoration: const InputDecoration(labelText: 'URL de la Imagen'),
-                  ),
-                ],
-              ),
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text('Editar Categoría'),
+        content: SingleChildScrollView(
+          child: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: nameController,
+                  decoration: const InputDecoration(labelText: 'Nombre'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'El nombre es obligatorio';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: descriptionController,
+                  decoration: const InputDecoration(labelText: 'Descripción'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'La descripción es obligatoria';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: imagenUrlController,
+                  decoration: const InputDecoration(labelText: 'URL de la Imagen'),
+                ),
+              ],
             ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Cerrar el diálogo
-              },
-              child: const Text('Cancelar'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                if (formKey.currentState!.validate()) {
-                  final categoriaEditada = Categoria(
-                    id: categoria.id,
-                    nombre: nameController.text,
-                    descripcion: descriptionController.text,
-                    imagenUrl: imagenUrlController.text.isNotEmpty
-                        ? imagenUrlController.text
-                        : null, // Imagen por defecto
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context); // Cerrar el diálogo
+            },
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (formKey.currentState!.validate()) {
+                final categoriaEditada = Categoria(
+                  id: categoria.id,
+                  nombre: nameController.text,
+                  descripcion: descriptionController.text,
+                  imagenUrl: imagenUrlController.text.isNotEmpty
+                      ? imagenUrlController.text
+                      : null, // Imagen por defecto
+                );
+
+                try {
+                  await categoriaService.editarCategoria(categoriaEditada);
+
+                  if (!context.mounted) return;
+
+                  Navigator.pop(context); // Cerrar el diálogo
+                  _loadCategorias();
+                  if (!context.mounted) return;
+                  SnackBarHelper.showSnackBar(
+                    context,
+                    ApiConstants.categorysuccessUpdated, // Mensaje de éxito
+                    statusCode: 200, // Código de éxito
                   );
-
-                  try {
-                    await categoriaService.editarCategoria(categoriaEditada);
-
-                    if (!context.mounted) return;
-
-                    Navigator.pop(context); // Cerrar el diálogo
-                    _loadCategorias();
-
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text(ApiConstants.successUpdated)),
-                    );
-                  } catch (e) {
-                    debugPrint('Error al editar categoría: $e');
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error al editar categoría: $e')),
-                    );
-                  }
+                } catch (e) {
+                  debugPrint('Error al editar categoría: $e');
+                  final statusCode = e is ApiException ? e.statusCode : null;
+                  SnackBarHelper.showSnackBar(
+                    context,
+                    'Error al editar categoría: $e', // Mensaje de error
+                    statusCode: statusCode,
+                  );
                 }
-              },
-              child: const Text('Guardar'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
+              }
+            },
+            child: const Text('Guardar'),
+          ),
+        ],
+      );
+    },
+  );
+}
   void _deleteCategoria(Categoria categoria) async {
     try {
       await categoriaService.eliminarCategoria(categoria.id);
@@ -230,15 +253,20 @@ final CategoriaRepository categoriaService = CategoriaRepository(CategoriaServic
 
       _loadCategorias();
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(ApiConstants.successDeleted)),
-      );
-    } catch (e) {
-      debugPrint('Error al eliminar categoría: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al eliminar categoría: $e')),
-      );
-    }
+       SnackBarHelper.showSnackBar(
+      context,
+      ApiConstants.categorysuccessDeleted, // Mensaje de éxito
+      statusCode: 200, // Código de éxito
+    );
+  } catch (e) {
+    debugPrint('Error al eliminar categoría: $e');
+    final statusCode = e is ApiException ? e.statusCode : null;
+    SnackBarHelper.showSnackBar(
+      context,
+      'Error al eliminar categoría: $e', // Mensaje de error
+      statusCode: statusCode,
+    );
+  }
   }
 
   @override
