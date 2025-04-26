@@ -1,5 +1,6 @@
 import 'package:abaez/api/service/noticia_sevice.dart';
 import 'package:abaez/domain/noticia.dart';
+import 'package:abaez/exceptions/api_exception.dart';
 
 class NoticiaRepository {
   final NoticiaService _noticiaService;
@@ -54,7 +55,12 @@ class NoticiaRepository {
 
       return noticias;
     } catch (e) {
-      throw Exception('Error al listar noticias desde la API: $e');
+      if (e is ApiException) {
+        throw Exception('Error al listar noticias desde la API: ${e.message}');
+      }
+      else{
+        throw Exception('Error inesperado: $e');
+      }
     }
   }
 
@@ -63,17 +69,28 @@ class NoticiaRepository {
     try {
       await _noticiaService.crearNoticia(noticia);
     } catch (e) {
-      throw Exception('Error al crear la noticia: $e');
+      if (e is ApiException) {
+        throw Exception('Error al crear la noticia: ${e.message}');
+      }
+      else{
+        throw Exception('Error desconocido: $e');
+      }
     }
   }
 
   /// Edita una noticia existente
   Future<void> editarNoticia(Noticia noticia) async {
     try {
-      await _noticiaService.editarNoticia(noticia);
+      await _noticiaService.actualizarNoticia(noticia);
     } catch (e) {
+      if (e is ApiException) {
       throw Exception('Error al editar la noticia: $e');
+      }
+      else{
+        throw Exception('Error desconocido: $e');
+      }
     }
+    
   }
 
   /// Elimina una noticia
@@ -81,7 +98,13 @@ class NoticiaRepository {
     try {
       await _noticiaService.eliminarNoticia(noticia);
     } catch (e) {
-      throw Exception('Error al eliminar la noticia: $e');
+      if (e is ApiException) {
+        throw Exception('Error al eliminar la noticia: ${e.message}');
+      }
+      else{
+        throw Exception('Error desconocido: $e');
+      }
+     
     }
   }
 }

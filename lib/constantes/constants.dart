@@ -67,9 +67,13 @@ class ApiConstants {
   static const String defaultcategoriaId = 'sin_categoria'; 
   static const String listasVacia = 'No hay categorias disponibles';
   static const String mensajeCargando = 'Cargando categorias...';
-  static const String successCreated = 'Noticia/Categoría creada';
-  static const String successUpdated = 'Noticia/Categoría actualizada';
-  static const String successDeleted = 'Noticia/Categoría eliminada';
+  static const String categorysuccessCreated = 'Categoría creada';
+  static const String categorysuccessUpdated = 'Categoría actualizada';
+  static const String categorysuccessDeleted = 'Categoría eliminada';
+  static const String newssuccessCreated = 'Noticias creada';
+  static const String newssuccessUpdated = 'Noticias actualizada';
+  static const String newssuccessDeleted = 'Noticias eliminada';
+
 
 
   static const String errorUnauthorized = 'No autorizado'; 

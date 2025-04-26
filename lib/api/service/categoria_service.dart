@@ -112,11 +112,11 @@ class CategoriaService {
 
       return nuevaCategoria;
     } else {
-      throw Exception('Error al crear la categoría: ${response.statusCode}');
+      throw ApiException('Error al crear la categoría: ${response.statusCode}');
     }
   } on DioException catch (e) {
     _handle4xxError(e); // Manejo de errores 4xx
-    throw Exception('Error al conectar con la API: ${e.message}');
+    throw ApiException('Error al conectar con la API: ${e.message}');
   }
 }
 
@@ -125,7 +125,7 @@ Future<void> _verificarCategoriaEnServidor(String id) async {
   final response = await dio.get(url);
 
   if (response.statusCode != 200) {
-    throw Exception('La categoría no está disponible en el servidor: ${response.statusCode}');
+    throw ApiException('La categoría no está disponible en el servidor: ${response.statusCode}');
   }
 }
   /// Edita una categoría existente en la API
@@ -141,13 +141,18 @@ Future<void> _verificarCategoriaEnServidor(String id) async {
       },
     );
 
-    if (response.statusCode != 200 && response.statusCode != 204) {
-      throw Exception(ApiConstants.errorServer); // Usar constante para error del servidor
+     if (response.statusCode == 200 || response.statusCode == 204) {
+      // Éxito: La categoría se actualizó correctamente
+      return;
+    } else {
+      // Manejo de errores HTTP
+     _handleHttpError(response.statusCode, response.data); // Incluye el segundo argumento
     }
   } on DioException catch (e) {
-    throw Exception('${ApiConstants.errorServer}: ${e.message}'); // Usar constante para error del servidor
+    // Manejo de errores de red
+    _handleDioError(e);
   } catch (e) {
-    throw Exception('Error inesperado: $e');
+    throw ApiException('Error inesperado al actualizar la categoría', statusCode: 500);
   }
 }
   /// Elimina una categoría de la API
@@ -176,6 +181,7 @@ Future<void> _verificarCategoriaEnServidor(String id) async {
   }
 }
 
+
 String _extractErrorMessage(dynamic errorData) {
   if (errorData is Map<String, dynamic>) {
     return errorData['message'] ?? errorData.toString();
@@ -192,10 +198,11 @@ String _extractErrorMessage(dynamic errorData) {
       if (response.statusCode == 200) {
         return Categoria.fromJson(response.data);
       } else {
-        throw Exception('Error al obtener la categoría: ${response.statusCode}');
+        throw ApiException('Error al obtener la categoría: ${response.statusCode}');
       }
     } catch (e) {
-      throw Exception('Error al conectar con la API: $e');
+      throw ApiException('Error al conectar con la API: $e');
     }
   }
 }
+

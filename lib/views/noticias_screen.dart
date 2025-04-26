@@ -9,7 +9,7 @@ import 'package:abaez/helpers/api_error_helper.dart';
 import 'package:abaez/exceptions/api_exception.dart';
 import 'package:abaez/views/categorias_screen.dart';
 import 'package:abaez/api/service/categoria_service.dart';
-
+import 'package:abaez/helpers/snackbar_helper.dart';
 import 'package:abaez/domain/categoria.dart';
 
 
@@ -196,21 +196,33 @@ Future<void> _loadNoticias({bool reset = false}) async {
       onDelete: () async {
   try {
     await noticiaService.eliminarNoticia(noticia); // Llama al método del servicio
+    if (!context.mounted) return;
 
     setState(() {
       noticiasList.removeAt(index); // Elimina la noticia de la lista local
     });
+    _loadNoticias(reset: true);
+     SnackBarHelper.showSnackBar(
+    context,
+    ApiConstants.newssuccessDeleted,
+    statusCode: 200, // Código de éxito
+  );
+
+
     if (context.mounted){
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Noticia eliminada')),
+      const SnackBar(content: Text(ApiConstants.newssuccessDeleted)),
     );
     }
   } catch (e) {
       if (context.mounted){
-    debugPrint('Error al eliminar noticia: $e');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error al eliminar noticia: $e')),
-    );
+       debugPrint('Error al eliminar noticia: $e');
+  final statusCode = e is ApiException ? e.statusCode : null;
+  SnackBarHelper.showSnackBar(
+    context,
+    'Error al eliminar noticia: $e',
+    statusCode: statusCode,
+  );
   }
   }
   
@@ -386,11 +398,20 @@ void _showAddNoticiaForm(BuildContext context) async {
 
                   _loadNoticias(reset: true);
 
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Noticia agregada con éxito')),
+                   SnackBarHelper.showSnackBar(
+                   context,
+                   ApiConstants.newssuccessCreated,
+                   statusCode: 200, // Código de éxito
                   );
                 } catch (e) {
                   if (!mounted) return; // Verificar si el widget sigue montado
+                    debugPrint('Error al crear noticia: $e');
+                    final statusCode = e is ApiException ? e.statusCode : null;
+                     SnackBarHelper.showSnackBar(
+                      context,
+                      'Error al crear noticia: $e',
+                      statusCode: statusCode,
+                    );
 
                   debugPrint('Error al crear noticia: $e');
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -540,6 +561,7 @@ void showEditNoticiaForm(BuildContext context, Noticia noticia, int index) async
                 try {
                   await noticiaService.editarNoticia(noticiaEditada);
 
+
                   if (!context.mounted) return;
 
                   setState(() {
@@ -547,13 +569,23 @@ void showEditNoticiaForm(BuildContext context, Noticia noticia, int index) async
                   });
 
                   Navigator.pop(context); // Cerrar el diálogo
+                  _loadNoticias(reset: true);
+                SnackBarHelper.showSnackBar(
+                  context,
+                 ApiConstants.newssuccessUpdated,
+                   statusCode: 200, 
+  );
                 } catch (e) {
                   if (!mounted) return;
+                    debugPrint('Error al editar noticia: $e');
+                    final statusCode = e is ApiException ? e.statusCode : null;
+                    SnackBarHelper.showSnackBar(
+                     context,
+                     'Error al editar noticia: $e',
+                    statusCode: statusCode,
+                    );
 
-                  debugPrint('Error al editar noticia: $e');
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error al editar noticia: $e')),
-                  );
+          
                 }
               }
             },
