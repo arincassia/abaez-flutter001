@@ -7,12 +7,13 @@ import 'package:abaez/domain/noticia.dart';
 import 'package:dio/dio.dart';
 import 'package:abaez/helpers/api_error_helper.dart';
 import 'package:abaez/exceptions/api_exception.dart';
-import 'package:abaez/views/categorias_screen.dart';
+
 import 'package:abaez/api/service/categoria_service.dart';
 import 'package:abaez/helpers/snackbar_helper.dart';
 import 'package:abaez/domain/categoria.dart';
+import 'package:abaez/views/categorias_screen_dos.dart';
 
-
+//import 'package:abaez/views/categorias_screen.dart';
 class NoticiasScreen extends StatefulWidget {
   const NoticiasScreen({super.key});
 
@@ -140,7 +141,7 @@ Future<void> _loadNoticias({bool reset = false}) async {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const CategoriasScreen(),
+        builder: (context) => const CategoriaScreenDos(),
       ),
     ); // Navegar directamente a CategoriasScreen
   },

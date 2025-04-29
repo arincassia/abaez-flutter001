@@ -3,9 +3,8 @@ import 'package:abaez/domain/categoria.dart';
 import 'package:abaez/exceptions/api_exception.dart';
 
 class CategoriaRepository {
-  final CategoriaService _categoriaService;
-
-  CategoriaRepository(this._categoriaService);
+  final CategoriaService _categoriaService = CategoriaService();
+  CategoriaRepository();
 
   // Obtener todas las categorías desde la API
   Future<List<Categoria>> listarCategoriasDesdeAPI() async {
