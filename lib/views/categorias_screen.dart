@@ -1,6 +1,6 @@
 import 'package:abaez/data/categorias_repository.dart';
 import 'package:flutter/material.dart';
-import 'package:abaez/api/service/categoria_service.dart';
+
 import 'package:abaez/domain/categoria.dart';
 import 'package:abaez/constantes/constants.dart';
 import 'package:abaez/exceptions/api_exception.dart';
@@ -14,7 +14,7 @@ class CategoriasScreen extends StatefulWidget {
 }
 
 class CategoriasScreenState extends State<CategoriasScreen> {
-final CategoriaRepository categoriaService = CategoriaRepository(CategoriaService());
+final CategoriaRepository categoriaService = CategoriaRepository();
   List<Categoria> categoriasList = [];
   bool isLoading = false;
   String? mensajeError;
