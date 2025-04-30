@@ -4,6 +4,8 @@ import 'package:abaez/bloc/categoria/categorias_bloc.dart';
 import 'package:abaez/bloc/categoria/categoria_state.dart';
 import 'package:abaez/bloc/categoria/categorias_event.dart';
 import 'package:abaez/domain/categoria.dart';
+import 'package:abaez/helpers/snackbar_helper.dart';
+import 'package:abaez/constantes/constants.dart';
 
 class CategoriaScreenDos extends StatelessWidget {
   const CategoriaScreenDos({super.key});
@@ -147,6 +149,11 @@ class CategoriaScreenDos extends StatelessWidget {
             
             context.read<CategoriaBloc>().add(CategoriaAddEvent(nuevaCategoria));
             Navigator.of(ctx).pop();
+                SnackBarHelper.showSnackBar(
+      context,
+      ApiConstants.categorysuccessCreated, // Mensaje de éxito
+      statusCode: 200, // Código de éxito
+    );
           },
           child: const Text('Guardar'),
         ),
@@ -216,6 +223,11 @@ class CategoriaScreenDos extends StatelessWidget {
               
               context.read<CategoriaBloc>().add(CategoriaUpdateEvent(updatedCategoria));
               Navigator.of(ctx).pop();
+                  SnackBarHelper.showSnackBar(
+      context,
+      ApiConstants.categorysuccessUpdated, // Mensaje de éxito
+      statusCode: 200, // Código de éxito
+    );
             },
             child: const Text('Guardar'),
           ),
@@ -237,16 +249,23 @@ class CategoriaScreenDos extends StatelessWidget {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              textStyle: const TextStyle(color: Colors.white),
+              foregroundColor: Colors.white,
               backgroundColor: Colors.red,
             ),
+            
             onPressed: () {
               context.read<CategoriaBloc>().add(CategoriaDeleteEvent(categoria.id));
               Navigator.of(ctx).pop();
+                  SnackBarHelper.showSnackBar(
+      context,
+      ApiConstants.categorysuccessDeleted, // Mensaje de éxito
+      statusCode: 200, // Código de éxito
+    );
             },
             child: const Text('Eliminar'),
           ),
         ],
+      
       ),
     );
   }
