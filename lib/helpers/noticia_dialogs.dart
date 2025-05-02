@@ -85,16 +85,8 @@ class NoticiaModal {
             );
           }
 
-          // Muestra un mensaje de éxito
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                noticia == null
-                    ? 'Noticia creada exitosamente'
-                    : 'Noticia editada exitosamente',
-              ),
-            ),
-          );
+         
+        
 
           // Llama al callback para actualizar la lista de noticias
           onSave();

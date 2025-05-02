@@ -15,6 +15,15 @@ class SnackBarHelper {
     showSnackBar(context, message, statusCode: 200);
   }
 
+ // Nuevo método para errores del cliente (400-499)
+  static void showClientError(BuildContext context, String message) {
+    showSnackBar(context, message, statusCode: 400);
+  }
+  
+  // Nuevo método para errores del servidor (500+)
+  static void showServerError(BuildContext context, String message) {
+    showSnackBar(context, message, statusCode: 500);
+  }
 
   static Color _getSnackBarColor(int? statusCode) {
     if (statusCode == null) {

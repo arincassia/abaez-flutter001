@@ -14,6 +14,7 @@ import 'package:abaez/views/category_screen.dart';
 import 'package:abaez/views/preferencia_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:abaez/helpers/noticia_card_helper.dart';
+import 'package:abaez/helpers/snackbar_helper.dart';
 
 class NoticiaScreen extends StatelessWidget {
   const NoticiaScreen({super.key});
@@ -52,6 +53,11 @@ class NoticiaScreen extends StatelessWidget {
                       noticia: null,
                       onSave: () {
                         context.read<NoticiasBloc>().add(const FetchNoticias());
+                        SnackBarHelper.showSnackBar(
+                      context,
+                      'Noticia creada correctamente.',
+                      statusCode: 200,
+                    );
                       },
                     );
                   } catch (e) {
@@ -148,6 +154,12 @@ class NoticiaScreen extends StatelessWidget {
                           // Limpiar filtros y mostrar todas las noticias
                           context.read<PreferenciaBloc>().add(const ReiniciarFiltros());
                           context.read<NoticiasBloc>().add(const FetchNoticias());
+                          SnackBarHelper.showSnackBar(
+                      context,
+                      'Filtros reiniciados correctamente.',
+                      statusCode: 200,
+                    );
+                          
                         },
                         child: const Padding(
                           padding: EdgeInsets.all(4.0),
@@ -224,10 +236,10 @@ class NoticiaScreen extends StatelessWidget {
                 if (confirmacion == true) {
                   try {
                     context.read<NoticiasBloc>().add(DeleteNoticia(noticia.id));
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Noticia eliminada'),
-                      ),
+                    SnackBarHelper.showSnackBar(
+                      context,
+                      'Noticia eliminada correctamente.',
+                      statusCode: 200,
                     );
                   } catch (e) {
                     if (e is ApiException) {
@@ -258,6 +270,11 @@ class NoticiaScreen extends StatelessWidget {
       noticia: noticia.toJson(),
       onSave: () {
         context.read<NoticiasBloc>().add(const FetchNoticias());
+        SnackBarHelper.showSnackBar(
+          context,
+          'Noticia actualizada correctamente.',
+          statusCode: 200,
+        );
       },
     );
   }
@@ -267,11 +284,10 @@ class NoticiaScreen extends StatelessWidget {
     final message = errorData['message'];
     final color = errorData['color'];
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: color,
-      ),
-    );
-  }
+    SnackBarHelper.showSnackBar(
+    context,
+    message,
+    statusCode: statusCode, // Pasar el código de estado para el color adecuado
+  );
+}
 }
