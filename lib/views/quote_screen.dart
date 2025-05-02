@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:abaez/api/service/quote_service.dart';
 import 'package:abaez/data/quote_repository.dart';
 import 'package:abaez/domain/quote.dart';
-import 'package:abaez/constantes/constants.dart';
+import 'package:abaez/constants.dart';
 import 'package:abaez/components/quote_card.dart';
 
 class QuoteScreen extends StatefulWidget {

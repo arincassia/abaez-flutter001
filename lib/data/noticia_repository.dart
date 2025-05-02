@@ -1,110 +1,105 @@
+import 'package:flutter/foundation.dart';
 import 'package:abaez/api/service/noticia_sevice.dart';
 import 'package:abaez/domain/noticia.dart';
+import 'package:abaez/constants.dart';
 import 'package:abaez/exceptions/api_exception.dart';
 
 class NoticiaRepository {
-  final NoticiaService _noticiaService;
+  final NoticiaService _service = NoticiaService();
 
-  NoticiaRepository(this._noticiaService);
-
-  /// Obtiene una lista de noticias desde la API con paginación y ordenamiento
-  Future<List<Noticia>> fetchNoticias({
-    required int page,
-    required int pageSize,
-    required bool ordenarPorFecha,
-  }) async {
+  /// Obtiene cotizaciones paginadas con validaciones
+  Future<List<Noticia>> obtenerNoticias() async {
     try {
-      final noticiasJson = await _noticiaService.obtenerNoticias(
-        page: page,
-        pageSize: pageSize,
-        ordenarPorFecha: ordenarPorFecha,
-      );
-
-      return noticiasJson.map((json) => Noticia.fromJson(json)).toList();
-    } catch (e) {
-      if (e.toString().contains('4')) {
-        throw Exception('Error 4xx: El endpoint está inactivo o ha alcanzado su límite.');
-      }
-      throw Exception('Error al obtener noticias: $e');
-    }
-  }
-
-  /// Lista todas las noticias desde la API y realiza validaciones
-  Future<List<Noticia>> listarNoticiasDesdeAPI() async {
-    try {
-      final noticias = await _noticiaService.listarNoticiasDesdeAPI();
-
-      // Validaciones de los campos, que no estén vacíos
-      for (final noticia in noticias) {
-        if (noticia.titulo.isEmpty) {
-          throw Exception('El título de la noticia no puede estar vacío.');
-        }
-        if (noticia.contenido.isEmpty) {
-          throw Exception('La descripción de la noticia no puede estar vacía.');
-        }
-        if (noticia.fuente.isEmpty) {
-          throw Exception('La fuente de la noticia no puede estar vacía.');
-        }
-        if (noticia.publicadaEl.isAfter(DateTime.now())) {
-          throw Exception('La fecha de publicación no puede estar en el futuro.');
-        }
-      }
-
-      // Ordenar las noticias por fecha de publicación (más reciente primero)
-      noticias.sort((a, b) => b.publicadaEl.compareTo(a.publicadaEl));
-
+      final noticias = await _service.getNoticias();
       return noticias;
     } catch (e) {
       if (e is ApiException) {
-        throw Exception('Error al listar noticias desde la API: ${e.message}');
+        throw e; // Relanza la excepción para que la maneje la capa superior
       }
-      else{
-        throw Exception('Error inesperado: $e');
-      }
+      debugPrint('Error inesperado al obtener noticias: $e');
+      throw ApiException('Error inesperado al obtener noticias.');
     }
   }
 
-  /// Crea una nueva noticia
-  Future<void> crearNoticia(Noticia noticia) async {
+  Future<void> crearNoticia({
+    required String titulo,
+    required String descripcion,
+    required String fuente,
+    required String publicadaEl,
+    required String urlImagen,
+    required String categoriaId,
+  }) async {
+    final noticia = {
+      'titulo': titulo,
+      'descripcion': descripcion,
+      'fuente': fuente,
+      'publicadaEl': publicadaEl,
+      'urlImagen': urlImagen,
+      'categoriaId': categoriaId,
+    };
     try {
-      await _noticiaService.crearNoticia(noticia);
+      await _service.crearNoticia(noticia);
     } catch (e) {
       if (e is ApiException) {
-        throw Exception('Error al crear la noticia: ${e.message}');
+        throw e;
       }
-      else{
-        throw Exception('Error desconocido: $e');
-      }
+      debugPrint('Error inesperado al crear noticia: $e');
+      throw ApiException('Error inesperado al crear noticia.');
     }
   }
 
-  /// Edita una noticia existente
-  Future<void> editarNoticia(Noticia noticia) async {
+  Future<void> eliminarNoticia(String id) async {
+    if (id.isEmpty) {
+      throw Exception(
+        '${NoticiaConstantes.mensajeError} El ID de la noticia no puede estar vacío.',
+      );
+    }
     try {
-      await _noticiaService.actualizarNoticia(noticia);
+      await _service.eliminarNoticia(id);
     } catch (e) {
       if (e is ApiException) {
-      throw Exception('Error al editar la noticia: $e');
+        throw e;
       }
-      else{
-        throw Exception('Error desconocido: $e');
-      }
+      debugPrint('Error inesperado al eliminar noticia: $e');
+      throw ApiException('Error inesperado al eliminar noticia.');
     }
-    
   }
 
-  /// Elimina una noticia
-  Future<void> eliminarNoticia(Noticia noticia) async {
+  Future<void> actualizarNoticia({
+    required String id,
+    required String titulo,
+    required String descripcion,
+    required String fuente,
+    required String publicadaEl,
+    required String urlImagen,
+    required String categoriaId,
+  }) async {
+    if (id.isEmpty) {
+      throw ApiException('El ID de la noticia no puede estar vacío.');
+    }
+
+    if (titulo.isEmpty || descripcion.isEmpty || fuente.isEmpty) {
+      throw ApiException(
+        'Los campos título, descripción y fuente no pueden estar vacíos.',
+      );
+    }
+
+    final noticia = {
+      'titulo': titulo,
+      'descripcion': descripcion,
+      'fuente': fuente,
+      'publicadaEl': publicadaEl,
+      'urlImagen': urlImagen,
+      'categoriaId': categoriaId,
+    };
     try {
-      await _noticiaService.eliminarNoticia(noticia);
+      await _service.editarNoticia(id, noticia);
     } catch (e) {
       if (e is ApiException) {
-        throw Exception('Error al eliminar la noticia: ${e.message}');
+        throw e;
       }
-      else{
-        throw Exception('Error desconocido: $e');
-      }
-     
+      debugPrint('Error inesperado al editar noticia: $e');
+      throw ApiException('Error inesperado al editar noticia.');
     }
   }
 }

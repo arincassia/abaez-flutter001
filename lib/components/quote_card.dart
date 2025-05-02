@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:abaez/domain/quote.dart';
-import 'package:abaez/constantes/constants.dart';
+import 'package:abaez/constants.dart';
 
 class QuoteCard extends StatelessWidget {
   final Quote quote;

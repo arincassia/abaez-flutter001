@@ -11,6 +11,10 @@ class SnackBarHelper {
       ),
     );
   }
+  static void showSuccess(BuildContext context, String message) {
+    showSnackBar(context, message, statusCode: 200);
+  }
+
 
   static Color _getSnackBarColor(int? statusCode) {
     if (statusCode == null) {
