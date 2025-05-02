@@ -120,7 +120,7 @@ class _CategoryScreenContent extends StatelessWidget {
                       ),
                     ),
                     subtitle: Text(
-                      categoria.descripcion ?? 'Sin descripción',
+                      categoria.descripcion,
                       style: const TextStyle(color: Colors.grey, fontSize: 14),
                     ),
                     trailing: Row(
@@ -149,8 +149,8 @@ class _CategoryScreenContent extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddDialog(context),
-        child: const Icon(Icons.add),
         tooltip: 'Agregar categoría',
+        child: const Icon(Icons.add),
       ),
     );
   }
@@ -169,7 +169,7 @@ class _CategoryScreenContent extends StatelessWidget {
       backgroundColor: Colors.grey[200],
       backgroundImage: NetworkImage(imageUrl),
       onBackgroundImageError: (exception, stackTrace) {
-        debugPrint("Error cargando imagen: $exception");
+        debugPrint('Error cargando imagen: $exception');
       },
     );
   }
