@@ -6,7 +6,7 @@ import 'package:watch_it/watch_it.dart';
 
 class PreferenciaBloc extends Bloc<PreferenciaEvent, PreferenciaState> {
   final PreferenciaRepository _preferenciasRepository = di<PreferenciaRepository>(); // Obtenemos el repositorio del locator
-  
+
   PreferenciaBloc() : super(const PreferenciaState()) {
     on<CargarPreferencias>(_onCargarPreferencias);
     on<CambiarCategoria>(_onCambiarCategoria);
@@ -25,7 +25,7 @@ class PreferenciaBloc extends Bloc<PreferenciaEvent, PreferenciaState> {
     try {
       // Obtener solo las categorías seleccionadas del repositorio existente
       final categoriasSeleccionadas = await _preferenciasRepository.obtenerCategoriasSeleccionadas();
-      
+
       // Como el repositorio original solo almacena categorías, el resto de valores serían por defecto
       emit(PreferenciaState(
         categoriasSeleccionadas: categoriasSeleccionadas,
@@ -37,8 +37,8 @@ class PreferenciaBloc extends Bloc<PreferenciaEvent, PreferenciaState> {
         ordenarPor: 'fecha',
         ascendente: false,
       ));
-    } catch (_) {
-      // Si hay error, mantener estado actual
+    } catch (e) {
+      emit(PreferenciaError('Error al cargar preferencias: ${e.toString()}'));
     }
   }
 
@@ -47,22 +47,39 @@ class PreferenciaBloc extends Bloc<PreferenciaEvent, PreferenciaState> {
     Emitter<PreferenciaState> emit,
   ) async {
     try {
+      // 1. Crear una copia de las categorías actuales para modificar
+      final List<String> categoriasActualizadas = [...state.categoriasSeleccionadas];
+
+      // 2. Actualizar localmente primero para feedback inmediato
       if (event.seleccionada) {
-        // Agregar categoría usando el método del repositorio
-        await _preferenciasRepository.agregarCategoriaFiltro(event.categoria);
+        if (!categoriasActualizadas.contains(event.categoria)) {
+          categoriasActualizadas.add(event.categoria);
+        }
       } else {
-        // Eliminar categoría usando el método del repositorio
-        await _preferenciasRepository.eliminarCategoriaFiltro(event.categoria);
+        categoriasActualizadas.remove(event.categoria);
       }
-      
-      // Obtener la lista actualizada de categorías
-      final categoriasActualizadas = await _preferenciasRepository.obtenerCategoriasSeleccionadas();
-      
-      // Actualizar el estado con las categorías actualizadas
-      final nuevoEstado = state.copyWith(categoriasSeleccionadas: categoriasActualizadas);
-      emit(nuevoEstado);
-    } catch (_) {
-      // Manejar errores si es necesario
+
+      // 3. Emitir estado actualizado inmediatamente para UI responsiva
+      emit(state.copyWith(categoriasSeleccionadas: categoriasActualizadas));
+
+      // 4. Luego intentar persistir el cambio (sin bloquear la UI)
+      try {
+        if (event.seleccionada) {
+          await _preferenciasRepository.agregarCategoriaFiltro(event.categoria);
+        } else {
+          await _preferenciasRepository.eliminarCategoriaFiltro(event.categoria);
+        }
+      } catch (e) {
+        // Si falla la persistencia, no interrumpir la experiencia del usuario
+        // pero registrar el error para depuración
+        print('Error al persistir cambio de categoría: $e');
+
+        // Opcionalmente, podrías emitir un estado de "sincronización pendiente"
+        // para indicar que los cambios locales no se han guardado aún
+      }
+    } catch (e) {
+      // Este catch solo atraparía errores graves en la lógica del bloc
+      emit(PreferenciaError('Error al cambiar categoría: ${e.toString()}'));
     }
   }
 
@@ -119,12 +136,12 @@ class PreferenciaBloc extends Bloc<PreferenciaEvent, PreferenciaState> {
     try {
       // Limpiar las categorías seleccionadas usando el método del repositorio
       await _preferenciasRepository.limpiarFiltrosCategorias();
-      
+
       // Emitir un estado inicial
       const estadoInicial = PreferenciaState();
       emit(estadoInicial);
-    } catch (_) {
-      // Manejar errores si es necesario
+    } catch (e) {
+      emit(PreferenciaError('Error al reiniciar filtros: ${e.toString()}'));
     }
   }
 
@@ -133,18 +150,13 @@ class PreferenciaBloc extends Bloc<PreferenciaEvent, PreferenciaState> {
     Emitter<PreferenciaState> emit,
   ) async {
     try {
-      // Guardamos las categorías en el repositorio
-      // (esto puede requerir implementación adicional en el repositorio)
-      for (final categoriaId in event.categoriasSeleccionadas) {
-        await _preferenciasRepository.agregarCategoriaFiltro(categoriaId);
-      }
-      
-      // Emitimos el estado actualizado
-      emit(state.copyWith(
-        categoriasSeleccionadas: event.categoriasSeleccionadas,
-      ));
+      // Más eficiente: guardar todas las categorías a la vez
+      await _preferenciasRepository.guardarCategoriasSeleccionadas(event.categoriasSeleccionadas);
+
+      // Emitir el estado actualizado
+      emit(state.copyWith(categoriasSeleccionadas: event.categoriasSeleccionadas));
     } catch (e) {
-      // Manejar errores si es necesario
+      emit(PreferenciaError('Error al guardar preferencias: ${e.toString()}'));
     }
   }
 }

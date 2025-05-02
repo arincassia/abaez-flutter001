@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
  import 'package:flutter/foundation.dart';
- 
+
  @immutable
  class PreferenciaState extends Equatable {
    final List<String> categoriasSeleccionadas;
@@ -10,7 +10,7 @@ import 'package:equatable/equatable.dart';
    final DateTime? fechaHasta;
    final String ordenarPor;
    final bool ascendente;
-   
+
    const PreferenciaState({
      this.categoriasSeleccionadas = const [],
      this.mostrarFavoritos = false,
@@ -20,7 +20,7 @@ import 'package:equatable/equatable.dart';
      this.ordenarPor = 'fecha',
      this.ascendente = false,
    });
- 
+
    PreferenciaState copyWith({
      List<String>? categoriasSeleccionadas,
      bool? mostrarFavoritos,
@@ -40,7 +40,7 @@ import 'package:equatable/equatable.dart';
        ascendente: ascendente ?? this.ascendente,
      );
    }
- 
+
    @override
    List<Object?> get props => [
      categoriasSeleccionadas,
@@ -52,3 +52,12 @@ import 'package:equatable/equatable.dart';
      ascendente,
    ];
  }
+
+ class PreferenciaError extends PreferenciaState {
+  final String mensaje;
+
+  const PreferenciaError(this.mensaje);
+
+  @override
+  List<Object?> get props => [mensaje, ...super.props];
+}

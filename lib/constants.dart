@@ -61,6 +61,7 @@ class ApiConstantes {
    static final String newsurl = dotenv.env['NEWS_URL'] ?? 'URL_NO_DEFINIDA';
   static final String noticiasUrl = '$newsurl/noticias';
   static final String categoriasUrl = '$newsurl/categorias';
+  static final String preferenciasUrl = '$newsurl/preferencias';
   static const int timeoutSeconds = 10; 
   static const String errorTimeout = 'Tiempo de espera agotado'; 
   static const String errorNoCategory = 'Categoría no encontrada'; 
