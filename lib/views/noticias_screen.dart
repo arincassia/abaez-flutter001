@@ -15,6 +15,8 @@ import 'package:abaez/helpers/error_helper.dart';
 import 'package:abaez/views/category_screen.dart';
 import 'package:abaez/views/preferencia_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:abaez/helpers/noticia_card_helper.dart';
+import 'package:abaez/helpers/snackbar_helper.dart';
 
 class NoticiaScreen extends StatelessWidget {
   const NoticiaScreen({super.key});
@@ -26,176 +28,159 @@ class NoticiaScreen extends StatelessWidget {
         BlocProvider(create: (context) => NoticiasBloc()..add(const FetchNoticias())),
         BlocProvider(create: (context) => PreferenciaBloc()..add(const CargarPreferencias()))
       ],
-      child: MultiBlocListener(
-        listeners: [
-          BlocListener<NoticiasBloc, NoticiasState>(
-            listener: (context, state) {
-              if (state is NoticiasError) {
-                _mostrarError(context, state.statusCode);
-              }
-            },
-          ),
-          BlocListener<PreferenciaBloc, PreferenciaState>(
-            listener: (context, state) {
-              if (state is PreferenciaError) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Error de preferencias: ${state.mensaje}'),
-                    backgroundColor: Colors.orange,
-                    duration: const Duration(seconds: 5),
-                    action: SnackBarAction(
-                      label: 'Reintentar',
-                      onPressed: () => context.read<PreferenciaBloc>().add(const CargarPreferencias()),
+      child: BlocConsumer<NoticiasBloc, NoticiasState>(
+      listener: (context, state) {
+        if (state is NoticiasError) {
+          _mostrarError(context, state.statusCode);
+        }
+      },
+      builder: (context, state) {
+        // Acceder al estado de preferencias para mostrar información de filtros
+        final preferenciaState = context.watch<PreferenciaBloc>().state;
+        final filtrosActivos = preferenciaState.categoriasSeleccionadas.isNotEmpty;
+        
+        return Scaffold(
+          backgroundColor: Colors.grey[200],
+          appBar: AppBar(
+            title: const Text(NoticiaConstantes.tituloApp),
+            backgroundColor: Colors.blue,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.add),
+                tooltip: 'Agregar Noticia',
+                onPressed: () async {
+                  try {
+                    await NoticiaModal.mostrarModal(
+                      context: context,
+                      noticia: null,
+                      onSave: () {
+                        context.read<NoticiasBloc>().add(const FetchNoticias());
+                        SnackBarHelper.showSnackBar(
+                      context,
+                      'Noticia creada correctamente.',
+                      statusCode: 200,
+                    );
+                      },
+                    );
+                  } catch (e) {
+                    if (e is ApiException) {
+                      _mostrarError(context, e.statusCode);
+                    }
+                  }
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.category),
+                tooltip: 'Categorías',
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const CategoryScreen(),
                     ),
-                  ),
-                );
-              }
-            },
-          ),
-        ],
-        child: BlocConsumer<NoticiasBloc, NoticiasState>(
-          listener: (context, state) {
-            if (state is NoticiasError) {
-              _mostrarError(context, state.statusCode);
-            }
-          },
-          builder: (context, state) {
-            // Acceder al estado de preferencias para mostrar información de filtros
-            final preferenciaState = context.watch<PreferenciaBloc>().state;
-            final filtrosActivos = preferenciaState.categoriasSeleccionadas.isNotEmpty;
-            
-            return Scaffold(
-              backgroundColor: Colors.grey[200],
-              appBar: AppBar(
-                title: const Text(NoticiaConstantes.tituloApp),
-                backgroundColor: Colors.blue,
-                actions: [
-                  IconButton(
-                    icon: const Icon(Icons.add),
-                    tooltip: 'Agregar Noticia',
-                    onPressed: () async {
-                      try {
-                        await NoticiaModal.mostrarModal(
-                          context: context,
-                          noticia: null,
-                          onSave: () {
-                            context.read<NoticiasBloc>().add(const FetchNoticias());
-                          },
-                        );
-                      } catch (e) {
-                        if (e is ApiException) {
-                          _mostrarError(context, e.statusCode);
-                        }
-                      }
-                    },
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.category),
-                    tooltip: 'Categorías',
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const CategoryScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.filter_list, 
-                      color: filtrosActivos ? Colors.amber : null),
-                    tooltip: 'Preferencias',
-                    onPressed: () {
-                      Navigator.push<List<String>>(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const PreferenciasScreen(),
-                        ),
-                      ).then((categoriasSeleccionadas) {
-                        if (categoriasSeleccionadas != null) {
-                          if (categoriasSeleccionadas.isNotEmpty) {
-                            // Si hay categorías seleccionadas, aplicar filtro
-                            context.read<NoticiasBloc>().add(
-                              FilterNoticiasByPreferencias(categoriasSeleccionadas),
-                            );
-                          } else {
-                            // Si la lista está vacía, usar el evento FetchNoticias para mostrar todas
-                            context.read<NoticiasBloc>().add(const FetchNoticias());
-                          }
-                        }
-                      });
-                    },
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.refresh),
-                    tooltip: 'Refrescar',
-                    onPressed: () {
-                      // Al refrescar, aplicar los filtros actuales si existen
-                      final categoriasSeleccionadas = context.read<PreferenciaBloc>().state.categoriasSeleccionadas;
+                  );
+                },
+              ),
+              IconButton(
+                icon: Icon(Icons.filter_list, 
+                  color: filtrosActivos ? Colors.amber : null),
+                tooltip: 'Preferencias',
+                onPressed: () {
+                  Navigator.push<List<String>>(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const PreferenciasScreen(),
+                    ),
+                  ).then((categoriasSeleccionadas) {
+                    if (categoriasSeleccionadas != null) {
                       if (categoriasSeleccionadas.isNotEmpty) {
+                        // Si hay categorías seleccionadas, aplicar filtro
                         context.read<NoticiasBloc>().add(
                           FilterNoticiasByPreferencias(categoriasSeleccionadas),
                         );
                       } else {
-                        // Si no hay filtros, mostrar todas las noticias
+                        // Si la lista está vacía, usar el evento FetchNoticias para mostrar todas
                         context.read<NoticiasBloc>().add(const FetchNoticias());
                       }
-                    },
+                    }
+                  });
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                tooltip: 'Refrescar',
+                onPressed: () {
+                  // Al refrescar, aplicar los filtros actuales si existen
+                  final categoriasSeleccionadas = context.read<PreferenciaBloc>().state.categoriasSeleccionadas;
+                  if (categoriasSeleccionadas.isNotEmpty) {
+                    context.read<NoticiasBloc>().add(
+                      FilterNoticiasByPreferencias(categoriasSeleccionadas),
+                    );
+                  } else {
+                    // Si no hay filtros, mostrar todas las noticias
+                    context.read<NoticiasBloc>().add(const FetchNoticias());
+                  }
+                },
+              ),
+              if (state is NoticiasLoaded)
+                Padding(
+                  padding: const EdgeInsets.only(right: 16.0),
+                  child: Center(
+                    child: Text(
+                      'Última: ${(DateFormat(NoticiaConstantes.formatoFecha)).format(state.lastUpdated)}',
+                      style: const TextStyle(fontSize: 12),
+                    ),
                   ),
-                  if (state is NoticiasLoaded)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 16.0),
-                      child: Center(
+                ),
+            ],
+          ),
+          body: Column(
+            children: [
+              // Chip para mostrar filtros activos
+              if (filtrosActivos)
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                  color: Colors.grey[300],
+                  child: Row(
+                    children: [
+                      const Icon(Icons.filter_list, size: 18),
+                      const SizedBox(width: 8),
+                      Expanded(
                         child: Text(
-                          'Última: ${(DateFormat(NoticiaConstantes.formatoFecha)).format(state.lastUpdated)}',
-                          style: const TextStyle(fontSize: 12),
+                          'Filtrado por ${preferenciaState.categoriasSeleccionadas.length} categorías',
+                          style: const TextStyle(fontSize: 14),
                         ),
                       ),
-                    ),
-                ],
-              ),
-              body: Column(
-                children: [
-                  // Chip para mostrar filtros activos
-                  if (filtrosActivos)
-                    Container(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                      color: Colors.grey[300],
-                      child: Row(
-                        children: [
-                          const Icon(Icons.filter_list, size: 18),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              'Filtrado por ${preferenciaState.categoriasSeleccionadas.length} categorías',
-                              style: const TextStyle(fontSize: 14),
-                            ),
+                      InkWell(
+                        onTap: () {
+                          // Limpiar filtros y mostrar todas las noticias
+                          context.read<PreferenciaBloc>().add(const ReiniciarFiltros());
+                          context.read<NoticiasBloc>().add(const FetchNoticias());
+                          SnackBarHelper.showSnackBar(
+                      context,
+                      'Filtros reiniciados correctamente.',
+                      statusCode: 200,
+                    );
+                          
+                        },
+                        child: const Padding(
+                          padding: EdgeInsets.all(4.0),
+                          child: Text('Limpiar filtros', 
+                            style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
                           ),
-                          InkWell(
-                            onTap: () {
-                              // Limpiar filtros y mostrar todas las noticias
-                              context.read<PreferenciaBloc>().add(const ReiniciarFiltros());
-                              context.read<NoticiasBloc>().add(const FetchNoticias());
-                            },
-                            child: const Padding(
-                              padding: EdgeInsets.all(4.0),
-                              child: Text('Limpiar filtros', 
-                                style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
-                  Expanded(
-                    child: _buildBody(state),
+                    ],
                   ),
-                ],
+                ),
+              Expanded(
+                child: _buildBody(state),
               ),
-            );
-          },
-        ),
-      ),
+            ],
+          ),
+        );
+      },
+    )
     );
   }
 
@@ -253,10 +238,10 @@ class NoticiaScreen extends StatelessWidget {
                 if (confirmacion == true) {
                   try {
                     context.read<NoticiasBloc>().add(DeleteNoticia(noticia.id));
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Noticia eliminada'),
-                      ),
+                    SnackBarHelper.showSnackBar(
+                      context,
+                      'Noticia eliminada correctamente.',
+                      statusCode: 200,
                     );
                   } catch (e) {
                     if (e is ApiException) {
@@ -287,6 +272,11 @@ class NoticiaScreen extends StatelessWidget {
       noticia: noticia.toJson(),
       onSave: () {
         context.read<NoticiasBloc>().add(const FetchNoticias());
+        SnackBarHelper.showSnackBar(
+          context,
+          'Noticia actualizada correctamente.',
+          statusCode: 200,
+        );
       },
     );
   }
@@ -296,11 +286,10 @@ class NoticiaScreen extends StatelessWidget {
     final message = errorData['message'];
     final color = errorData['color'];
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: color,
-      ),
-    );
-  }
+    SnackBarHelper.showSnackBar(
+    context,
+    message,
+    statusCode: statusCode, // Pasar el código de estado para el color adecuado
+  );
+}
 }
