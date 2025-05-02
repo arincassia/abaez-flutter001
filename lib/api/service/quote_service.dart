@@ -1,6 +1,6 @@
 import 'package:abaez/domain/quote.dart';
 import 'package:abaez/data/quote_repository.dart';
-import 'package:abaez/constantes/constants.dart';
+import 'package:abaez/constants.dart';
 
 class QuoteService {
   final QuoteRepository _quoteRepository;

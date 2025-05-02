@@ -5,7 +5,7 @@ import 'package:abaez/views/task_screen.dart';
 import 'package:abaez/views/start_screen.dart';
 import 'package:abaez/views/quote_screen.dart';
 import 'package:abaez/views/noticias_screen.dart';
-import 'package:abaez/views/categorias_screen.dart';
+import 'package:abaez/views/category_screen.dart';
 class WelcomeScreen extends StatelessWidget {
   final String username;
 
@@ -93,7 +93,7 @@ class WelcomeScreen extends StatelessWidget {
                Navigator.push(
                context,
              MaterialPageRoute(
-             builder: (context) => const NoticiasScreen(),
+             builder: (context) => const NoticiaScreen(),
              ),
               );
                 },
@@ -106,7 +106,7 @@ class WelcomeScreen extends StatelessWidget {
                Navigator.push(
                context,
              MaterialPageRoute(
-             builder: (context) => const CategoriasScreen(),
+             builder: (context) => const CategoryScreen(),
              ),
               );
                 },

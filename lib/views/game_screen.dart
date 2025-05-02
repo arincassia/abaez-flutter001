@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:abaez/api/service/question_service.dart';
 import 'package:abaez/views/result_screen.dart';
 import 'package:abaez/domain/question.dart';
-import 'package:abaez/constantes/constants.dart';
+import 'package:abaez/constants.dart';
 
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
