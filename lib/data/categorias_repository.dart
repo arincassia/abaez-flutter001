@@ -1,4 +1,4 @@
-/// services/categoria_service.dart
+// services/categoria_service.dart
 import 'package:abaez/api/service/categoria_service.dart'; // Importa tu repositorio
 import 'package:abaez/domain/categoria.dart'; // Importa tu entidad Categoria
 import 'package:flutter/foundation.dart'; // Para debugPrint

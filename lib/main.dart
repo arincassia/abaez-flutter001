@@ -28,9 +28,8 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Flutter Demo',
         theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.yellow),
-        ),
-        home: LoginScreen(), // Pantalla inicial
+    colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 254, 70, 85)),        ),
+        home: const LoginScreen(), // Pantalla inicial
       ),
     );
   }

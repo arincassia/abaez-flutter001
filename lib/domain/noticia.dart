@@ -5,7 +5,7 @@ class Noticia {
   final String fuente;
   final DateTime publicadaEl;
   final String imageUrl;
-  final String categoriaId; // ID de la categoría asociada
+  final String? categoriaId; // ID de la categoría asociada
 
   Noticia({
     required this.id,
@@ -14,7 +14,7 @@ class Noticia {
     required this.fuente,
     required this.publicadaEl,
     required this.imageUrl,
-    required this.categoriaId,
+    this.categoriaId, // Valor por defecto
   });
 
   // Método para convertir la instancia en un mapa

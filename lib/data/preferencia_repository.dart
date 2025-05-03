@@ -13,9 +13,7 @@ class PreferenciaRepository {
   Future<List<String>> obtenerCategoriasSeleccionadas() async {
     try {
       // Si no hay caché o es la primera vez, obtener de la API
-      if (_cachedPreferencias == null) {
-        _cachedPreferencias = await _preferenciaService.getPreferencias();
-      }
+      _cachedPreferencias ??= await _preferenciaService.getPreferencias();
 
       return _cachedPreferencias!.categoriasSeleccionadas;
     } catch (e) {
@@ -34,9 +32,8 @@ class PreferenciaRepository {
   Future<void> guardarCategoriasSeleccionadas(List<String> categoriaIds) async {
     try {
       // Si no hay caché o es la primera vez, obtener de la API
-      if (_cachedPreferencias == null) {
-        _cachedPreferencias = await _preferenciaService.getPreferencias();
-      }
+      _cachedPreferencias ??= await _preferenciaService.getPreferencias();
+
 
       // Actualizar el objeto en caché
       _cachedPreferencias = Preferencia(categoriasSeleccionadas: categoriaIds);

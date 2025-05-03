@@ -34,7 +34,7 @@ class NoticiaService {
       } else {
         throw ApiException('Error desconocido', statusCode: response.statusCode);
       }
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       final errorData = ErrorHelper.getErrorMessageAndColor(e.response?.statusCode);
       throw ApiException(errorData['message'], statusCode: e.response?.statusCode);
     } catch (e) {
@@ -55,7 +55,7 @@ Future<void> editarNoticia(String id, Map<String, dynamic> noticia) async {
     if (response.statusCode != 200) {
         throw ApiException('Error desconocido', statusCode: response.statusCode);
       }
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       final errorData = ErrorHelper.getErrorMessageAndColor(e.response?.statusCode);
       throw ApiException(errorData['message'], statusCode: e.response?.statusCode);
     } catch (e) {
@@ -74,7 +74,7 @@ Future<void> editarNoticia(String id, Map<String, dynamic> noticia) async {
     if (response.statusCode != 201) {
       throw Exception('Error desconocido: ${response.statusCode}');
     }
-  } on DioError catch (e) {
+  } on DioException catch (e) {
    ErrorHelper.getErrorMessageAndColor(e.response?.statusCode); // Llama a la función centralizada para manejar el error
   } catch (e) {
     throw Exception('Error inesperado: $e');
@@ -90,7 +90,7 @@ Future<void> editarNoticia(String id, Map<String, dynamic> noticia) async {
     if (response.statusCode != 200 && response.statusCode != 204) {
         throw ApiException('Error desconocido', statusCode: response.statusCode);
       }
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       final errorData = ErrorHelper.getErrorMessageAndColor(e.response?.statusCode);
       throw ApiException(errorData['message'], statusCode: e.response?.statusCode);
     } catch (e) {

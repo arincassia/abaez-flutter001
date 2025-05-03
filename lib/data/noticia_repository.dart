@@ -14,7 +14,7 @@ class NoticiaRepository {
       return noticias;
     } catch (e) {
       if (e is ApiException) {
-        throw e; // Relanza la excepción para que la maneje la capa superior
+        rethrow; // Relanza la excepción para que la maneje la capa superior
       }
       debugPrint('Error inesperado al obtener noticias: $e');
       throw ApiException('Error inesperado al obtener noticias.');
@@ -41,7 +41,7 @@ class NoticiaRepository {
       await _service.crearNoticia(noticia);
     } catch (e) {
       if (e is ApiException) {
-        throw e;
+        rethrow;
       }
       debugPrint('Error inesperado al crear noticia: $e');
       throw ApiException('Error inesperado al crear noticia.');
@@ -58,7 +58,7 @@ class NoticiaRepository {
       await _service.eliminarNoticia(id);
     } catch (e) {
       if (e is ApiException) {
-        throw e;
+        rethrow;
       }
       debugPrint('Error inesperado al eliminar noticia: $e');
       throw ApiException('Error inesperado al eliminar noticia.');
@@ -96,7 +96,7 @@ class NoticiaRepository {
       await _service.editarNoticia(id, noticia);
     } catch (e) {
       if (e is ApiException) {
-        throw e;
+        rethrow;
       }
       debugPrint('Error inesperado al editar noticia: $e');
       throw ApiException('Error inesperado al editar noticia.');

@@ -1,4 +1,4 @@
-import 'package:bloc/bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:abaez/bloc/bloc noticias/noticias_event.dart';
 import 'package:abaez/bloc/bloc noticias/noticias_state.dart';
 import 'package:abaez/data/noticia_repository.dart';
@@ -40,7 +40,7 @@ class NoticiasBloc extends Bloc<NoticiasEvent, NoticiasState> {
         fuente: event.noticia.fuente,
         publicadaEl: event.noticia.publicadaEl.toIso8601String(),
         urlImagen: event.noticia.imageUrl,
-        categoriaId: event.noticia.categoriaId,
+        categoriaId: event.noticia.categoriaId ?? '',
       );
 
       // Refrescar la lista de noticias después de agregar
@@ -64,7 +64,7 @@ class NoticiasBloc extends Bloc<NoticiasEvent, NoticiasState> {
         fuente: event.noticia.fuente,
         publicadaEl: event.noticia.publicadaEl.toIso8601String(),
         urlImagen: event.noticia.imageUrl,
-        categoriaId: event.noticia.categoriaId,
+        categoriaId: event.noticia.categoriaId ?? '',
       );
 
       // Refrescar la lista de noticias después de actualizar
@@ -90,7 +90,6 @@ class NoticiasBloc extends Bloc<NoticiasEvent, NoticiasState> {
       emit(NoticiasError('Error al eliminar noticia: ${e.toString()}'));
     }
   }
-
   Future<void> _onFilterNoticiasByPreferencias(
     FilterNoticiasByPreferencias event,
     Emitter<NoticiasState> emit,
