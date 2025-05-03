@@ -39,6 +39,8 @@ class NoticiaModal {
     try {
       final categoriaRepository = CategoriaService();
       categorias = await categoriaRepository.getCategorias();
+      // Añadir la opción "Sin categoría" al inicio de la lista
+      categorias.insert(0, Categoria(id: '', nombre: 'Sin categoría', descripcion: 'Sin categoría'));
 
       // Verificar si la categoría seleccionada existe en las opciones
       if (categoriaSeleccionada != null) {
@@ -50,6 +52,7 @@ class NoticiaModal {
       }
     } catch (e) {
       // Manejo de errores al cargar categorías
+      if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al cargar categorías: $e')),
       );
@@ -85,20 +88,13 @@ class NoticiaModal {
           }
 
           // Muestra un mensaje de éxito
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                noticia == null
-                    ? 'Noticia creada exitosamente'
-                    : 'Noticia editada exitosamente',
-              ),
-            ),
-          );
+         
 
           // Llama al callback para actualizar la lista de noticias
           onSave();
 
           // Cierra el modal
+          if (!context.mounted) return;
           Navigator.pop(context);
         } catch (e) {
           // Muestra un mensaje de error
@@ -108,7 +104,7 @@ class NoticiaModal {
         }
       }
     }
-
+     if (!context.mounted) return;
     await showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -157,7 +153,7 @@ class NoticiaModal {
                     controller: fechaController,
                     readOnly: true,
                     decoration: const InputDecoration(
-                      labelText: 'Fecha de publicación (YYYY-MM-DD)',
+                      labelText: 'Fecha de publicación',
                       hintText: 'Seleccionar Fecha',
                     ),
                     onTap: () async {
@@ -170,7 +166,7 @@ class NoticiaModal {
                       if (nuevaFecha != null) {
                         fechaSeleccionada = nuevaFecha;
                         fechaController.text = DateFormat(
-                          'yyyy-MM-dd',
+                          'dd-MM-yyyy',
                         ).format(nuevaFecha); // Formatea la fecha
                       }
                     },
@@ -195,6 +191,7 @@ class NoticiaModal {
                     },
                   ),
                   const SizedBox(height: 16.0),
+                  
                   DropdownButtonFormField<String>(
                     value: categoriaSeleccionada,
                     decoration: const InputDecoration(labelText: 'Categoría'),

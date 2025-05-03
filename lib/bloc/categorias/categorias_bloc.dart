@@ -1,4 +1,4 @@
-import 'package:bloc/bloc.dart';
+import  'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/foundation.dart';
 import 'package:abaez/bloc/categorias/categorias_event.dart';
 import 'package:abaez/bloc/categorias/categorias_state.dart';

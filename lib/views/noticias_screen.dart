@@ -5,7 +5,6 @@ import 'package:abaez/bloc/bloc%20noticias/noticias_state.dart';
 import 'package:abaez/bloc/bloc%20noticias/noticias_bloc.dart';
 import 'package:abaez/bloc/preferencia/preferencia_bloc.dart';
 import 'package:abaez/bloc/preferencia/preferencia_event.dart';
-import 'package:abaez/bloc/preferencia/preferencia_state.dart';
 import 'package:abaez/components/noticia_dialogs.dart';
 import 'package:abaez/domain/noticia.dart';
 import 'package:abaez/constants.dart';
@@ -15,7 +14,6 @@ import 'package:abaez/helpers/error_helper.dart';
 import 'package:abaez/views/category_screen.dart';
 import 'package:abaez/views/preferencia_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:abaez/helpers/noticia_card_helper.dart';
 import 'package:abaez/helpers/snackbar_helper.dart';
 
 class NoticiaScreen extends StatelessWidget {
@@ -42,8 +40,9 @@ class NoticiaScreen extends StatelessWidget {
         return Scaffold(
           backgroundColor: Colors.grey[200],
           appBar: AppBar(
-            title: const Text(NoticiaConstantes.tituloApp),
-            backgroundColor: Colors.blue,
+            title: const Text(NoticiaConstantes.tituloApp, style: TextStyle(color: Colors.white)),
+
+            backgroundColor: const Color.fromARGB(255, 248, 174, 206),
             actions: [
               IconButton(
                 icon: const Icon(Icons.add),
@@ -57,11 +56,12 @@ class NoticiaScreen extends StatelessWidget {
                         context.read<NoticiasBloc>().add(const FetchNoticias());
                         SnackBarHelper.showSnackBar(
                       context,
-                      'Noticia creada correctamente.',
+                       ApiConstantes.newssuccessCreated,
                       statusCode: 200,
                     );
                       },
                     );
+                    if (!context.mounted) return;
                   } catch (e) {
                     if (e is ApiException) {
                       _mostrarError(context, e.statusCode);
@@ -92,6 +92,7 @@ class NoticiaScreen extends StatelessWidget {
                       builder: (context) => const PreferenciasScreen(),
                     ),
                   ).then((categoriasSeleccionadas) {
+                      if (!context.mounted) return;
                     if (categoriasSeleccionadas != null) {
                       if (categoriasSeleccionadas.isNotEmpty) {
                         // Si hay categorías seleccionadas, aplicar filtro
@@ -127,7 +128,7 @@ class NoticiaScreen extends StatelessWidget {
                   padding: const EdgeInsets.only(right: 16.0),
                   child: Center(
                     child: Text(
-                      'Última: ${(DateFormat(NoticiaConstantes.formatoFecha)).format(state.lastUpdated)}',
+                      'Última actualización: ${(DateFormat(NoticiaConstantes.formatoFecha)).format(state.lastUpdated)}',
                       style: const TextStyle(fontSize: 12),
                     ),
                   ),
@@ -158,7 +159,7 @@ class NoticiaScreen extends StatelessWidget {
                           context.read<NoticiasBloc>().add(const FetchNoticias());
                           SnackBarHelper.showSnackBar(
                       context,
-                      'Filtros reiniciados correctamente.',
+                      'Filtros reiniciados.',
                       statusCode: 200,
                     );
                           
@@ -205,6 +206,7 @@ class NoticiaScreen extends StatelessWidget {
                   await _editarNoticia(context, noticia);
                 } catch (e) {
                   if (e is ApiException) {
+                      if (!context.mounted) return;
                     _mostrarError(context, e.statusCode);
                   }
                 }
@@ -224,11 +226,12 @@ class NoticiaScreen extends StatelessWidget {
                           child: const Text('Cancelar'),
                         ),
                         ElevatedButton(
-                          onPressed: () => Navigator.pop(context, true),
-                          child: const Text('Eliminar'),
+                        onPressed: () => Navigator.pop(context, true),
                           style: ElevatedButton.styleFrom(
+                            foregroundColor: Colors.white,
                             backgroundColor: Colors.red,
                           ),
+                           child: const Text('Eliminar'),
                         ),
                       ],
                     );
@@ -237,14 +240,16 @@ class NoticiaScreen extends StatelessWidget {
 
                 if (confirmacion == true) {
                   try {
+                    if (!context.mounted) return;
                     context.read<NoticiasBloc>().add(DeleteNoticia(noticia.id));
                     SnackBarHelper.showSnackBar(
                       context,
-                      'Noticia eliminada correctamente.',
+                       ApiConstantes.newssuccessDeleted,
                       statusCode: 200,
                     );
                   } catch (e) {
                     if (e is ApiException) {
+                      if (!context.mounted) return;
                       _mostrarError(context, e.statusCode);
                     }
                   }
@@ -274,7 +279,7 @@ class NoticiaScreen extends StatelessWidget {
         context.read<NoticiasBloc>().add(const FetchNoticias());
         SnackBarHelper.showSnackBar(
           context,
-          'Noticia actualizada correctamente.',
+           ApiConstantes.newssuccessUpdated,
           statusCode: 200,
         );
       },
@@ -284,7 +289,6 @@ class NoticiaScreen extends StatelessWidget {
   void _mostrarError(BuildContext context, int? statusCode) {
     final errorData = ErrorHelper.getErrorMessageAndColor(statusCode);
     final message = errorData['message'];
-    final color = errorData['color'];
 
     SnackBarHelper.showSnackBar(
     context,

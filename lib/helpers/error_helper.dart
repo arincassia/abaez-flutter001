@@ -8,23 +8,23 @@ class ErrorHelper {
 
     switch (statusCode) {
       case 400:
-        message = '${NoticiaConstantes.mensajeError}';
+        message = NoticiaConstantes.mensajeError;
         color = Colors.orange;
         break;
       case 401:
-        message = '${ErrorConstantes.errorUnauthorized}';
+        message = ErrorConstantes.errorUnauthorized;
         color = Colors.red;
         break;
       case 403:
-        message = '${ErrorConstantes.errorUnauthorized}';
+        message = ErrorConstantes.errorUnauthorized;
         color = Colors.redAccent;
         break;
       case 404:
-        message = '${ErrorConstantes.errorNotFound}';
+        message = ErrorConstantes.errorNotFound;
         color = Colors.grey;
         break;
       case 500:
-        message = '${ErrorConstantes.errorServer}';
+        message = ErrorConstantes.errorServer;
         color = Colors.red;
         break;
       default:

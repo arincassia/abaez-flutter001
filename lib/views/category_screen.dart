@@ -1,9 +1,11 @@
+import 'package:abaez/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:abaez/bloc/categorias/categorias_bloc.dart';
 import 'package:abaez/bloc/categorias/categorias_event.dart';
 import 'package:abaez/bloc/categorias/categorias_state.dart';
 import 'package:abaez/domain/categoria.dart';
+import 'package:abaez/helpers/snackbar_helper.dart';
 import 'package:intl/intl.dart';
 
 class CategoryScreen extends StatelessWidget {
@@ -28,7 +30,7 @@ class _CategoryScreenContent extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Categorías'),
-        backgroundColor: Colors.blue,
+        backgroundColor: const Color.fromARGB(255, 248, 174, 206),
         actions: [
           BlocBuilder<CategoriaBloc, CategoriaState>(
             builder: (context, state) {
@@ -37,7 +39,7 @@ class _CategoryScreenContent extends StatelessWidget {
                   padding: const EdgeInsets.only(right: 16.0),
                   child: Center(
                     child: Text(
-                      'Última: ${DateFormat('dd/MM HH:mm').format(state.timestamp)}',
+                      'Última actualización: ${DateFormat('dd/MM HH:mm').format(state.timestamp)}',
                       style: const TextStyle(fontSize: 12),
                     ),
                   ),
@@ -65,26 +67,23 @@ class _CategoryScreenContent extends StatelessWidget {
               ),
             );
           } else if (state is CategoriaCreated) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Categoría creada exitosamente'),
-                backgroundColor: Colors.green,
-              ),
-            );
+            SnackBarHelper.showSnackBar(
+                      context,
+                      ApiConstantes.categorysuccessCreated,
+                      statusCode: 200,
+                    );
           } else if (state is CategoriaUpdated) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Categoría actualizada exitosamente'),
-                backgroundColor: Colors.green,
-              ),
-            );
+             SnackBarHelper.showSnackBar(
+                      context,
+                      ApiConstantes.categorysuccessUpdated,
+                      statusCode: 200,
+                    );
           } else if (state is CategoriaDeleted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Categoría eliminada exitosamente'),
-                backgroundColor: Colors.green,
-              ),
-            );
+             SnackBarHelper.showSnackBar(
+                      context,
+                      ApiConstantes.categorysuccessDeleted,
+                      statusCode: 200,
+                    );
           }
         },
         builder: (context, state) {
@@ -155,7 +154,7 @@ class _CategoryScreenContent extends StatelessWidget {
     );
   }
 
-  Widget _buildCategoryImage(String? imageUrl) {
+   Widget _buildCategoryImage(String? imageUrl) {
     if (imageUrl == null || imageUrl.isEmpty) {
       return const CircleAvatar(
         radius: 25,
@@ -167,10 +166,35 @@ class _CategoryScreenContent extends StatelessWidget {
     return CircleAvatar(
       radius: 25,
       backgroundColor: Colors.grey[200],
-      backgroundImage: NetworkImage(imageUrl),
-      onBackgroundImageError: (exception, stackTrace) {
-        debugPrint('Error cargando imagen: $exception');
-      },
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(25),
+        child: Image.network(
+          imageUrl,
+          width: 50,
+          height: 50,
+          fit: BoxFit.cover,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return Center(
+              child: CircularProgressIndicator(
+                value: loadingProgress.expectedTotalBytes != null
+                    ? loadingProgress.cumulativeBytesLoaded /
+                        loadingProgress.expectedTotalBytes!
+                    : null,
+                strokeWidth: 2.0,
+              ),
+            );
+          },
+          errorBuilder: (context, error, stackTrace) {
+            debugPrint('Error cargando imagen: $error');
+            return const Icon(
+              Icons.broken_image,
+              color: Colors.grey,
+              size: 30,
+            );
+          },
+        ),
+      ),
     );
   }
 
@@ -300,16 +324,16 @@ class _CategoryScreenContent extends StatelessWidget {
                 }
 
                 // Enviar evento para actualizar categoría
-                if (categoria.id != null) {
+                
                   categoriaBloc.add(
                     CategoriaUpdateEvent(
-                      id: categoria.id!,
+                      id: categoria.id,
                       nombre: nombreController.text,
                       descripcion: descripcionController.text,
                       imagenUrl: imagenUrlController.text,
                     ),
                   );
-                }
+                
 
                 Navigator.pop(dialogContext);
               },
@@ -340,13 +364,13 @@ class _CategoryScreenContent extends StatelessWidget {
             ElevatedButton(
               onPressed: () {
                 // Enviar evento para eliminar categoría
-                if (categoria.id != null) {
-                  categoriaBloc.add(CategoriaDeleteEvent(id: categoria.id!));
-                }
+               
+                  categoriaBloc.add(CategoriaDeleteEvent(id: categoria.id));
+                
 
                 Navigator.pop(dialogContext);
               },
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              style: ElevatedButton.styleFrom(foregroundColor: Colors.white, backgroundColor: Colors.red),
               child: const Text('Eliminar'),
             ),
           ],
