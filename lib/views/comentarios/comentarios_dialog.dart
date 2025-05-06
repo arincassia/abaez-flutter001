@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:abaez/bloc/comentario/comentario_bloc.dart';
-import 'package:abaez/bloc/comentario/comentario_event.dart';
-import 'package:abaez/bloc/comentario/comentario_state.dart';
+import 'package:abaez/bloc/comentarios/comentario_bloc.dart';
+import 'package:abaez/bloc/comentarios/comentario_event.dart';
+import 'package:abaez/bloc/comentarios/comentario_state.dart';
 import 'package:abaez/helpers/snackbar_helper.dart';
 import 'package:intl/intl.dart';
 import 'package:get_it/get_it.dart';
@@ -15,7 +15,10 @@ class ComentariosDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => GetIt.instance<ComentarioBloc>()..add(LoadComentarios(noticiaId)),
+      create:
+          (_) =>
+              GetIt.instance<ComentarioBloc>()
+                ..add(LoadComentarios(noticiaId: noticiaId)),
       child: _ComentariosDialogContent(noticiaId: noticiaId),
     );
   }
@@ -24,11 +27,11 @@ class ComentariosDialog extends StatelessWidget {
 class _ComentariosDialogContent extends StatefulWidget {
   final String noticiaId;
 
-  const _ComentariosDialogContent({Key? key, required this.noticiaId})
-    : super(key: key);
+  const _ComentariosDialogContent({required this.noticiaId});
 
   @override
-  State<_ComentariosDialogContent> createState() => _ComentariosDialogContentState();
+  State<_ComentariosDialogContent> createState() =>
+      _ComentariosDialogContentState();
 }
 
 class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
@@ -75,9 +78,9 @@ class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
                 listener: (context, state) {
                   if (state is ComentarioError) {
                     SnackBarHelper.showSnackBar(
-                      context, 
-                      'Error: ${state.message}',
-                      statusCode: 500
+                      context,
+                      'Error: ${state.errorMessage}',
+                      statusCode: 500,
                     );
                   }
                 },
@@ -85,7 +88,7 @@ class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
                   if (state is ComentarioLoading) {
                     return const Center(child: CircularProgressIndicator());
                   } else if (state is ComentarioLoaded) {
-                    final comentarios = state.comentarios;
+                    final comentarios = state.comentariosList;
 
                     if (comentarios.isEmpty) {
                       return const Center(
@@ -100,7 +103,7 @@ class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
                         // Formatea la fecha para mostrarla de manera amigable
                         final fecha = DateFormat(
                           'dd/MM/yyyy HH:mm',
-                        ).format(DateTime.parse(comentario.fecha));
+                        ).format(DateTime.parse(comentario.fecha as String));
 
                         return ListTile(
                           title: Text(comentario.autor),
@@ -124,10 +127,10 @@ class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
                       separatorBuilder: (_, __) => const Divider(),
                     );
                   } else if (state is ComentarioError) {
-                    return Center(
+                    return const Center(
                       child: Text(
                         'Error al cargar comentarios',
-                        style: const TextStyle(color: Colors.red),
+                        style: TextStyle(color: Colors.red),
                       ),
                     );
                   }

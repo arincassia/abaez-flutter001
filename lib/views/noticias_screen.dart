@@ -1,3 +1,4 @@
+import 'package:abaez/views/comentarios/comentarios_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:abaez/bloc/bloc%20noticias/noticias_event.dart';

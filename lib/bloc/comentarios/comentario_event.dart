@@ -23,6 +23,8 @@ class AddComentario extends ComentarioEvent {
   AddComentario({
     required this.noticiaId,
     required this.texto,
+    required String autor,
+    required String fecha,
   });
 
   @override
