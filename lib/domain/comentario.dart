@@ -2,7 +2,7 @@ class Comentario {
   final String id;
   final String noticiaId;
   final String texto;
-  final DateTime fecha;
+  final String fecha;
   final String autor;
 
   Comentario({
@@ -19,7 +19,7 @@ class Comentario {
       id: json['_id'] as String, // El ID lo asigna CrudCrud
       noticiaId: json['noticiaId'] as String,
       texto: json['texto'] as String,
-      fecha: DateTime.tryParse(json['fecha']) ?? DateTime.now(),
+      fecha: json['fecha'] as String,
       autor: json['autor'] as String,
     );
   }
@@ -29,7 +29,7 @@ class Comentario {
     return {
       'noticiaId': noticiaId,
       'texto': texto,
-      'fecha': fecha.toIso8601String(),
+      'fecha': fecha,
       'autor': autor,
     };
   }

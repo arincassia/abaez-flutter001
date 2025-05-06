@@ -19,14 +19,26 @@ class LoadComentarios extends ComentarioEvent {
 class AddComentario extends ComentarioEvent {
   final String noticiaId;
   final String texto;
+  final String fecha;
+  final String autor;
 
   AddComentario({
     required this.noticiaId,
     required this.texto,
-    required String autor,
-    required String fecha,
+    required this.autor,
+    required this.fecha,
   });
 
   @override
   List<Object?> get props => [noticiaId, texto];
+}
+
+// Evento para obtener el número de comentarios de una noticia
+class GetNumeroComentarios extends ComentarioEvent {
+  final String noticiaId;
+
+  GetNumeroComentarios({required this.noticiaId});
+
+  @override
+  List<Object?> get props => [noticiaId];
 }

@@ -47,11 +47,21 @@ class NoticiaScreen extends StatelessWidget {
           return Scaffold(
             backgroundColor: Colors.grey[200],
             appBar: AppBar(
-              title: const Text(
-                NoticiaConstantes.tituloApp,
-                style: TextStyle(color: Colors.white),
-              ),
 
+              title: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Text(
+        NoticiaConstantes.tituloApp,
+        style: TextStyle(color: Colors.white),
+      ),
+      if (state is NoticiasLoaded) // Check if state is NoticiasLoaded before accessing lastUpdated
+        Text(
+          'Última actualización: ${(DateFormat(NoticiaConstantes.formatoFecha)).format(state.lastUpdated)}',
+          style: const TextStyle(fontSize: 12),
+        ),
+    ],
+  ),
               backgroundColor: const Color.fromARGB(255, 248, 174, 206),
               actions: [
                 IconButton(
@@ -145,16 +155,7 @@ class NoticiaScreen extends StatelessWidget {
                     }
                   },
                 ),
-                if (state is NoticiasLoaded)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 16.0),
-                    child: Center(
-                      child: Text(
-                        'Última actualización: ${(DateFormat(NoticiaConstantes.formatoFecha)).format(state.lastUpdated)}',
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                    ),
-                  ),
+               
               ],
             ),
             body: Column(

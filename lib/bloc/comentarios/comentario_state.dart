@@ -31,3 +31,16 @@ class ComentarioError extends ComentarioState {
   @override
   List<Object> get props => [errorMessage];
 }
+
+class NumeroComentariosLoaded extends ComentarioState {
+  final String noticiaId;
+  final int numeroComentarios;
+  
+  const NumeroComentariosLoaded({
+    required this.noticiaId,
+    required this.numeroComentarios,
+  });
+  
+  @override
+  List<Object> get props => [noticiaId, numeroComentarios];
+}

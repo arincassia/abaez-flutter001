@@ -5,23 +5,22 @@ import 'package:abaez/bloc/comentarios/comentario_event.dart';
 import 'package:abaez/bloc/comentarios/comentario_state.dart';
 import 'package:abaez/helpers/snackbar_helper.dart';
 import 'package:intl/intl.dart';
-import 'package:get_it/get_it.dart';
 
 class ComentariosDialog extends StatelessWidget {
   final String noticiaId;
 
   const ComentariosDialog({super.key, required this.noticiaId});
 
-  @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create:
-          (_) =>
-              GetIt.instance<ComentarioBloc>()
-                ..add(LoadComentarios(noticiaId: noticiaId)),
-      child: _ComentariosDialogContent(noticiaId: noticiaId),
-    );
-  }
+@override
+Widget build(BuildContext context) {
+ 
+  return BlocProvider(
+    create: (_) => ComentarioBloc()
+      ..add(LoadComentarios(noticiaId: noticiaId)),
+    child: _ComentariosDialogContent(noticiaId: noticiaId),
+  );
+}
+
 }
 
 class _ComentariosDialogContent extends StatefulWidget {
@@ -36,10 +35,19 @@ class _ComentariosDialogContent extends StatefulWidget {
 
 class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
   final TextEditingController _comentarioController = TextEditingController();
+  late ComentarioBloc _comentarioBloc;
+
+  @override
+  void initState() {
+    super.initState();
+    // Get the BLoC from the provider when the state is initialized
+    _comentarioBloc = context.read<ComentarioBloc>();
+  }
 
   @override
   void dispose() {
     _comentarioController.dispose();
+    // Do NOT close the bloc here, BlocProvider handles that
     super.dispose();
   }
 
@@ -103,7 +111,7 @@ class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
                         // Formatea la fecha para mostrarla de manera amigable
                         final fecha = DateFormat(
                           'dd/MM/yyyy HH:mm',
-                        ).format(DateTime.parse(comentario.fecha as String));
+                        ).format(DateTime.parse(comentario.fecha));
 
                         return ListTile(
                           title: Text(comentario.autor),
@@ -168,15 +176,15 @@ class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
                   );
                   return;
                 }
-
-                // Agregamos el comentario
-                context.read<ComentarioBloc>().add(
+                DateTime fecha = DateTime.now();
+                String fechaformateada = fecha.toIso8601String();
+                
+                _comentarioBloc.add(
                   AddComentario(
                     noticiaId: widget.noticiaId,
                     texto: _comentarioController.text,
-                    autor:
-                        'Usuario Anónimo', // En una app real, vendría del usuario logueado
-                    fecha: DateTime.now().toIso8601String(),
+                    autor: 'Usuario anonimo',
+                    fecha: fechaformateada
                   ),
                 );
 

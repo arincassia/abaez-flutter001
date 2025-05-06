@@ -11,6 +11,7 @@ class ComentarioBloc extends Bloc<ComentarioEvent, ComentarioState> {
   ComentarioBloc() : super(ComentarioInitial()) {
     on<LoadComentarios>(_onLoadComentarios);
     on<AddComentario>(_onAddComentario);
+    on<GetNumeroComentarios>(_onGetNumeroComentarios);
   }
 
   Future<void> _onLoadComentarios(
@@ -45,6 +46,8 @@ class ComentarioBloc extends Bloc<ComentarioEvent, ComentarioState> {
       await comentarioRepository.agregarComentario(
         event.noticiaId,
         event.texto,
+        event.autor,
+        event.fecha,
       );
 
       // Recargar comentarios después de agregar uno nuevo
@@ -52,6 +55,32 @@ class ComentarioBloc extends Bloc<ComentarioEvent, ComentarioState> {
     } catch (e) {
       emit(
         const ComentarioError(errorMessage: 'Error al agregar el comentario'),
+      );
+    }
+  }
+  
+  Future<void> _onGetNumeroComentarios(
+    GetNumeroComentarios event,
+    Emitter<ComentarioState> emit,
+  ) async {
+    try {
+      emit(ComentarioLoading());
+      
+      final numeroComentarios = await comentarioRepository.obtenerNumeroComentarios(
+        event.noticiaId,
+      );
+      
+      emit(NumeroComentariosLoaded(
+        noticiaId: event.noticiaId,
+        numeroComentarios: numeroComentarios,
+      ));
+    } on ApiException catch (e) {
+      emit(ComentarioError(errorMessage: e.message));
+    } catch (e) {
+      emit(
+        ComentarioError(
+          errorMessage: 'Error al obtener número de comentarios: ${e.toString()}',
+        ),
       );
     }
   }
