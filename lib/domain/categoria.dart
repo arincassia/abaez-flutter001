@@ -1,5 +1,11 @@
+import 'package:json_annotation/json_annotation.dart';
+part 'categoria.g.dart';
+
+
 // category.dart
+@JsonSerializable()
 class Categoria {
+  @JsonKey(name: '_id', includeToJson: false)
   final String id;
   final String nombre; 
   final String descripcion; 
@@ -13,21 +19,8 @@ class Categoria {
   });
 
   // Método para convertir un JSON de la API a un objeto Category
-  factory Categoria.fromJson(Map<String, dynamic> json) {
-    return Categoria(
-      id: json['_id'] as String, // El ID lo asigna CrudCrud
-      nombre: json['nombre'] as String,
-      descripcion: json['descripcion'] as String,
-      imagenUrl: json['imagenUrl'] as String?,
-    );
-  }
+  factory Categoria.fromJson(Map<String, dynamic> json) => _$CategoriaFromJson(json);
 
   // Método para convertir el objeto Category a JSON para enviar a la API
-  Map<String, dynamic> toJson() {
-    return {
-      'nombre': nombre,
-      'descripcion': descripcion,
-      'imagenUrl': imagenUrl,
-    };
-  }
+  Map<String, dynamic> toJson() => _$CategoriaToJson(this);
 }
