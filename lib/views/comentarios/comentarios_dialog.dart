@@ -5,26 +5,34 @@ import 'package:abaez/bloc/comentario/comentario_event.dart';
 import 'package:abaez/bloc/comentario/comentario_state.dart';
 import 'package:abaez/helpers/snackbar_helper.dart';
 import 'package:intl/intl.dart';
+import 'package:get_it/get_it.dart';
 
-class ComentariosDialog extends StatefulWidget {
+class ComentariosDialog extends StatelessWidget {
   final String noticiaId;
 
-  const ComentariosDialog({Key? key, required this.noticiaId})
+  const ComentariosDialog({super.key, required this.noticiaId});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => GetIt.instance<ComentarioBloc>()..add(LoadComentarios(noticiaId)),
+      child: _ComentariosDialogContent(noticiaId: noticiaId),
+    );
+  }
+}
+
+class _ComentariosDialogContent extends StatefulWidget {
+  final String noticiaId;
+
+  const _ComentariosDialogContent({Key? key, required this.noticiaId})
     : super(key: key);
 
   @override
-  State<ComentariosDialog> createState() => _ComentariosDialogState();
+  State<_ComentariosDialogContent> createState() => _ComentariosDialogContentState();
 }
 
-class _ComentariosDialogState extends State<ComentariosDialog> {
+class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
   final TextEditingController _comentarioController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    // Al iniciar, cargamos los comentarios para esta noticia
-    context.read<ComentarioBloc>().add(LoadComentarios(widget.noticiaId));
-  }
 
   @override
   void dispose() {
@@ -63,7 +71,16 @@ class _ComentariosDialogState extends State<ComentariosDialog> {
 
             // Lista de comentarios
             Expanded(
-              child: BlocBuilder<ComentarioBloc, ComentarioState>(
+              child: BlocConsumer<ComentarioBloc, ComentarioState>(
+                listener: (context, state) {
+                  if (state is ComentarioError) {
+                    SnackBarHelper.showSnackBar(
+                      context, 
+                      'Error: ${state.message}',
+                      statusCode: 500
+                    );
+                  }
+                },
                 builder: (context, state) {
                   if (state is ComentarioLoading) {
                     return const Center(child: CircularProgressIndicator());
@@ -109,7 +126,7 @@ class _ComentariosDialogState extends State<ComentariosDialog> {
                   } else if (state is ComentarioError) {
                     return Center(
                       child: Text(
-                        'Error al cargar comentarios: ${state.message}',
+                        'Error al cargar comentarios',
                         style: const TextStyle(color: Colors.red),
                       ),
                     );
