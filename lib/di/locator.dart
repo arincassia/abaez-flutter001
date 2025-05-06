@@ -2,6 +2,7 @@
 import 'package:abaez/data/categorias_repository.dart';
 import 'package:abaez/data/noticia_repository.dart';
 import 'package:abaez/data/preferencia_repository.dart';
+import 'package:abaez/data/comentarios_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:watch_it/watch_it.dart';
  
@@ -11,4 +12,5 @@ Future<void> initLocator() async {
   di.registerSingleton<CategoriaRepository>(CategoriaRepository()); 
   di.registerSingleton<NoticiaRepository>(NoticiaRepository());
   di.registerLazySingleton<PreferenciaRepository>(() => PreferenciaRepository());
+  di.registerLazySingleton<ComentarioRepository>(() => ComentarioRepository());
 }
