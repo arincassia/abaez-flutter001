@@ -1,19 +1,14 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-
 import 'package:abaez/domain/comentario.dart';
 import 'package:abaez/constants.dart';
 import 'package:abaez/exceptions/api_exception.dart';
 class ComentarioRepository {
   final Dio dio = Dio();
-  final String baseUrl = dotenv.env['NEWS_URL'] ?? 'URL_NO_DEFINIDA';
-
-  final String noticiasEndpoint = '/noticias';
-  final String comentariosEndpoint = '/comentarios';
-
+  
   Future<void> _verificarNoticiaExiste(String noticiaId) async {
     try {
-      final response = await dio.get('$baseUrl$noticiasEndpoint/$noticiaId');
+      //final response = await dio.get('$baseUrl$noticiasEndpoint/$noticiaId');
+      final response = await dio.get('${ApiConstantes.newsurl}/$noticiaId');
       if (response.statusCode != 200) {
         throw ApiException(ApiConstantes.errorNotFound, statusCode: response.statusCode);
       }
@@ -34,7 +29,7 @@ class ComentarioRepository {
     await _verificarNoticiaExiste(noticiaId);
 
     try {
-      final response = await dio.get('$baseUrl$comentariosEndpoint');
+      final response = await dio.get(ApiConstantes.comentariosUrl);
       final data = response.data as List<dynamic>;
 
       final comentarios = data
@@ -54,20 +49,20 @@ class ComentarioRepository {
   }
 
   /// Agrega un comentario nuevo a una noticia existente
-  Future<void> agregarComentario(String noticiaId, String texto) async {
+  Future<void> agregarComentario(String noticiaId, String texto, String autor, String fecha) async {
     await _verificarNoticiaExiste(noticiaId);
 
     final nuevoComentario = Comentario(
       id: '',
       noticiaId: noticiaId,
       texto: texto,
-      fecha: DateTime.now(),
+      fecha: DateTime.now().toIso8601String(),
       autor: 'Usuario Anónimo',
     );
 
     try {
       await dio.post(
-        '$baseUrl$comentariosEndpoint',
+        ApiConstantes.comentariosUrl,
         data: nuevoComentario.toJson(),
         options: Options(
           headers: {'Content-Type': 'application/json'},
@@ -82,4 +77,26 @@ class ComentarioRepository {
       }
     }
   }
+  Future<int> obtenerNumeroComentarios(String noticiaId) async {
+  try {
+    final response = await dio.get(ApiConstantes.comentariosUrl);
+    final data = response.data as List<dynamic>;
+
+    final comentariosCount = data
+        .where((json) => json['noticiaId'] == noticiaId)
+        .length;
+
+    return comentariosCount;
+  } on DioException catch (e) {
+    if (e.type == DioExceptionType.connectionTimeout ||
+        e.type == DioExceptionType.receiveTimeout) {
+      throw ApiException(ApiConstantes.errorTimeout);
+    } else {
+      throw ApiException(ApiConstantes.errorServer, statusCode: e.response?.statusCode);
+    }
+  } catch (e) {
+    print('Error al obtener número de comentarios: ${e.toString()}');
+    return 0;
+  }
+}
 }
