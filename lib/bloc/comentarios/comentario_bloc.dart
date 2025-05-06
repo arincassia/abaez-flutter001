@@ -19,14 +19,21 @@ class ComentarioBloc extends Bloc<ComentarioEvent, ComentarioState> {
   ) async {
     try {
       emit(ComentarioLoading());
-      
-      final comentarios = await comentarioRepository.obtenerComentariosPorNoticia(event.noticiaId);
-      
+
+      final comentarios = await comentarioRepository
+          .obtenerComentariosPorNoticia(event.noticiaId);
+
       emit(ComentarioLoaded(comentariosList: comentarios));
     } on ApiException catch (e) {
       emit(ComentarioError(errorMessage: e.message));
     } catch (e) {
-      emit(ComentarioError(errorMessage: 'Error al cargar comentarios' '${e.toString()}'));
+      emit(
+        ComentarioError(
+          errorMessage:
+              'Error al cargar comentarios'
+              '${e.toString()}',
+        ),
+      );
     }
   }
 
@@ -36,14 +43,16 @@ class ComentarioBloc extends Bloc<ComentarioEvent, ComentarioState> {
   ) async {
     try {
       await comentarioRepository.agregarComentario(
-        event.noticiaId, 
+        event.noticiaId,
         event.texto,
       );
-      
+
       // Recargar comentarios después de agregar uno nuevo
       add(LoadComentarios(noticiaId: event.noticiaId));
     } catch (e) {
-      emit(const ComentarioError(errorMessage: 'Error al agregar el comentario'));
+      emit(
+        const ComentarioError(errorMessage: 'Error al agregar el comentario'),
+      );
     }
   }
 }

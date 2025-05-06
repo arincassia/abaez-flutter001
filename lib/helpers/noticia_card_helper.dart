@@ -7,7 +7,8 @@ class NoticiaCardHelper {
   static Widget buildNoticiaCard({
     required Noticia noticia,
     required VoidCallback onEdit, // Callback para editar
-    required VoidCallback onDelete, // Callback para eliminar
+    required VoidCallback onDelete,// Callback para eliminar
+    required VoidCallback onComment // Callback para comentar
   }) {
     /// Calcula el tiempo transcurrido desde la fecha de publicación
     String calcularTiempoTranscurrido(DateTime publicadaEl) {
@@ -34,7 +35,8 @@ class NoticiaCardHelper {
       categoriaId: noticia.categoriaId ?? '',
       categoriaNombre: '',
       onEdit: onEdit, // Callback para editar
-      onDelete: onDelete, // Callback para eliminar
+      onDelete: onDelete, 
+      onComment: onComment,// Callback para eliminar
     );
   }
 }
