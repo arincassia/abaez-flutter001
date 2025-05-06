@@ -1,76 +1,58 @@
-import 'package:abaez/api/service/categoria_service.dart';
-import 'package:abaez/domain/categoria.dart';
-import 'package:abaez/exceptions/api_exception.dart';
+// services/categoria_service.dart
+import 'package:abaez/api/service/categoria_service.dart'; // Importa tu repositorio
+import 'package:abaez/domain/categoria.dart'; // Importa tu entidad Categoria
+import 'package:flutter/foundation.dart'; // Para debugPrint
 
 class CategoriaRepository {
+  // Inyecta la dependencia del repositorio
   final CategoriaService _categoriaService = CategoriaService();
+
+  // Constructor que recibe la instancia del repositorio
   CategoriaRepository();
 
-  // Obtener todas las categorías desde la API
-  Future<List<Categoria>> listarCategoriasDesdeAPI() async {
+  /// Obtiene la lista completa de categorías desde el repositorio.
+  Future<List<Categoria>> obtenerCategorias() async {
     try {
-      final categorias = await _categoriaService.listarCategoriasDesdeAPI();
-
-      // Validaciones de los campos, que no estén vacíos
-      for (final categoria in categorias) {
-        if (categoria.nombre.isEmpty) {
-          throw ApiException('El nombre de la categoría no puede estar vacío.');
-        }
-        if (categoria.descripcion.isEmpty) {
-          throw ApiException('La descripción de la categoría no puede estar vacía.');
-        }
-      }
-
-      // Ordenar las categorías alfabéticamente por nombre
-      categorias.sort((a, b) => a.nombre.compareTo(b.nombre));
-
+      // Llama al método del repositorio para obtener los datos
+      final categorias = await _categoriaService.getCategorias();
       return categorias;
-    } on ApiException catch (e) {
-      // Propaga la excepción personalizada con un mensaje adicional si es necesario
-      throw ApiException('Error al listar categorías: ${e.message}', statusCode: e.statusCode);
     } catch (e) {
-      // Manejo de otros errores no relacionados con la API
-      throw Exception('Error inesperado: $e');
+      // Puedes añadir lógica de logging o manejo de errores específico del servicio aquí
+      debugPrint('Error en CategoriaService al obtener categorías: $e');
+      rethrow;
     }
   }
 
-  // Crear una nueva categoría
-  Future<void> crearCategoria(Categoria categoria) async {
+  Future<void> crearCategoria(Map<String, dynamic> categoriaData) async {
     try {
-      await _categoriaService.crearCategoria(categoria);
+      // Llama al método del repositorio para crear la categoría
+      await _categoriaService.crearCategoria(categoriaData);
+      debugPrint('Categoría creada exitosamente.');
     } catch (e) {
-      throw Exception('Error al crear la categoría: $e');
+      debugPrint('Error en CategoriaService al crear categoría: $e');
+      rethrow;
     }
   }
 
-  // Editar una categoría existente
-  Future<void> editarCategoria(Categoria categoria) async {
+  Future<void> actualizarCategoria(String id, Map<String, dynamic> categoriaData) async {
     try {
-      await _categoriaService.editarCategoria(categoria); // Llama al método del servicio
+      // Llama al método del repositorio para editar la categoría
+      await _categoriaService.editarCategoria(id, categoriaData);
+      debugPrint('Categoría con ID $id actualizada exitosamente.');
     } catch (e) {
-      throw Exception('Error al editar la categoría: $e');
+      debugPrint('Error en CategoriaService al actualizar categoría $id: $e');
+      rethrow;
     }
   }
 
-  // Eliminar una categoría por ID
   Future<void> eliminarCategoria(String id) async {
     try {
-      await _categoriaService.eliminarCategoria(id); // Llama al método del servicio
+      // Llama al método del repositorio para eliminar la categoría
+      await _categoriaService.eliminarCategoria(id);
+      debugPrint('Categoría con ID $id eliminada exitosamente.');
     } catch (e) {
-      throw Exception('Error al eliminar la categoría: $e');
-    }
-  }
-
-  // Obtener una categoría por ID
-  Future<Categoria> obtenerCategoriaPorId(String categoriaId) async {
-    try {
-      final categoria = await _categoriaService.obtenerCategoriaPorId(categoriaId);
-      if (categoria.id.isEmpty) {
-        throw Exception('Categoría no encontrada');
-      }
-      return categoria;
-    } catch (e) {
-      throw Exception('Error al obtener la categoría: $e');
+      debugPrint('Error en CategoriaService al eliminar categoría $id: $e');
+      rethrow;
     }
   }
 }

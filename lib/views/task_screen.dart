@@ -3,7 +3,7 @@
 import 'package:abaez/data/api_repository.dart';
 import 'package:abaez/helpers/tasks_card_helper.dart';
 import 'package:flutter/material.dart';
-import 'package:abaez/constantes/constants.dart';
+import 'package:abaez/constants.dart';
 import 'package:abaez/api/service/task_service.dart';
 import 'package:abaez/data/task_repository.dart';
 import 'package:abaez/domain/task.dart';

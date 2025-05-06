@@ -121,3 +121,6 @@ app.*.symbols
 !/dev/ci/**/Gemfile.lock
 
 .metadata
+
+# Excluye .env.example
+!.env.example

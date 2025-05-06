@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:abaez/constantes/constants.dart';
-import 'package:abaez/domain/noticia.dart';
+import 'package:abaez/constants.dart';
 import 'package:abaez/api/service/categoria_service.dart';
 
 class NoticiaCard extends StatelessWidget {
-  final Noticia noticia;
-  final int index;
+  
+  final String titulo;
+  final String descripcion;
+  final String fuente;
+  final String publicadaEl;
+  final String imageUrl;
+  final String categoriaId;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final String categoriaNombre;
@@ -14,11 +18,16 @@ class NoticiaCard extends StatelessWidget {
 
   NoticiaCard({
     super.key,
-    required this.noticia,
-    required this.index,
+    required this.titulo,
+    required this.descripcion,
+    required this.fuente,
+    required this.publicadaEl,
+    required this.imageUrl,
+    required this.categoriaId,
     required this.onEdit,
     required this.onDelete,
     required this.categoriaNombre,
+
   }) : categoriaService = CategoriaService();
 
   Future<String> _obtenerNombreCategoria(String categoriaId) async {
@@ -50,7 +59,7 @@ class NoticiaCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      noticia.titulo,
+                      titulo,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
@@ -58,7 +67,7 @@ class NoticiaCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      noticia.fuente,
+                      fuente,
                       style: const TextStyle(
                         fontStyle: FontStyle.italic,
                         fontWeight: FontWeight.w300,
@@ -66,14 +75,14 @@ class NoticiaCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      noticia.contenido,
+                      descripcion,
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(fontSize: 14),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${AppConstants.publicadaEl} ${_formatDate(noticia.publicadaEl)}',
+                      '${AppConstants.publicadaEl} ${formatDate(publicadaEl)}',
                       style: const TextStyle(
                         fontSize: 12,
                         color: Colors.grey,
@@ -81,7 +90,7 @@ class NoticiaCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     FutureBuilder<String>(
-                    future: _obtenerNombreCategoria(noticia.categoriaId ?? ''),
+                    future: _obtenerNombreCategoria(categoriaId),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState == ConnectionState.waiting) {
                           return const Text(
@@ -120,9 +129,9 @@ class NoticiaCard extends StatelessWidget {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: noticia.imagenUrl != null
+                    child: imageUrl.isNotEmpty
                         ? Image.network(
-                            noticia.imagenUrl!,
+                            imageUrl,
                             fit: BoxFit.cover,
                             width: 100,
                             height: 100,
@@ -141,7 +150,7 @@ class NoticiaCard extends StatelessWidget {
                       IconButton(
                         icon: const Icon(Icons.delete, color: Colors.red),
                         tooltip: 'Eliminar',
-                        onPressed: () => _confirmDelete(context),
+                        onPressed: onDelete,
                       ),
                     ],
                   ),
@@ -154,34 +163,78 @@ class NoticiaCard extends StatelessWidget {
     );
   }
 
-  String _formatDate(DateTime date) {
-    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+String formatDate(String dateStr) {
+  try {
+    if (dateStr.isEmpty) {
+      return 'Fecha desconocida';
+    }
+    
+    final RegExp ddmmyyyyRegex = RegExp(r'^(\d{1,2})\/(\d{1,2})\/(\d{4})$');
+    if (ddmmyyyyRegex.hasMatch(dateStr)) {
+      final parts = dateStr.split('/');
+      final day = int.parse(parts[0]).toString().padLeft(2, '0');
+      final month = int.parse(parts[1]).toString().padLeft(2, '0');
+      final year = parts[2];
+      return '$day/$month/$year';
+    }
+    
+    if (dateStr.contains('min') || dateStr.endsWith('h') || dateStr.endsWith('d')) {
+      final now = DateTime.now();
+      DateTime actualDate;
+      
+      if (dateStr.contains('-') && dateStr.contains('min')) {
+        return '${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}';
+      }
+      
+      final RegExp numericRegex = RegExp(r'(\d+)');
+      final match = numericRegex.firstMatch(dateStr);
+      
+      if (match != null) {
+        final value = int.tryParse(match.group(1) ?? '0') ?? 0;
+        
+        if (dateStr.endsWith('min')) {
+          actualDate = now.subtract(Duration(minutes: value));
+        }
+        else if (dateStr.endsWith('h')) {
+          actualDate = now.subtract(Duration(hours: value));
+        }
+        else if (dateStr.endsWith('d')) {
+          actualDate = now.subtract(Duration(days: value));
+        }
+        else {
+          actualDate = now;
+        }
+        
+        return '${actualDate.day.toString().padLeft(2, '0')}/${actualDate.month.toString().padLeft(2, '0')}/${actualDate.year}';
+      }
+    }
+    
+    try {
+      final date = DateTime.parse(dateStr);
+      return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+    } catch (_) {
+      
+      final dashParts = dateStr.split('-');
+      if (dashParts.length == 3) {
+        try {
+          final year = int.parse(dashParts[0]);
+          final month = int.parse(dashParts[1]);
+          final day = int.parse(dashParts[2]);
+          
+          if (year >= 1900 && year <= 2100 && 
+              month >= 1 && month <= 12 && 
+              day >= 1 && day <= 31) {
+            return '${day.toString().padLeft(2, '0')}/${month.toString().padLeft(2, '0')}/$year';
+          }
+        } catch (_) {
+        }
+      }
+    }
+    
+    
+    return dateStr;
+  } catch (e) {
+    return dateStr;
   }
-
-  void _confirmDelete(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Eliminar Noticia'),
-          content: const Text('¿Estás seguro de que deseas eliminar esta noticia?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Cerrar el diálogo
-              },
-              child: const Text('Cancelar'),
-            ),
-            TextButton(
-              onPressed: () {
-                onDelete(); // Llama al callback para manejar la eliminación
-                Navigator.of(context).pop(); // Cerrar el diálogo
-              },
-              child: const Text('Eliminar'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+}
 }

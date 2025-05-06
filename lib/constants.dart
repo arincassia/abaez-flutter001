@@ -57,22 +57,23 @@ class AppConstants {
 }
 
 
-class ApiConstants {
+class ApiConstantes {
    static final String newsurl = dotenv.env['NEWS_URL'] ?? 'URL_NO_DEFINIDA';
   static final String noticiasUrl = '$newsurl/noticias';
   static final String categoriasUrl = '$newsurl/categorias';
+  static final String preferenciasUrl = '$newsurl/preferencias';
   static const int timeoutSeconds = 10; 
   static const String errorTimeout = 'Tiempo de espera agotado'; 
   static const String errorNoCategory = 'Categoría no encontrada'; 
   static const String defaultcategoriaId = 'sin_categoria'; 
   static const String listasVacia = 'No hay categorias disponibles';
   static const String mensajeCargando = 'Cargando categorias...';
-  static const String categorysuccessCreated = 'Categoría creada';
-  static const String categorysuccessUpdated = 'Categoría actualizada';
-  static const String categorysuccessDeleted = 'Categoría eliminada';
-  static const String newssuccessCreated = 'Noticias creada';
-  static const String newssuccessUpdated = 'Noticias actualizada';
-  static const String newssuccessDeleted = 'Noticias eliminada';
+  static const String categorysuccessCreated = 'Categoría creada con éxito';
+  static const String categorysuccessUpdated = 'Categoría actualizada con éxito';
+  static const String categorysuccessDeleted = 'Categoría eliminada con éxito';
+  static const String newssuccessCreated = 'Noticia creada con éxito';
+  static const String newssuccessUpdated = 'Noticia actualizada con éxito';
+  static const String newssuccessDeleted = 'Noticia eliminada con éxito';
 
 
 
@@ -80,4 +81,32 @@ class ApiConstants {
   static const String errorNotFound = 'Noticias no encontradas';
   static const String errorServer = 'Error del servidor';
 
+}
+
+
+class NoticiaConstantes {
+  static const String tituloApp = 'Noticias Técnicas';
+  static const String mensajeCargando = 'Cargando noticias...';
+  static const String listaVacia = 'No hay noticias disponibles';
+  static const String mensajeError = 'Error al cargar noticias';
+  static const String formatoFecha = 'dd/MM/yyyy HH:mm';
+  static const int tamanoPagina = 7;
+  static const double espaciadoAlto = 10;
+ 
+}
+
+
+
+class ErrorConstantes {
+  static const String errorServer = 'Error del servidor';
+  static const String errorNotFound = 'Noticias no encontradas.';
+  static const String errorUnauthorized = 'No autorizado';
+}
+
+class CategoriaConstantes {
+  static const int timeoutSeconds = 10; // Tiempo máximo de espera en segundos
+  static const String errorTimeout = 'Tiempo de espera agotado'; // Mensaje para errores de timeout
+  static const String errorNoCategoria = 'Categoría no encontrada'; // Mensaje para errores de categorías
+  static const String defaultCategoriaId = 'sin_categoria'; // ID por defecto para noticias sin categoría
+  static const String mensajeError = 'Error al cargar categorias';
 }
