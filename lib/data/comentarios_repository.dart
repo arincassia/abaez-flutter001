@@ -11,7 +11,6 @@ class ComentarioRepository {
   final String noticiasEndpoint = '/noticias';
   final String comentariosEndpoint = '/comentarios';
 
-  /// Verifica que la noticia exista llamando a /noticias/<id>
   Future<void> _verificarNoticiaExiste(String noticiaId) async {
     try {
       final response = await dio.get('$baseUrl$noticiasEndpoint/$noticiaId');
