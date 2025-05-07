@@ -15,7 +15,9 @@ class ComentariosDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     // Usar un BlocProvider.value para compartir la misma instancia del bloc que se usa en la app
     return BlocProvider.value(
-      value: context.read<ComentarioBloc>()..add(LoadComentarios(noticiaId: noticiaId)),
+      value:
+          context.read<ComentarioBloc>()
+            ..add(LoadComentarios(noticiaId: noticiaId)),
       child: _ComentariosDialogContent(noticiaId: noticiaId),
     );
   }
@@ -115,6 +117,51 @@ class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
                                   color: Colors.grey,
                                 ),
                               ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.thumb_up_sharp,
+                                      size: 16,
+                                    ),
+                                    onPressed: () {
+                                      // Lógica para eliminar el comentario
+                                      /*context.read<ComentarioBloc>().add(
+                                    DeleteComentario(
+                                      noticiaId: widget.noticiaId,
+                                      comentarioId: comentario.id,
+                                    ),
+                                  );*/
+                                      SnackBarHelper.showSnackBar(
+                                        context,
+                                        'Comentario eliminado con éxito',
+                                        statusCode: 200,
+                                      );
+                                    },
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.thumb_down_sharp,
+                                      size: 16,
+                                    ),
+                                    onPressed: () {
+                                      // Lógica para eliminar el comentario
+                                      /*context.read<ComentarioBloc>().add(
+                                    DeleteComentario(
+                                      noticiaId: widget.noticiaId,
+                                      comentarioId: comentario.id,
+                                    ),
+                                  );*/
+                                      SnackBarHelper.showSnackBar(
+                                        context,
+                                        'Comentario eliminado con éxito',
+                                        statusCode: 200,
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
                             ],
                           ),
                           dense: true,
@@ -166,14 +213,14 @@ class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
                 }
                 DateTime fecha = DateTime.now();
                 String fechaformateada = fecha.toIso8601String();
-                
+
                 // Usar la instancia global del bloc
                 context.read<ComentarioBloc>().add(
                   AddComentario(
                     noticiaId: widget.noticiaId,
                     texto: _comentarioController.text,
                     autor: 'Usuario anónimo',
-                    fecha: fechaformateada
+                    fecha: fechaformateada,
                   ),
                 );
 
