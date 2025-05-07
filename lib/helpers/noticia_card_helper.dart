@@ -7,7 +7,8 @@ class NoticiaCardHelper {
   static Widget buildNoticiaCard({
     required Noticia noticia,
     required VoidCallback onEdit, // Callback para editar
-    required VoidCallback onDelete, // Callback para eliminar
+    required VoidCallback onDelete,// Callback para eliminar
+    required VoidCallback onComment // Callback para comentar
   }) {
     /// Calcula el tiempo transcurrido desde la fecha de publicación
     String calcularTiempoTranscurrido(DateTime publicadaEl) {
@@ -26,6 +27,7 @@ class NoticiaCardHelper {
     final tiempoTranscurrido = calcularTiempoTranscurrido(noticia.publicadaEl);
 
     return NoticiaCard(
+      id: noticia.id, // Pasar el ID de la noticia
       titulo: noticia.titulo,
       descripcion: noticia.descripcion,
       fuente: noticia.fuente,
@@ -34,7 +36,8 @@ class NoticiaCardHelper {
       categoriaId: noticia.categoriaId ?? '',
       categoriaNombre: '',
       onEdit: onEdit, // Callback para editar
-      onDelete: onDelete, // Callback para eliminar
+      onDelete: onDelete, 
+      onComment: onComment,// Callback para eliminar
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'package:abaez/bloc/comentarios/comentario_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart'; // Importa flutter_bloc
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -24,6 +25,7 @@ class MyApp extends StatelessWidget {
       providers: [
         BlocProvider(create: (context) => ContadorBloc()),
         BlocProvider(create: (context) => PreferenciaBloc()..add(const CargarPreferencias())),
+        BlocProvider(create: (context) => ComentarioBloc()),      
       ],
       child: MaterialApp(
         title: 'Flutter Demo',

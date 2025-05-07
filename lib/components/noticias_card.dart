@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:abaez/constants.dart';
 import 'package:abaez/api/service/categoria_service.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:abaez/bloc/comentarios/comentario_bloc.dart';
+import 'package:abaez/bloc/comentarios/comentario_event.dart';
+import 'package:abaez/bloc/comentarios/comentario_state.dart';
 
-class NoticiaCard extends StatelessWidget {
-  
+class NoticiaCard extends StatefulWidget {
+  final String id;
   final String titulo;
   final String descripcion;
   final String fuente;
@@ -12,12 +16,12 @@ class NoticiaCard extends StatelessWidget {
   final String categoriaId;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final VoidCallback onComment;
   final String categoriaNombre;
 
-  final CategoriaService categoriaService;
-
-  NoticiaCard({
+  const NoticiaCard({
     super.key,
+    required this.id,
     required this.titulo,
     required this.descripcion,
     required this.fuente,
@@ -27,12 +31,56 @@ class NoticiaCard extends StatelessWidget {
     required this.onEdit,
     required this.onDelete,
     required this.categoriaNombre,
+    required this.onComment,
+  });
 
-  }) : categoriaService = CategoriaService();
+  @override
+  State<NoticiaCard> createState() => _NoticiaCardState();
+}
+
+class _NoticiaCardState extends State<NoticiaCard> {
+  int _numeroComentarios = 0;
+  bool _isLoading = true;
+  final CategoriaService _categoriaService = CategoriaService();
+
+  @override
+  void initState() {
+    super.initState();
+    // No cargamos aquí para evitar errores de contexto
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    try {
+      // Cargar el número de comentarios solo la primera vez
+      if (_isLoading) {
+        context.read<ComentarioBloc>().add(
+              GetNumeroComentarios(noticiaId: widget.id),
+            );
+        _isLoading = false;
+      }
+      
+      // Observar cambios en el estado y actualizar si es necesario
+      final state = context.watch<ComentarioBloc>().state;
+      if (state is NumeroComentariosLoaded && state.noticiaId == widget.id) {
+        // Solo actualizar si cambió el número para evitar rebuilds innecesarios
+        if (_numeroComentarios != state.numeroComentarios) {
+          setState(() {
+            _numeroComentarios = state.numeroComentarios;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Error al cargar comentarios: $e');
+    }
+  }
 
   Future<String> _obtenerNombreCategoria(String categoriaId) async {
     try {
-      final categoria = await categoriaService.obtenerCategoriaPorId(categoriaId);
+      final categoria = await _categoriaService.obtenerCategoriaPorId(
+        categoriaId,
+      );
       return categoria.nombre;
     } catch (e) {
       return 'Sin categoría';
@@ -59,7 +107,7 @@ class NoticiaCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      titulo,
+                      widget.titulo,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
@@ -67,7 +115,7 @@ class NoticiaCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      fuente,
+                      widget.fuente,
                       style: const TextStyle(
                         fontStyle: FontStyle.italic,
                         fontWeight: FontWeight.w300,
@@ -75,39 +123,30 @@ class NoticiaCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      descripcion,
+                      widget.descripcion,
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(fontSize: 14),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${AppConstants.publicadaEl} ${formatDate(publicadaEl)}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey,
-                      ),
+                      '${AppConstants.publicadaEl} ${widget.publicadaEl}',
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                     const SizedBox(height: 4),
                     FutureBuilder<String>(
-                    future: _obtenerNombreCategoria(categoriaId),
+                      future: _obtenerNombreCategoria(widget.categoriaId),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState == ConnectionState.waiting) {
                           return const Text(
                             'Cargando categoría...',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
-                            ),
+                            style: TextStyle(fontSize: 12, color: Colors.grey),
                           );
                         }
                         if (snapshot.hasError) {
                           return const Text(
                             'Error al cargar categoría',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.red,
-                            ),
+                            style: TextStyle(fontSize: 12, color: Colors.red),
                           );
                         }
                         final categoriaNombre = snapshot.data ?? 'Sin categoría';
@@ -129,9 +168,9 @@ class NoticiaCard extends StatelessWidget {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: imageUrl.isNotEmpty
+                    child: widget.imageUrl.isNotEmpty
                         ? Image.network(
-                            imageUrl,
+                            widget.imageUrl,
                             fit: BoxFit.cover,
                             width: 100,
                             height: 100,
@@ -145,12 +184,29 @@ class NoticiaCard extends StatelessWidget {
                       IconButton(
                         icon: const Icon(Icons.edit, color: Colors.blue),
                         tooltip: 'Editar',
-                        onPressed: onEdit,
+                        onPressed: widget.onEdit,
                       ),
                       IconButton(
                         icon: const Icon(Icons.delete, color: Colors.red),
                         tooltip: 'Eliminar',
-                        onPressed: onDelete,
+                        onPressed: widget.onDelete,
+                      ),
+                      // Columna que contiene el ícono de comentario y el contador
+                      Column(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.comment),
+                            tooltip: 'Ver comentarios',
+                            onPressed: widget.onComment,
+                          ),
+                          Text(
+                            '$_numeroComentarios comentarios',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -162,79 +218,4 @@ class NoticiaCard extends StatelessWidget {
       ),
     );
   }
-
-String formatDate(String dateStr) {
-  try {
-    if (dateStr.isEmpty) {
-      return 'Fecha desconocida';
-    }
-    
-    final RegExp ddmmyyyyRegex = RegExp(r'^(\d{1,2})\/(\d{1,2})\/(\d{4})$');
-    if (ddmmyyyyRegex.hasMatch(dateStr)) {
-      final parts = dateStr.split('/');
-      final day = int.parse(parts[0]).toString().padLeft(2, '0');
-      final month = int.parse(parts[1]).toString().padLeft(2, '0');
-      final year = parts[2];
-      return '$day/$month/$year';
-    }
-    
-    if (dateStr.contains('min') || dateStr.endsWith('h') || dateStr.endsWith('d')) {
-      final now = DateTime.now();
-      DateTime actualDate;
-      
-      if (dateStr.contains('-') && dateStr.contains('min')) {
-        return '${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}';
-      }
-      
-      final RegExp numericRegex = RegExp(r'(\d+)');
-      final match = numericRegex.firstMatch(dateStr);
-      
-      if (match != null) {
-        final value = int.tryParse(match.group(1) ?? '0') ?? 0;
-        
-        if (dateStr.endsWith('min')) {
-          actualDate = now.subtract(Duration(minutes: value));
-        }
-        else if (dateStr.endsWith('h')) {
-          actualDate = now.subtract(Duration(hours: value));
-        }
-        else if (dateStr.endsWith('d')) {
-          actualDate = now.subtract(Duration(days: value));
-        }
-        else {
-          actualDate = now;
-        }
-        
-        return '${actualDate.day.toString().padLeft(2, '0')}/${actualDate.month.toString().padLeft(2, '0')}/${actualDate.year}';
-      }
-    }
-    
-    try {
-      final date = DateTime.parse(dateStr);
-      return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
-    } catch (_) {
-      
-      final dashParts = dateStr.split('-');
-      if (dashParts.length == 3) {
-        try {
-          final year = int.parse(dashParts[0]);
-          final month = int.parse(dashParts[1]);
-          final day = int.parse(dashParts[2]);
-          
-          if (year >= 1900 && year <= 2100 && 
-              month >= 1 && month <= 12 && 
-              day >= 1 && day <= 31) {
-            return '${day.toString().padLeft(2, '0')}/${month.toString().padLeft(2, '0')}/$year';
-          }
-        } catch (_) {
-        }
-      }
-    }
-    
-    
-    return dateStr;
-  } catch (e) {
-    return dateStr;
-  }
-}
 }
