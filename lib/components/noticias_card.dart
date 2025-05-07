@@ -7,7 +7,7 @@ import 'package:abaez/bloc/comentarios/comentario_event.dart';
 import 'package:abaez/bloc/comentarios/comentario_state.dart';
 
 class NoticiaCard extends StatefulWidget {
-  final String id;
+  final String? id;
   final String titulo;
   final String descripcion;
   final String fuente;
@@ -21,7 +21,7 @@ class NoticiaCard extends StatefulWidget {
 
   const NoticiaCard({
     super.key,
-    required this.id,
+    this.id,
     required this.titulo,
     required this.descripcion,
     required this.fuente,
@@ -55,9 +55,12 @@ class _NoticiaCardState extends State<NoticiaCard> {
     try {
       // Cargar el número de comentarios solo la primera vez
       if (_isLoading) {
-        context.read<ComentarioBloc>().add(
-              GetNumeroComentarios(noticiaId: widget.id),
-            );
+        if(widget.id != null) {
+          // Solo cargar si el ID no es nulo
+          context.read<ComentarioBloc>().add(
+                GetNumeroComentarios(noticiaId: widget.id!),
+              );
+        }
         _isLoading = false;
       }
       

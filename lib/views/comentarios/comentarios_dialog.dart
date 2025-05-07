@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:abaez/bloc/comentarios/comentario_bloc.dart';
@@ -15,8 +14,9 @@ class ComentariosDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider.value(
-      value: context.read<ComentarioBloc>()
-        ..add(LoadComentarios(noticiaId: noticiaId)),
+      value:
+          context.read<ComentarioBloc>()
+            ..add(LoadComentarios(noticiaId: noticiaId)),
       child: _ComentariosDialogContent(noticiaId: noticiaId),
     );
   }
@@ -34,15 +34,19 @@ class _ComentariosDialogContent extends StatefulWidget {
 
 class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
   final TextEditingController _comentarioController = TextEditingController();
+  final TextEditingController _busquedaController = TextEditingController();
+  bool _ordenAscendente = true;
 
   @override
   void dispose() {
     _comentarioController.dispose();
+    _busquedaController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    //aqui se pueden definir variables
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Container(
@@ -64,10 +68,106 @@ class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
                 ),
                 IconButton(
                   icon: const Icon(Icons.close),
+                  tooltip: 'Cerrar',
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
             ),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _busquedaController,
+                    decoration: InputDecoration(
+                      hintText: 'Buscar en comentarios...',
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      prefixIcon: const Icon(Icons.search),
+                      // Usar ValueListenableBuilder para reaccionar a cambios en el texto
+                      suffixIcon: ValueListenableBuilder<TextEditingValue>(
+                        valueListenable: _busquedaController,
+                        builder: (context, value, child) {
+                          return value.text.isNotEmpty
+                              ? IconButton(
+                                icon: const Icon(Icons.clear),
+                                tooltip: 'Limpiar búsqueda',
+                                onPressed: () {
+                                  // Limpiar el campo de búsqueda
+                                  _busquedaController.clear();
+                                  // Recargar todos los comentarios
+                                  context.read<ComentarioBloc>().add(
+                                    LoadComentarios(
+                                      noticiaId: widget.noticiaId,
+                                    ),
+                                  );
+                                },
+                              )
+                              : const SizedBox.shrink();
+                        },
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: () {
+                    // Emitir evento para filtrar comentarios
+                    if (_busquedaController.text.isEmpty) {
+                      // Si está vacío, cargar todos los comentarios
+                      context.read<ComentarioBloc>().add(
+                        LoadComentarios(noticiaId: widget.noticiaId),
+                      );
+                    } else {
+                      // Si tiene texto, filtrar comentarios
+                      context.read<ComentarioBloc>().add(
+                        BuscarComentarios(
+                          noticiaId: widget.noticiaId,
+                          criterioBusqueda: _busquedaController.text,
+                        ),
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                  child: const Text('Buscar'),
+                ),
+                const SizedBox(width: 8),
+                // Botón de ordenamiento
+                Tooltip(
+                  message:
+                      _ordenAscendente
+                          ? 'Ordenar por más recientes'
+                          : 'Ordenar por más antiguos',
+                  child: ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _ordenAscendente = !_ordenAscendente;
+                      });
+                      // Disparar evento de ordenamiento
+                      context.read<ComentarioBloc>().add(
+                        OrdenarComentarios(
+                          ascendente: _ordenAscendente ? true : false,
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      shape: const CircleBorder(),
+                      padding: const EdgeInsets.all(12),
+                    ),
+                    child: const Icon(Icons.arrow_downward),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
             const Divider(),
 
             // Lista de comentarios
@@ -90,7 +190,9 @@ class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
 
                     if (comentarios.isEmpty) {
                       return const Center(
-                        child: Text('No hay comentarios para esta noticia'),
+                        child: Text(
+                          'No hay comentarios que coincidan con tu búsqueda',
+                        ),
                       );
                     }
 
@@ -98,8 +200,9 @@ class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
                       itemCount: comentarios.length,
                       itemBuilder: (context, index) {
                         final comentario = comentarios[index];
-                        final fecha = DateFormat('dd/MM/yyyy HH:mm')
-                            .format(DateTime.parse(comentario.fecha));
+                        final fecha = DateFormat(
+                          'dd/MM/yyyy HH:mm',
+                        ).format(DateTime.parse(comentario.fecha));
 
                         return ListTile(
                           title: Text(comentario.autor),
@@ -130,8 +233,7 @@ class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
                                           noticiaId: widget.noticiaId,
                                           comentarioId: comentario.id,
                                           tipoReaccion: 'like',
-                                        )
-
+                                        ),
                                       );
                                     },
                                   ),
@@ -152,7 +254,7 @@ class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
                                           noticiaId: widget.noticiaId,
                                           comentarioId: comentario.id,
                                           tipoReaccion: 'dislike',
-                                        )
+                                        ),
                                       );
                                     },
                                   ),
@@ -214,6 +316,7 @@ class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
                 DateTime fecha = DateTime.now();
                 String fechaformateada = fecha.toIso8601String();
 
+                // Usar la instancia global del bloc
                 context.read<ComentarioBloc>().add(
                   AddComentario(
                     noticiaId: widget.noticiaId,

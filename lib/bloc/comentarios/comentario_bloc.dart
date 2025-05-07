@@ -1,18 +1,22 @@
 import 'package:abaez/domain/comentario.dart';
+import 'package:abaez/domain/comentario.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:abaez/bloc/comentarios/comentario_event.dart';
 import 'package:abaez/bloc/comentarios/comentario_state.dart';
 import 'package:abaez/data/comentarios_repository.dart';
 import 'package:abaez/exceptions/api_exception.dart';
-import 'package:watch_it/watch_it.dart';
 
 class ComentarioBloc extends Bloc<ComentarioEvent, ComentarioState> {
-  final ComentarioRepository comentarioRepository = di<ComentarioRepository>();
+  final ComentarioRepository comentarioRepository;
 
-  ComentarioBloc() : super(ComentarioInitial()) {
+  ComentarioBloc({ComentarioRepository? comentarioRepository})
+    : comentarioRepository = comentarioRepository ?? ComentarioRepository(),
+      super(ComentarioInitial()) {
     on<LoadComentarios>(_onLoadComentarios);
     on<AddComentario>(_onAddComentario);
     on<GetNumeroComentarios>(_onGetNumeroComentarios);
+    on<BuscarComentarios>(_onBuscarComentarios);
+    on<OrdenarComentarios>(_onOrdenarComentarios);
     on<AddReaccion>(_onAddReaccion); // <--- nuevo
   }
 
@@ -108,6 +112,59 @@ class ComentarioBloc extends Bloc<ComentarioEvent, ComentarioState> {
               'Error al obtener número de comentarios: ${e.toString()}',
         ),
       );
+    }
+  }
+
+  Future<void> _onBuscarComentarios(
+    BuscarComentarios event,
+    Emitter<ComentarioState> emit,
+  ) async {
+    try {
+      emit(ComentarioLoading());
+
+      // Obtener todos los comentarios primero
+      final comentarios = await comentarioRepository
+          .obtenerComentariosPorNoticia(event.noticiaId);
+
+      // Filtrar los comentarios según el criterio
+      final comentariosFiltrados =
+          comentarios.where((comentario) {
+            final textoBuscado = event.criterioBusqueda.toLowerCase();
+            final textoComentario = comentario.texto.toLowerCase();
+            final autorComentario = comentario.autor.toLowerCase();
+
+            return textoComentario.contains(textoBuscado) ||
+                autorComentario.contains(textoBuscado);
+          }).toList();
+
+      // Emitir el estado con comentarios filtrados
+      emit(ComentarioLoaded(comentariosList: comentariosFiltrados));
+    } catch (e) {
+      emit(
+        ComentarioError(
+          errorMessage: 'Error al buscar comentarios: ${e.toString()}',
+        ),
+      );
+    }
+  }
+
+  Future<void> _onOrdenarComentarios(
+    OrdenarComentarios event,
+    Emitter<ComentarioState> emit,
+  ) async {
+    if (state is ComentarioLoaded) {
+      final currentState = state as ComentarioLoaded;
+      final comentarios = List<Comentario>.from(
+        currentState.comentariosList,
+      ); // Crear una copia para no modificar la lista original
+
+      comentarios.sort((a, b) {
+        return event.ascendente
+            ? a.fecha.compareTo(b.fecha) // Orden ascendente
+            : b.fecha.compareTo(a.fecha); // Orden descendente
+      });
+
+      emit(ComentarioLoaded(comentariosList: comentarios));
     }
   }
 

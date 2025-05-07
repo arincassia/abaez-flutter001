@@ -277,7 +277,7 @@ class NoticiaScreen extends StatelessWidget {
                 if (confirmacion == true) {
                   try {
                     if (!context.mounted) return;
-                    context.read<NoticiasBloc>().add(DeleteNoticia(noticia.id));
+                    context.read<NoticiasBloc>().add(DeleteNoticia(noticia.id!));
                     SnackBarHelper.showSnackBar(
                       context,
                       ApiConstantes.newssuccessDeleted,
@@ -298,7 +298,7 @@ class NoticiaScreen extends StatelessWidget {
                 // Mostrar el diálogo de comentarios
                 await showDialog(
                   context: context,
-                  builder: (context) => ComentariosDialog(noticiaId: noticia.id),
+                  builder: (context) => ComentariosDialog(noticiaId: noticia.id!),
                 ).then((_) {
                   // Cuando el diálogo se cierra, recargar toda la página de noticias
                   if (context.mounted) {
@@ -306,7 +306,7 @@ class NoticiaScreen extends StatelessWidget {
                     context.read<NoticiasBloc>().add(const FetchNoticias());
                     
                     // También actualizamos el contador específico de comentarios
-                    context.read<ComentarioBloc>().add(GetNumeroComentarios(noticiaId: noticia.id));
+                    context.read<ComentarioBloc>().add(GetNumeroComentarios(noticiaId: noticia.id!));
                   }
                 });
               },
