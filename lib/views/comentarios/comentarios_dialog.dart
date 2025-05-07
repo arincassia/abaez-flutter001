@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:abaez/bloc/comentarios/comentario_bloc.dart';
@@ -13,11 +14,9 @@ class ComentariosDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Usar un BlocProvider.value para compartir la misma instancia del bloc que se usa en la app
     return BlocProvider.value(
-      value:
-          context.read<ComentarioBloc>()
-            ..add(LoadComentarios(noticiaId: noticiaId)),
+      value: context.read<ComentarioBloc>()
+        ..add(LoadComentarios(noticiaId: noticiaId)),
       child: _ComentariosDialogContent(noticiaId: noticiaId),
     );
   }
@@ -99,9 +98,8 @@ class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
                       itemCount: comentarios.length,
                       itemBuilder: (context, index) {
                         final comentario = comentarios[index];
-                        final fecha = DateFormat(
-                          'dd/MM/yyyy HH:mm',
-                        ).format(DateTime.parse(comentario.fecha));
+                        final fecha = DateFormat('dd/MM/yyyy HH:mm')
+                            .format(DateTime.parse(comentario.fecha));
 
                         return ListTile(
                           title: Text(comentario.autor),
@@ -124,41 +122,43 @@ class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
                                     icon: const Icon(
                                       Icons.thumb_up_sharp,
                                       size: 16,
+                                      color: Colors.green,
                                     ),
                                     onPressed: () {
-                                      // Lógica para eliminar el comentario
-                                      /*context.read<ComentarioBloc>().add(
-                                    DeleteComentario(
-                                      noticiaId: widget.noticiaId,
-                                      comentarioId: comentario.id,
-                                    ),
-                                  );*/
-                                      SnackBarHelper.showSnackBar(
-                                        context,
-                                        'Comentario eliminado con éxito',
-                                        statusCode: 200,
+                                      context.read<ComentarioBloc>().add(
+                                        AddReaccion(
+                                          noticiaId: widget.noticiaId,
+                                          comentarioId: comentario.id,
+                                          tipoReaccion: 'like',
+                                        )
+
                                       );
                                     },
                                   ),
+                                  Text(
+                                    comentario.likes.toString(),
+                                    style: const TextStyle(fontSize: 12),
+                                  ),
+                                  const SizedBox(width: 8),
                                   IconButton(
                                     icon: const Icon(
                                       Icons.thumb_down_sharp,
                                       size: 16,
+                                      color: Colors.red,
                                     ),
                                     onPressed: () {
-                                      // Lógica para eliminar el comentario
-                                      /*context.read<ComentarioBloc>().add(
-                                    DeleteComentario(
-                                      noticiaId: widget.noticiaId,
-                                      comentarioId: comentario.id,
-                                    ),
-                                  );*/
-                                      SnackBarHelper.showSnackBar(
-                                        context,
-                                        'Comentario eliminado con éxito',
-                                        statusCode: 200,
+                                      context.read<ComentarioBloc>().add(
+                                        AddReaccion(
+                                          noticiaId: widget.noticiaId,
+                                          comentarioId: comentario.id,
+                                          tipoReaccion: 'dislike',
+                                        )
                                       );
                                     },
+                                  ),
+                                  Text(
+                                    comentario.dislikes.toString(),
+                                    style: const TextStyle(fontSize: 12),
                                   ),
                                 ],
                               ),
@@ -214,7 +214,6 @@ class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
                 DateTime fecha = DateTime.now();
                 String fechaformateada = fecha.toIso8601String();
 
-                // Usar la instancia global del bloc
                 context.read<ComentarioBloc>().add(
                   AddComentario(
                     noticiaId: widget.noticiaId,
@@ -224,15 +223,12 @@ class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
                   ),
                 );
 
-                // Una vez agregado el comentario, actualizar el contador
                 context.read<ComentarioBloc>().add(
                   GetNumeroComentarios(noticiaId: widget.noticiaId),
                 );
 
-                // Limpiamos el campo
                 _comentarioController.clear();
 
-                // Mostramos confirmación
                 SnackBarHelper.showSnackBar(
                   context,
                   'Comentario agregado con éxito',
