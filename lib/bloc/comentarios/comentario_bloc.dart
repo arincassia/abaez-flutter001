@@ -11,6 +11,7 @@ class ComentarioBloc extends Bloc<ComentarioEvent, ComentarioState> {
   ComentarioBloc() : super(ComentarioInitial()) {
     on<LoadComentarios>(_onLoadComentarios);
     on<AddComentario>(_onAddComentario);
+    on<GetNumeroComentarios>(_onGetNumeroComentarios);
   }
 
   Future<void> _onLoadComentarios(
@@ -42,16 +43,64 @@ class ComentarioBloc extends Bloc<ComentarioEvent, ComentarioState> {
     Emitter<ComentarioState> emit,
   ) async {
     try {
+      // Guardamos el estado actual antes de emitir ComentarioLoading
+      final currentState = state;
+      
       await comentarioRepository.agregarComentario(
         event.noticiaId,
         event.texto,
+        event.autor,
+        event.fecha,
       );
 
       // Recargar comentarios después de agregar uno nuevo
-      add(LoadComentarios(noticiaId: event.noticiaId));
+      final comentarios = await comentarioRepository.obtenerComentariosPorNoticia(event.noticiaId);
+      emit(ComentarioLoaded(comentariosList: comentarios));
+      
+      // Actualizar también el número de comentarios
+      final numeroComentarios = await comentarioRepository.obtenerNumeroComentarios(
+        event.noticiaId,
+      );
+      
+      // Emitimos el nuevo estado con el número de comentarios actualizado
+      emit(NumeroComentariosLoaded(
+        noticiaId: event.noticiaId,
+        numeroComentarios: numeroComentarios,
+      ));
+      
+      // Si había un estado ComentarioLoaded, lo restauramos pero con la nueva lista
+      if (currentState is ComentarioLoaded) {
+        emit(ComentarioLoaded(comentariosList: comentarios));
+      }
     } catch (e) {
       emit(
         const ComentarioError(errorMessage: 'Error al agregar el comentario'),
+      );
+    }
+  }
+  
+  Future<void> _onGetNumeroComentarios(
+    GetNumeroComentarios event,
+    Emitter<ComentarioState> emit,
+  ) async {
+    try {
+      emit(ComentarioLoading());
+      
+      final numeroComentarios = await comentarioRepository.obtenerNumeroComentarios(
+        event.noticiaId,
+      );
+      
+      emit(NumeroComentariosLoaded(
+        noticiaId: event.noticiaId,
+        numeroComentarios: numeroComentarios,
+      ));
+    } on ApiException catch (e) {
+      emit(ComentarioError(errorMessage: e.message));
+    } catch (e) {
+      emit(
+        ComentarioError(
+          errorMessage: 'Error al obtener número de comentarios: ${e.toString()}',
+        ),
       );
     }
   }

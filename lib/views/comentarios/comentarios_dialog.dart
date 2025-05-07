@@ -5,7 +5,6 @@ import 'package:abaez/bloc/comentarios/comentario_event.dart';
 import 'package:abaez/bloc/comentarios/comentario_state.dart';
 import 'package:abaez/helpers/snackbar_helper.dart';
 import 'package:intl/intl.dart';
-import 'package:get_it/get_it.dart';
 
 class ComentariosDialog extends StatelessWidget {
   final String noticiaId;
@@ -14,11 +13,9 @@ class ComentariosDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create:
-          (_) =>
-              GetIt.instance<ComentarioBloc>()
-                ..add(LoadComentarios(noticiaId: noticiaId)),
+    // Usar un BlocProvider.value para compartir la misma instancia del bloc que se usa en la app
+    return BlocProvider.value(
+      value: context.read<ComentarioBloc>()..add(LoadComentarios(noticiaId: noticiaId)),
       child: _ComentariosDialogContent(noticiaId: noticiaId),
     );
   }
@@ -100,10 +97,9 @@ class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
                       itemCount: comentarios.length,
                       itemBuilder: (context, index) {
                         final comentario = comentarios[index];
-                        // Formatea la fecha para mostrarla de manera amigable
                         final fecha = DateFormat(
                           'dd/MM/yyyy HH:mm',
-                        ).format(DateTime.parse(comentario.fecha as String));
+                        ).format(DateTime.parse(comentario.fecha));
 
                         return ListTile(
                           title: Text(comentario.autor),
@@ -168,16 +164,22 @@ class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
                   );
                   return;
                 }
-
-                // Agregamos el comentario
+                DateTime fecha = DateTime.now();
+                String fechaformateada = fecha.toIso8601String();
+                
+                // Usar la instancia global del bloc
                 context.read<ComentarioBloc>().add(
                   AddComentario(
                     noticiaId: widget.noticiaId,
                     texto: _comentarioController.text,
-                    autor:
-                        'Usuario Anónimo', // En una app real, vendría del usuario logueado
-                    fecha: DateTime.now().toIso8601String(),
+                    autor: 'Usuario anónimo',
+                    fecha: fechaformateada
                   ),
+                );
+
+                // Una vez agregado el comentario, actualizar el contador
+                context.read<ComentarioBloc>().add(
+                  GetNumeroComentarios(noticiaId: widget.noticiaId),
                 );
 
                 // Limpiamos el campo
