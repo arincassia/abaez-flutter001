@@ -27,6 +27,7 @@ class NoticiaCardHelper {
     final tiempoTranscurrido = calcularTiempoTranscurrido(noticia.publicadaEl);
 
     return NoticiaCard(
+      id: noticia.id, // Pasar el ID de la noticia
       titulo: noticia.titulo,
       descripcion: noticia.descripcion,
       fuente: noticia.fuente,

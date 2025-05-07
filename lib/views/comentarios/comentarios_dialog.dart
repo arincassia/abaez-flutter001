@@ -11,16 +11,14 @@ class ComentariosDialog extends StatelessWidget {
 
   const ComentariosDialog({super.key, required this.noticiaId});
 
-@override
-Widget build(BuildContext context) {
- 
-  return BlocProvider(
-    create: (_) => ComentarioBloc()
-      ..add(LoadComentarios(noticiaId: noticiaId)),
-    child: _ComentariosDialogContent(noticiaId: noticiaId),
-  );
-}
-
+  @override
+  Widget build(BuildContext context) {
+    // Usar un BlocProvider.value para compartir la misma instancia del bloc que se usa en la app
+    return BlocProvider.value(
+      value: context.read<ComentarioBloc>()..add(LoadComentarios(noticiaId: noticiaId)),
+      child: _ComentariosDialogContent(noticiaId: noticiaId),
+    );
+  }
 }
 
 class _ComentariosDialogContent extends StatefulWidget {
@@ -35,19 +33,10 @@ class _ComentariosDialogContent extends StatefulWidget {
 
 class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
   final TextEditingController _comentarioController = TextEditingController();
-  late ComentarioBloc _comentarioBloc;
-
-  @override
-  void initState() {
-    super.initState();
-    // Get the BLoC from the provider when the state is initialized
-    _comentarioBloc = context.read<ComentarioBloc>();
-  }
 
   @override
   void dispose() {
     _comentarioController.dispose();
-    // Do NOT close the bloc here, BlocProvider handles that
     super.dispose();
   }
 
@@ -108,7 +97,6 @@ class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
                       itemCount: comentarios.length,
                       itemBuilder: (context, index) {
                         final comentario = comentarios[index];
-                        // Formatea la fecha para mostrarla de manera amigable
                         final fecha = DateFormat(
                           'dd/MM/yyyy HH:mm',
                         ).format(DateTime.parse(comentario.fecha));
@@ -179,13 +167,19 @@ class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
                 DateTime fecha = DateTime.now();
                 String fechaformateada = fecha.toIso8601String();
                 
-                _comentarioBloc.add(
+                // Usar la instancia global del bloc
+                context.read<ComentarioBloc>().add(
                   AddComentario(
                     noticiaId: widget.noticiaId,
                     texto: _comentarioController.text,
-                    autor: 'Usuario anonimo',
+                    autor: 'Usuario anónimo',
                     fecha: fechaformateada
                   ),
+                );
+
+                // Una vez agregado el comentario, actualizar el contador
+                context.read<ComentarioBloc>().add(
+                  GetNumeroComentarios(noticiaId: widget.noticiaId),
                 );
 
                 // Limpiamos el campo
