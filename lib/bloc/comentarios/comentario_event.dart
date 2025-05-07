@@ -43,15 +43,28 @@ class GetNumeroComentarios extends ComentarioEvent {
   List<Object?> get props => [noticiaId];
 }
 
+// Evento para agregar una reacción (like o dislike)
+class AddReaccion extends ComentarioEvent {
+  final String noticiaId;
+  final String comentarioId;
+  final String tipoReaccion; // 'like' o 'dislike'
+
+  AddReaccion({
+    required this.noticiaId,
+    required this.comentarioId,
+    required this.tipoReaccion,
+  });
+
+  @override
+  List<Object?> get props => [noticiaId, comentarioId, tipoReaccion];
+}
+
 // Evento para buscar comentarios con un criterio específico
 class BuscarComentarios extends ComentarioEvent {
   final String noticiaId;
   final String criterioBusqueda;
 
-  BuscarComentarios({
-    required this.noticiaId,
-    required this.criterioBusqueda,
-  });
+  BuscarComentarios({required this.noticiaId, required this.criterioBusqueda});
 
   @override
   List<Object> get props => [noticiaId, criterioBusqueda];
@@ -60,9 +73,9 @@ class BuscarComentarios extends ComentarioEvent {
 // Evento para ordenar comentarios solo por fecha
 class OrdenarComentarios extends ComentarioEvent {
   final bool ascendente;
-  
+
   OrdenarComentarios({required this.ascendente});
-  
+
   @override
   List<Object> get props => [ascendente];
 }

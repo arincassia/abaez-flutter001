@@ -13,7 +13,6 @@ class ComentariosDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Usar un BlocProvider.value para compartir la misma instancia del bloc que se usa en la app
     return BlocProvider.value(
       value:
           context.read<ComentarioBloc>()
@@ -92,18 +91,19 @@ class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
                         builder: (context, value, child) {
                           return value.text.isNotEmpty
                               ? IconButton(
-                                  icon: const Icon(Icons.clear),
-                                  tooltip: 'Limpiar búsqueda',
-                                  onPressed: () {
-                                    // Limpiar el campo de búsqueda
-                                    _busquedaController.clear();
-                                    // Recargar todos los comentarios
-                                    context.read<ComentarioBloc>().add(
-                                          LoadComentarios(
-                                              noticiaId: widget.noticiaId),
-                                        );
-                                  },
-                                )
+                                icon: const Icon(Icons.clear),
+                                tooltip: 'Limpiar búsqueda',
+                                onPressed: () {
+                                  // Limpiar el campo de búsqueda
+                                  _busquedaController.clear();
+                                  // Recargar todos los comentarios
+                                  context.read<ComentarioBloc>().add(
+                                    LoadComentarios(
+                                      noticiaId: widget.noticiaId,
+                                    ),
+                                  );
+                                },
+                              )
                               : const SizedBox.shrink();
                         },
                       ),
@@ -218,6 +218,52 @@ class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
                                   color: Colors.grey,
                                 ),
                               ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.thumb_up_sharp,
+                                      size: 16,
+                                      color: Colors.green,
+                                    ),
+                                    onPressed: () {
+                                      context.read<ComentarioBloc>().add(
+                                        AddReaccion(
+                                          noticiaId: widget.noticiaId,
+                                          comentarioId: comentario.id,
+                                          tipoReaccion: 'like',
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  Text(
+                                    comentario.likes.toString(),
+                                    style: const TextStyle(fontSize: 12),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.thumb_down_sharp,
+                                      size: 16,
+                                      color: Colors.red,
+                                    ),
+                                    onPressed: () {
+                                      context.read<ComentarioBloc>().add(
+                                        AddReaccion(
+                                          noticiaId: widget.noticiaId,
+                                          comentarioId: comentario.id,
+                                          tipoReaccion: 'dislike',
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  Text(
+                                    comentario.dislikes.toString(),
+                                    style: const TextStyle(fontSize: 12),
+                                  ),
+                                ],
+                              ),
                             ],
                           ),
                           dense: true,
@@ -280,15 +326,12 @@ class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
                   ),
                 );
 
-                // Una vez agregado el comentario, actualizar el contador
                 context.read<ComentarioBloc>().add(
                   GetNumeroComentarios(noticiaId: widget.noticiaId),
                 );
 
-                // Limpiamos el campo
                 _comentarioController.clear();
 
-                // Mostramos confirmación
                 SnackBarHelper.showSnackBar(
                   context,
                   'Comentario agregado con éxito',
