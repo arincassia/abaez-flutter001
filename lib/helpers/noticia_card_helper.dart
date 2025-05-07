@@ -32,7 +32,7 @@ class NoticiaCardHelper {
       descripcion: noticia.descripcion,
       fuente: noticia.fuente,
       publicadaEl: tiempoTranscurrido,
-      imageUrl: noticia.imageUrl,
+      imageUrl: noticia.urlImagen,
       categoriaId: noticia.categoriaId ?? '',
       categoriaNombre: '',
       onEdit: onEdit, // Callback para editar
