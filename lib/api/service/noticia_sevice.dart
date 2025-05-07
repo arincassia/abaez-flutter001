@@ -13,24 +13,14 @@ class NoticiaService {
  
   
   Future<List<Noticia>> getNoticias() async {
-  try {
-    // Realiza la solicitud GET a la API
-    final response = await _dioNew.get(ApiConstantes.noticiasUrl);
+    try {
+      // Realiza la solicitud GET a la API
+      final response = await _dioNew.get(ApiConstantes.noticiasUrl);
 
-    // Maneja el código de estado HTTP
-    if (response.statusCode == 200) {
-      final List<dynamic> noticiasJson = response.data;
-      return noticiasJson.map((json) {
-        return Noticia(
-          id: json['_id'] ?? '',
-          titulo: json['titulo'] ?? 'Sin título',
-          descripcion: json['descripcion'] ?? 'Sin descripción',
-          fuente: json['fuente'] ?? 'Fuente desconocida',
-          publicadaEl: DateTime.tryParse(json['publicadaEl'] ?? '') ?? DateTime.now(),
-          imageUrl: json['urlImagen'] ?? '',
-          categoriaId: json['categoriaId'] ?? CategoriaConstantes.defaultCategoriaId,
-         );
-        }).toList();
+      // Maneja el código de estado HTTP
+      if (response.statusCode == 200) {
+        final List<dynamic> noticiasJson = response.data;
+        return noticiasJson.map((json) => Noticia.fromJson(json)).toList();
       } else {
         throw ApiException('Error desconocido', statusCode: response.statusCode);
       }
@@ -42,18 +32,21 @@ class NoticiaService {
     }
   }
 
-
   /// Edita una noticia en la API de CrudCrud
-Future<void> editarNoticia(String id, Map<String, dynamic> noticia) async {
-  try {
-    final url = '${ApiConstantes.noticiasUrl}/$id';
-    final response = await _dioNew.put(
-      url,
-      data: noticia,
-    );
+  Future<void> editarNoticia(String id, Noticia noticia) async {
+    try {
+      final url = '${ApiConstantes.noticiasUrl}/$id';
+      
+      // Convertir el objeto Noticia a JSON utilizando el método generado
+      Map<String, dynamic> noticiaJson = noticia.toJson();
+    
+      final response = await _dioNew.put(
+        url,
+        data: noticiaJson,
+      );
 
-    if (response.statusCode != 200) {
-        throw ApiException('Error desconocido', statusCode: response.statusCode);
+      if (response.statusCode != 200) {
+          throw ApiException('Error desconocido', statusCode: response.statusCode);
       }
     } on DioException catch (e) {
       final errorData = ErrorHelper.getErrorMessageAndColor(e.response?.statusCode);
@@ -64,30 +57,17 @@ Future<void> editarNoticia(String id, Map<String, dynamic> noticia) async {
   }
 
   /// Crea una nueva noticia en la API de CrudCrud
-  Future<void> crearNoticia(Map<String, dynamic> noticia) async {
-  try {
-    final response = await _dioNew.post(
-      ApiConstantes.noticiasUrl,
-      data: noticia,
-    );
+  Future<void> crearNoticia(Noticia noticia) async {
+    try {
+      // Convertir el objeto Noticia a JSON utilizando el método generado
+      Map<String, dynamic> noticiaJson = noticia.toJson();
+      
+      final response = await _dioNew.post(
+        ApiConstantes.noticiasUrl,
+        data: noticiaJson,
+      );
 
-    if (response.statusCode != 201) {
-      throw Exception('Error desconocido: ${response.statusCode}');
-    }
-  } on DioException catch (e) {
-   ErrorHelper.getErrorMessageAndColor(e.response?.statusCode); // Llama a la función centralizada para manejar el error
-  } catch (e) {
-    throw Exception('Error inesperado: $e');
-  }
-}
-
-  /// Elimina una noticia de la API de CrudCrud
-  Future<void> eliminarNoticia(String id) async {
-  try {
-    final url = '${ApiConstantes.noticiasUrl}/$id';
-    final response = await _dioNew.delete(url);
-
-    if (response.statusCode != 200 && response.statusCode != 204) {
+      if (response.statusCode != 201) {
         throw ApiException('Error desconocido', statusCode: response.statusCode);
       }
     } on DioException catch (e) {
@@ -97,6 +77,24 @@ Future<void> editarNoticia(String id, Map<String, dynamic> noticia) async {
       throw ApiException('Error inesperado: $e');
     }
   }
+
+  /// Elimina una noticia de la API de CrudCrud
+  Future<void> eliminarNoticia(String id) async {
+    try {
+      final url = '${ApiConstantes.noticiasUrl}/$id';
+      final response = await _dioNew.delete(url);
+
+      if (response.statusCode != 200 && response.statusCode != 204) {
+          throw ApiException('Error desconocido', statusCode: response.statusCode);
+        }
+      } on DioException catch (e) {
+        final errorData = ErrorHelper.getErrorMessageAndColor(e.response?.statusCode);
+        throw ApiException(errorData['message'], statusCode: e.response?.statusCode);
+      } catch (e) {
+        throw ApiException('Error inesperado: $e');
+    }
+  }
 }
 
-  
+
+

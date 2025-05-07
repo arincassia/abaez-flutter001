@@ -47,6 +47,7 @@ class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
 
   @override
   Widget build(BuildContext context) {
+    //aqui se pueden definir variables
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Container(
@@ -60,6 +61,20 @@ class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
           children: [
             // Encabezado
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Comentarios',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  tooltip: 'Cerrar',
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+            Row(
               children: [
                 Expanded(
                   child: TextField(
@@ -71,6 +86,27 @@ class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
                         vertical: 8,
                       ),
                       prefixIcon: const Icon(Icons.search),
+                      // Usar ValueListenableBuilder para reaccionar a cambios en el texto
+                      suffixIcon: ValueListenableBuilder<TextEditingValue>(
+                        valueListenable: _busquedaController,
+                        builder: (context, value, child) {
+                          return value.text.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear),
+                                  tooltip: 'Limpiar búsqueda',
+                                  onPressed: () {
+                                    // Limpiar el campo de búsqueda
+                                    _busquedaController.clear();
+                                    // Recargar todos los comentarios
+                                    context.read<ComentarioBloc>().add(
+                                          LoadComentarios(
+                                              noticiaId: widget.noticiaId),
+                                        );
+                                  },
+                                )
+                              : const SizedBox.shrink();
+                        },
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
