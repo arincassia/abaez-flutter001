@@ -18,6 +18,24 @@ class Categoria {
     this.imagenUrl,
   });
 
+  /*factory Categoria.fromJson(Map<String, dynamic> json) {
+    return Categoria(
+      id: json['_id'] as String, // El ID lo asigna CrudCrud
+      nombre: json['nombre'] as String,
+      descripcion: json['descripcion'] as String,
+      imagenUrl: json['imagenUrl'] as String?,
+    );
+  }
+
+
+  Map<String, dynamic> toJson() {
+    return {
+      'nombre': nombre,
+      'descripcion': descripcion,
+      'imagenUrl': imagenUrl,
+    };
+  }*/
+
   // Método para convertir un JSON de la API a un objeto Category
   factory Categoria.fromJson(Map<String, dynamic> json) => _$CategoriaFromJson(json);
 
