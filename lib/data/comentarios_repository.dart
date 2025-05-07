@@ -124,102 +124,82 @@ class ComentarioRepository {
     }
   }
 
-  /// Registra una reacción (like o dislike) a un comentario
-  Future<void> reaccionarComentario({
+ Future<void> reaccionarComentario({
     required String comentarioId,
     required String tipoReaccion,
-    required String usuarioId,
   }) async {
-    if (comentarioId.isEmpty) {
-      throw ApiException(
-        'El ID del comentario no puede estar vacío',
-        statusCode: 400,
-      );
-    }
-
-    if (tipoReaccion != 'like' && tipoReaccion != 'dislike') {
-      throw ApiException(
-        'Tipo de reacción inválida. Debe ser "like" o "dislike"',
-        statusCode: 400,
-      );
-    }
-
     try {
-      // Primero obtenemos el comentario actual para verificar que existe
-      final response = await dio.get(
-        '${ApiConstantes.comentariosUrl}/$comentarioId',
-      );
-
+      // Obtenemos todos los comentarios
+      final response = await dio.get(ApiConstantes.comentariosUrl);
       if (response.statusCode != 200) {
-        throw ApiException('Comentario no encontrado', statusCode: 404);
+        throw ApiException(
+          ApiConstantes.errorServer,
+          statusCode: response.statusCode,
+        );
       }
 
-      // Extraemos los datos del comentario
-      final Map<String, dynamic> comentarioData = response.data;
+      final List<dynamic> comentarios = response.data as List<dynamic>;
 
-      // Inicializamos las listas de reacciones si no existen
-      if (!comentarioData.containsKey('likes')) {
-        comentarioData['likes'] = <String>[];
-      }
-      if (!comentarioData.containsKey('dislikes')) {
-        comentarioData['dislikes'] = <String>[];
-      }
-
-      // Convertimos a listas
-      List<String> likes = List<String>.from(comentarioData['likes'] ?? []);
-      List<String> dislikes = List<String>.from(
-        comentarioData['dislikes'] ?? [],
+      // Buscamos el comentario específico por ID (usando '_id' en lugar de 'id')
+      final comentarioIndex = comentarios.indexWhere(
+        (c) => c['_id'] == comentarioId,
       );
 
-      // Lógica de reacciones
-      if (tipoReaccion == 'like') {
-        // Si ya dio like, lo quitamos (toggle)
-        if (likes.contains(usuarioId)) {
-          likes.remove(usuarioId);
-        } else {
-          // Si dio dislike antes, lo quitamos
-          if (dislikes.contains(usuarioId)) {
-            dislikes.remove(usuarioId);
-          }
-          // Agregamos el like
-          likes.add(usuarioId);
-        }
-      } else {
-        // Si ya dio dislike, lo quitamos (toggle)
-        if (dislikes.contains(usuarioId)) {
-          dislikes.remove(usuarioId);
-        } else {
-          // Si dio like antes, lo quitamos
-          if (likes.contains(usuarioId)) {
-            likes.remove(usuarioId);
-          }
-          // Agregamos el dislike
-          dislikes.add(usuarioId);
-        }
+      if (comentarioIndex == -1) {
+        print('Comentario no encontrado con ID: $comentarioId');
+        throw ApiException(ApiConstantes.errorNotFound, statusCode: 404);
       }
 
-      // Actualizamos el comentario con las nuevas reacciones
-      comentarioData['likes'] = likes;
-      comentarioData['dislikes'] = dislikes;
+      // Construimos el comentario actualizado
+      Map<String, dynamic> comentarioActualizado = Map<String, dynamic>.from(
+        comentarios[comentarioIndex],
+      );
+      print(comentarioActualizado);
+      // Actualizamos los likes o dislikes según el tipo de reacción
+     
 
-      // Enviamos la actualización
+      /*print(
+        'Actualizando comentario: ${comentarioActualizado['_id']} con $tipoReaccion',
+      );*/
+
+      // IMPORTANTE: Al enviar al servidor, usamos el ID específico del comentario con '_id'
+      int currentLikes = comentarioActualizado['likes'] ?? 0;
+      int currentDislikes = comentarioActualizado['dislikes'] ?? 0;
       await dio.put(
-        '${ApiConstantes.comentariosUrl}/$comentarioId',
-        data: comentarioData,
-        options: Options(headers: {'Content-Type': 'application/json'}),
+      '${ApiConstantes.comentariosUrl}/$comentarioId',
+        data: {
+          'id': comentarioId,
+          'noticiaId': comentarioActualizado['noticiaId'],
+          'texto': comentarioActualizado['texto'],
+          'fecha': comentarioActualizado['fecha'],
+          'autor': comentarioActualizado['autor'],
+          'likes': tipoReaccion == 'like' ? currentLikes + 1 : currentLikes,
+          'dislikes': tipoReaccion == 'dislike' ? currentDislikes + 1 : currentDislikes,
+        },
       );
     } on DioException catch (e) {
+      print('Error DioException: ${e.toString()}');
+
       if (e.type == DioExceptionType.connectionTimeout ||
           e.type == DioExceptionType.receiveTimeout) {
         throw ApiException(ApiConstantes.errorTimeout);
+      } else if (e.response?.statusCode == 404) {
+        print('Error 404: Endpoint no encontrado');
+        throw ApiException(ApiConstantes.errorNotFound, statusCode: 404);
       } else {
+        print('Error del servidor: ${e.response?.statusCode}');
         throw ApiException(
-          'Error al procesar la reacción: ${e.message}',
+          ApiConstantes.errorServer,
           statusCode: e.response?.statusCode,
         );
       }
     } catch (e) {
-      throw ApiException('Error inesperado: ${e.toString()}');
+      print('Error inesperado: ${e.toString()}');
+      throw ApiException(ApiConstantes.errorServer);
     }
   }
+  
 }
+
+  /// Registra una reacción (like o dislike) a un comentario
+

@@ -42,3 +42,19 @@ class GetNumeroComentarios extends ComentarioEvent {
   @override
   List<Object?> get props => [noticiaId];
 }
+// Evento para agregar una reacción (like o dislike)
+class AddReaccion extends ComentarioEvent {
+  final String noticiaId;
+  final String comentarioId;
+  final String tipoReaccion; // 'like' o 'dislike'
+
+  AddReaccion({
+    required this.noticiaId,
+    required this.comentarioId,
+    required this.tipoReaccion,
+  });
+
+  @override
+  List<Object?> get props => [noticiaId, comentarioId, tipoReaccion];
+}
+
