@@ -1,29 +1,86 @@
 import 'package:flutter/material.dart';
-import 'package:abaez/constantes/constants.dart';
-import 'package:abaez/domain/noticia.dart';
+import 'package:abaez/constants.dart';
 import 'package:abaez/api/service/categoria_service.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:abaez/bloc/comentarios/comentario_bloc.dart';
+import 'package:abaez/bloc/comentarios/comentario_event.dart';
+import 'package:abaez/bloc/comentarios/comentario_state.dart';
 
-class NoticiaCard extends StatelessWidget {
-  final Noticia noticia;
-  final int index;
+class NoticiaCard extends StatefulWidget {
+  final String id;
+  final String titulo;
+  final String descripcion;
+  final String fuente;
+  final String publicadaEl;
+  final String imageUrl;
+  final String categoriaId;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final VoidCallback onComment;
   final String categoriaNombre;
 
-  final CategoriaService categoriaService;
-
-  NoticiaCard({
+  const NoticiaCard({
     super.key,
-    required this.noticia,
-    required this.index,
+    required this.id,
+    required this.titulo,
+    required this.descripcion,
+    required this.fuente,
+    required this.publicadaEl,
+    required this.imageUrl,
+    required this.categoriaId,
     required this.onEdit,
     required this.onDelete,
     required this.categoriaNombre,
-  }) : categoriaService = CategoriaService();
+    required this.onComment,
+  });
+
+  @override
+  State<NoticiaCard> createState() => _NoticiaCardState();
+}
+
+class _NoticiaCardState extends State<NoticiaCard> {
+  int _numeroComentarios = 0;
+  bool _isLoading = true;
+  final CategoriaService _categoriaService = CategoriaService();
+
+  @override
+  void initState() {
+    super.initState();
+    // No cargamos aquí para evitar errores de contexto
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    try {
+      // Cargar el número de comentarios solo la primera vez
+      if (_isLoading) {
+        context.read<ComentarioBloc>().add(
+              GetNumeroComentarios(noticiaId: widget.id),
+            );
+        _isLoading = false;
+      }
+      
+      // Observar cambios en el estado y actualizar si es necesario
+      final state = context.watch<ComentarioBloc>().state;
+      if (state is NumeroComentariosLoaded && state.noticiaId == widget.id) {
+        // Solo actualizar si cambió el número para evitar rebuilds innecesarios
+        if (_numeroComentarios != state.numeroComentarios) {
+          setState(() {
+            _numeroComentarios = state.numeroComentarios;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Error al cargar comentarios: $e');
+    }
+  }
 
   Future<String> _obtenerNombreCategoria(String categoriaId) async {
     try {
-      final categoria = await categoriaService.obtenerCategoriaPorId(categoriaId);
+      final categoria = await _categoriaService.obtenerCategoriaPorId(
+        categoriaId,
+      );
       return categoria.nombre;
     } catch (e) {
       return 'Sin categoría';
@@ -50,7 +107,7 @@ class NoticiaCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      noticia.titulo,
+                      widget.titulo,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
@@ -58,7 +115,7 @@ class NoticiaCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      noticia.fuente,
+                      widget.fuente,
                       style: const TextStyle(
                         fontStyle: FontStyle.italic,
                         fontWeight: FontWeight.w300,
@@ -66,39 +123,30 @@ class NoticiaCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      noticia.contenido,
+                      widget.descripcion,
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(fontSize: 14),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${AppConstants.publicadaEl} ${_formatDate(noticia.publicadaEl)}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey,
-                      ),
+                      '${AppConstants.publicadaEl} ${widget.publicadaEl}',
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                     const SizedBox(height: 4),
                     FutureBuilder<String>(
-                    future: _obtenerNombreCategoria(noticia.categoriaId ?? ''),
+                      future: _obtenerNombreCategoria(widget.categoriaId),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState == ConnectionState.waiting) {
                           return const Text(
                             'Cargando categoría...',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
-                            ),
+                            style: TextStyle(fontSize: 12, color: Colors.grey),
                           );
                         }
                         if (snapshot.hasError) {
                           return const Text(
                             'Error al cargar categoría',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.red,
-                            ),
+                            style: TextStyle(fontSize: 12, color: Colors.red),
                           );
                         }
                         final categoriaNombre = snapshot.data ?? 'Sin categoría';
@@ -120,9 +168,9 @@ class NoticiaCard extends StatelessWidget {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: noticia.imagenUrl != null
+                    child: widget.imageUrl.isNotEmpty
                         ? Image.network(
-                            noticia.imagenUrl!,
+                            widget.imageUrl,
                             fit: BoxFit.cover,
                             width: 100,
                             height: 100,
@@ -136,12 +184,29 @@ class NoticiaCard extends StatelessWidget {
                       IconButton(
                         icon: const Icon(Icons.edit, color: Colors.blue),
                         tooltip: 'Editar',
-                        onPressed: onEdit,
+                        onPressed: widget.onEdit,
                       ),
                       IconButton(
                         icon: const Icon(Icons.delete, color: Colors.red),
                         tooltip: 'Eliminar',
-                        onPressed: () => _confirmDelete(context),
+                        onPressed: widget.onDelete,
+                      ),
+                      // Columna que contiene el ícono de comentario y el contador
+                      Column(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.comment),
+                            tooltip: 'Ver comentarios',
+                            onPressed: widget.onComment,
+                          ),
+                          Text(
+                            '$_numeroComentarios comentarios',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -151,37 +216,6 @@ class NoticiaCard extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
-  }
-
-  void _confirmDelete(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Eliminar Noticia'),
-          content: const Text('¿Estás seguro de que deseas eliminar esta noticia?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Cerrar el diálogo
-              },
-              child: const Text('Cancelar'),
-            ),
-            TextButton(
-              onPressed: () {
-                onDelete(); // Llama al callback para manejar la eliminación
-                Navigator.of(context).pop(); // Cerrar el diálogo
-              },
-              child: const Text('Eliminar'),
-            ),
-          ],
-        );
-      },
     );
   }
 }

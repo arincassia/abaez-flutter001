@@ -2,7 +2,7 @@
 import 'package:abaez/helpers/common_widgets_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:abaez/domain/task.dart';
-import 'package:abaez/constantes/constants.dart';
+import 'package:abaez/constants.dart';
 import 'package:abaez/views/task_detail_screen.dart';
 
 class TaskCardHelper {

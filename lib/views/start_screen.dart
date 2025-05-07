@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:abaez/views/game_screen.dart'; 
-import 'package:abaez/constantes/constants.dart';
+import 'package:abaez/constants.dart';
 
 class StartScreen extends StatelessWidget {
 
