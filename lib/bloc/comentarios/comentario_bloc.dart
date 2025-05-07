@@ -1,3 +1,4 @@
+import 'package:abaez/domain/comentario.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:abaez/bloc/comentarios/comentario_event.dart';
 import 'package:abaez/bloc/comentarios/comentario_state.dart';
@@ -15,6 +16,7 @@ class ComentarioBloc extends Bloc<ComentarioEvent, ComentarioState> {
     on<AddComentario>(_onAddComentario);
     on<GetNumeroComentarios>(_onGetNumeroComentarios);
     on<BuscarComentarios>(_onBuscarComentarios);
+    on<OrdenarComentarios>(_onOrdenarComentarios);
   }
 
   Future<void> _onLoadComentarios(
@@ -136,6 +138,25 @@ class ComentarioBloc extends Bloc<ComentarioEvent, ComentarioState> {
       emit(ComentarioError(
         errorMessage: 'Error al buscar comentarios: ${e.toString()}',
       ));
+    }
+  }
+
+  
+  Future<void> _onOrdenarComentarios(
+    OrdenarComentarios event,
+    Emitter<ComentarioState> emit,
+  ) async {
+    if (state is ComentarioLoaded) {
+      final currentState = state as ComentarioLoaded;
+      final comentarios = List<Comentario>.from(currentState.comentariosList); // Crear una copia para no modificar la lista original
+
+      comentarios.sort((a, b) {
+        return event.ascendente 
+          ? a.fecha.compareTo(b.fecha)  // Orden ascendente 
+          : b.fecha.compareTo(a.fecha); // Orden descendente
+      });
+
+      emit(ComentarioLoaded(comentariosList: comentarios));
     }
   }
 }
