@@ -42,3 +42,17 @@ class GetNumeroComentarios extends ComentarioEvent {
   @override
   List<Object?> get props => [noticiaId];
 }
+
+// Evento para buscar comentarios con un criterio específico
+class BuscarComentarios extends ComentarioEvent {
+  final String noticiaId;
+  final String criterioBusqueda;
+
+  BuscarComentarios({
+    required this.noticiaId,
+    required this.criterioBusqueda,
+  });
+
+  @override
+  List<Object> get props => [noticiaId, criterioBusqueda];
+}
