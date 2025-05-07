@@ -56,3 +56,13 @@ class BuscarComentarios extends ComentarioEvent {
   @override
   List<Object> get props => [noticiaId, criterioBusqueda];
 }
+
+// Evento para ordenar comentarios solo por fecha
+class OrdenarComentarios extends ComentarioEvent {
+  final bool ascendente;
+  
+  OrdenarComentarios({required this.ascendente});
+  
+  @override
+  List<Object> get props => [ascendente];
+}
