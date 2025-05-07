@@ -33,10 +33,12 @@ class _ComentariosDialogContent extends StatefulWidget {
 
 class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
   final TextEditingController _comentarioController = TextEditingController();
+  final TextEditingController _busquedaController = TextEditingController();
 
   @override
   void dispose() {
     _comentarioController.dispose();
+    _busquedaController.dispose();
     super.dispose();
   }
 
@@ -67,6 +69,55 @@ class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
                 ),
               ],
             ),
+            
+            // Campo de búsqueda
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _busquedaController,
+                    decoration: InputDecoration(
+                      hintText: 'Buscar en comentarios...',
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      prefixIcon: const Icon(Icons.search),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: () {
+                    // Emitir evento para filtrar comentarios
+                    if (_busquedaController.text.isEmpty) {
+                      // Si está vacío, cargar todos los comentarios
+                      context.read<ComentarioBloc>().add(
+                            LoadComentarios(noticiaId: widget.noticiaId),
+                          );
+                    } else {
+                      // Si tiene texto, filtrar comentarios
+                      context.read<ComentarioBloc>().add(
+                            BuscarComentarios(
+                              noticiaId: widget.noticiaId,
+                              criterioBusqueda: _busquedaController.text,
+                            ),
+                          );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                  child: const Text('Buscar'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
             const Divider(),
 
             // Lista de comentarios
@@ -89,7 +140,7 @@ class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
 
                     if (comentarios.isEmpty) {
                       return const Center(
-                        child: Text('No hay comentarios para esta noticia'),
+                        child: Text('No hay comentarios que coincidan con tu búsqueda'),
                       );
                     }
 
