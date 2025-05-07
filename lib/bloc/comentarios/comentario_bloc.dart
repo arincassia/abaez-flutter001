@@ -43,6 +43,9 @@ class ComentarioBloc extends Bloc<ComentarioEvent, ComentarioState> {
     Emitter<ComentarioState> emit,
   ) async {
     try {
+      // Guardamos el estado actual antes de emitir ComentarioLoading
+      final currentState = state;
+      
       await comentarioRepository.agregarComentario(
         event.noticiaId,
         event.texto,
@@ -51,7 +54,24 @@ class ComentarioBloc extends Bloc<ComentarioEvent, ComentarioState> {
       );
 
       // Recargar comentarios después de agregar uno nuevo
-      add(LoadComentarios(noticiaId: event.noticiaId));
+      final comentarios = await comentarioRepository.obtenerComentariosPorNoticia(event.noticiaId);
+      emit(ComentarioLoaded(comentariosList: comentarios));
+      
+      // Actualizar también el número de comentarios
+      final numeroComentarios = await comentarioRepository.obtenerNumeroComentarios(
+        event.noticiaId,
+      );
+      
+      // Emitimos el nuevo estado con el número de comentarios actualizado
+      emit(NumeroComentariosLoaded(
+        noticiaId: event.noticiaId,
+        numeroComentarios: numeroComentarios,
+      ));
+      
+      // Si había un estado ComentarioLoaded, lo restauramos pero con la nueva lista
+      if (currentState is ComentarioLoaded) {
+        emit(ComentarioLoaded(comentariosList: comentarios));
+      }
     } catch (e) {
       emit(
         const ComentarioError(errorMessage: 'Error al agregar el comentario'),

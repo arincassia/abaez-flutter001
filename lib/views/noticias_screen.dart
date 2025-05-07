@@ -1,5 +1,8 @@
+import 'package:abaez/bloc/comentarios/comentario_bloc.dart';
+import 'package:abaez/bloc/comentarios/comentario_event.dart';
 import 'package:abaez/views/comentarios/comentarios_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:abaez/bloc/bloc%20noticias/noticias_event.dart';
 import 'package:abaez/bloc/bloc%20noticias/noticias_state.dart';
@@ -30,6 +33,10 @@ class NoticiaScreen extends StatelessWidget {
         BlocProvider(
           create:
               (context) => PreferenciaBloc()..add(const CargarPreferencias()),
+        ),
+        // Asegurarnos de usar el BLoC global
+        BlocProvider.value(
+          value: context.read<ComentarioBloc>(),
         ),
       ],
       child: BlocConsumer<NoticiasBloc, NoticiasState>(
@@ -287,11 +294,21 @@ class NoticiaScreen extends StatelessWidget {
               onComment: () async {
                 // Abrir el diálogo de comentarios
                 if (!context.mounted) return;
+                
+                // Mostrar el diálogo de comentarios
                 await showDialog(
                   context: context,
-                  builder:
-                      (context) => ComentariosDialog(noticiaId: noticia.id),
-                );
+                  builder: (context) => ComentariosDialog(noticiaId: noticia.id),
+                ).then((_) {
+                  // Cuando el diálogo se cierra, recargar toda la página de noticias
+                  if (context.mounted) {
+                    // Recargamos todas las noticias
+                    context.read<NoticiasBloc>().add(const FetchNoticias());
+                    
+                    // También actualizamos el contador específico de comentarios
+                    context.read<ComentarioBloc>().add(GetNumeroComentarios(noticiaId: noticia.id));
+                  }
+                });
               },
             );
           },
