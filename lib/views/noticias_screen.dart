@@ -2,7 +2,6 @@ import 'package:abaez/bloc/comentarios/comentario_bloc.dart';
 import 'package:abaez/bloc/comentarios/comentario_event.dart';
 import 'package:abaez/views/comentarios/comentarios_dialog.dart';
 import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:abaez/bloc/bloc%20noticias/noticias_event.dart';
 import 'package:abaez/bloc/bloc%20noticias/noticias_state.dart';
