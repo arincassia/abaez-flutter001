@@ -12,6 +12,7 @@ class Comentario {
   final int likes;
   final int dislikes;
   final List<Comentario>? subcomentarios;
+  final bool? isSubComentario; // Indica si es un subcomentario o no
 
   Comentario({
     required this.id,
@@ -22,6 +23,7 @@ class Comentario {
     required this.likes,
     required this.dislikes,
     this.subcomentarios,
+    this.isSubComentario,
   });
   // Método para convertir un JSON de la API a un objeto Category
   factory Comentario.fromJson(Map<String, dynamic> json) =>

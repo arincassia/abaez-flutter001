@@ -78,7 +78,8 @@ class ComentariosService {
       autor: 'Usuario Anónimo',
       likes: 0,
       dislikes: 0,
-      subcomentarios: [], // Inicializar como lista vacía
+      subcomentarios: [],
+      isSubComentario: false, // Inicializar como lista vacía
     );
 
     try {
@@ -220,7 +221,7 @@ class ComentariosService {
       final comentarioData = response.data as Map<String, dynamic>;
       
       // Verificar si estamos intentando añadir un subcomentario a otro subcomentario
-      if (comentarioData['subcomentarios'] == null) {
+      if (comentarioData['isSubComentario'] == true) {
         // Si no tiene campo de subcomentarios, es probable que estemos intentando 
         // añadir un subcomentario a otro subcomentario, lo cual no está permitido
         return {
@@ -247,7 +248,8 @@ class ComentariosService {
         autor: autor,
         likes: 0,
         dislikes: 0,
-        subcomentarios: null, // Explícitamente null para evitar anidación
+        subcomentarios: [],
+        isSubComentario: true // Explícitamente null para evitar anidación
       );
       
       // Obtener la lista actual de subcomentarios o inicializarla
@@ -271,6 +273,7 @@ class ComentariosService {
           'likes': comentarioData['likes'] ?? 0,
           'dislikes': comentarioData['dislikes'] ?? 0,
           'subcomentarios': subcomentariosActualizados,
+          'isSubComentario': false // Asegurarse de que el comentario principal no sea un subcomentario
         },
         options: Options(headers: {'Content-Type': 'application/json'}),
       );

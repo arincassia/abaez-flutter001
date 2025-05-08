@@ -5,6 +5,7 @@ import 'package:abaez/bloc/comentarios/comentario_event.dart';
 import 'package:abaez/bloc/comentarios/comentario_state.dart';
 import 'package:abaez/helpers/snackbar_helper.dart';
 import 'package:intl/intl.dart';
+import 'package:abaez/domain/comentario.dart';
 
 class ComentariosScreen extends StatelessWidget {
   final String noticiaId;
@@ -13,7 +14,6 @@ class ComentariosScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Usar un BlocProvider.value para compartir la misma instancia del bloc
     return BlocProvider.value(
       value:
           context.read<ComentarioBloc>()
@@ -38,11 +38,24 @@ class _ComentariosScreenContentState extends State<_ComentariosScreenContent> {
   final TextEditingController _busquedaController = TextEditingController();
   bool _ordenAscendente = true;
 
+  // Para manejar subcomentarios
+  String? _respondingToId;
+  String? _respondingToAutor;
+
   @override
   void dispose() {
     _comentarioController.dispose();
     _busquedaController.dispose();
     super.dispose();
+  }
+
+  // Método para cancelar la respuesta a un comentario
+  void _cancelarRespuesta() {
+    setState(() {
+      _respondingToId = null;
+      _respondingToAutor = null;
+      _comentarioController.clear();
+    });
   }
 
   @override
@@ -57,9 +70,10 @@ class _ComentariosScreenContentState extends State<_ComentariosScreenContent> {
         actions: [
           // Botón de ordenamiento
           Tooltip(
-            message: _ordenAscendente
-                ? 'Ordenar por más recientes'
-                : 'Ordenar por más antiguos',
+            message:
+                _ordenAscendente
+                    ? 'Ordenar por más recientes'
+                    : 'Ordenar por más antiguos',
             child: IconButton(
               onPressed: () {
                 setState(() {
@@ -67,9 +81,7 @@ class _ComentariosScreenContentState extends State<_ComentariosScreenContent> {
                 });
                 // Disparar evento de ordenamiento
                 context.read<ComentarioBloc>().add(
-                  OrdenarComentarios(
-                    ascendente: _ordenAscendente,
-                  ),
+                  OrdenarComentarios(ascendente: _ordenAscendente),
                 );
               },
               icon: Icon(
@@ -97,25 +109,22 @@ class _ComentariosScreenContentState extends State<_ComentariosScreenContent> {
                         vertical: 8,
                       ),
                       prefixIcon: const Icon(Icons.search),
-                      // Usar ValueListenableBuilder para reaccionar a cambios en el texto
                       suffixIcon: ValueListenableBuilder<TextEditingValue>(
                         valueListenable: _busquedaController,
                         builder: (context, value, child) {
                           return value.text.isNotEmpty
                               ? IconButton(
-                                  icon: const Icon(Icons.clear),
-                                  tooltip: 'Limpiar búsqueda',
-                                  onPressed: () {
-                                    // Limpiar el campo de búsqueda
-                                    _busquedaController.clear();
-                                    // Recargar todos los comentarios
-                                    context.read<ComentarioBloc>().add(
-                                          LoadComentarios(
-                                            noticiaId: widget.noticiaId,
-                                          ),
-                                        );
-                                  },
-                                )
+                                icon: const Icon(Icons.clear),
+                                tooltip: 'Limpiar búsqueda',
+                                onPressed: () {
+                                  _busquedaController.clear();
+                                  context.read<ComentarioBloc>().add(
+                                    LoadComentarios(
+                                      noticiaId: widget.noticiaId,
+                                    ),
+                                  );
+                                },
+                              )
                               : const SizedBox.shrink();
                         },
                       ),
@@ -128,20 +137,17 @@ class _ComentariosScreenContentState extends State<_ComentariosScreenContent> {
                 const SizedBox(width: 8),
                 ElevatedButton(
                   onPressed: () {
-                    // Emitir evento para filtrar comentarios
                     if (_busquedaController.text.isEmpty) {
-                      // Si está vacío, cargar todos los comentarios
                       context.read<ComentarioBloc>().add(
-                            LoadComentarios(noticiaId: widget.noticiaId),
-                          );
+                        LoadComentarios(noticiaId: widget.noticiaId),
+                      );
                     } else {
-                      // Si tiene texto, filtrar comentarios
                       context.read<ComentarioBloc>().add(
-                            BuscarComentarios(
-                              noticiaId: widget.noticiaId,
-                              criterioBusqueda: _busquedaController.text,
-                            ),
-                          );
+                        BuscarComentarios(
+                          noticiaId: widget.noticiaId,
+                          criterioBusqueda: _busquedaController.text,
+                        ),
+                      );
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -186,86 +192,7 @@ class _ComentariosScreenContentState extends State<_ComentariosScreenContent> {
                       itemCount: comentarios.length,
                       itemBuilder: (context, index) {
                         final comentario = comentarios[index];
-                        final fecha = DateFormat(
-                          'dd/MM/yyyy HH:mm',
-                        ).format(DateTime.parse(comentario.fecha));
-
-                        return Card(
-                          elevation: 2,
-                          margin: const EdgeInsets.symmetric(vertical: 4),
-                          child: Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  comentario.autor,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(comentario.texto),
-                                const SizedBox(height: 8),
-                                Text(
-                                  fecha,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(
-                                        Icons.thumb_up_sharp,
-                                        size: 16,
-                                        color: Colors.green,
-                                      ),
-                                      onPressed: () {
-                                        context.read<ComentarioBloc>().add(
-                                              AddReaccion(
-                                                noticiaId: widget.noticiaId,
-                                                comentarioId: comentario.id,
-                                                tipoReaccion: 'like',
-                                              ),
-                                            );
-                                      },
-                                    ),
-                                    Text(
-                                      comentario.likes.toString(),
-                                      style: const TextStyle(fontSize: 12),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    IconButton(
-                                      icon: const Icon(
-                                        Icons.thumb_down_sharp,
-                                        size: 16,
-                                        color: Colors.red,
-                                      ),
-                                      onPressed: () {
-                                        context.read<ComentarioBloc>().add(
-                                              AddReaccion(
-                                                noticiaId: widget.noticiaId,
-                                                comentarioId: comentario.id,
-                                                tipoReaccion: 'dislike',
-                                              ),
-                                            );
-                                      },
-                                    ),
-                                    Text(
-                                      comentario.dislikes.toString(),
-                                      style: const TextStyle(fontSize: 12),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
+                        return _buildComentarioCard(context, comentario);
                       },
                       separatorBuilder: (_, __) => const SizedBox(height: 4),
                     );
@@ -288,8 +215,8 @@ class _ComentariosScreenContentState extends State<_ComentariosScreenContent> {
                           ElevatedButton(
                             onPressed: () {
                               context.read<ComentarioBloc>().add(
-                                    LoadComentarios(noticiaId: widget.noticiaId),
-                                  );
+                                LoadComentarios(noticiaId: widget.noticiaId),
+                              );
                             },
                             child: const Text('Reintentar'),
                           ),
@@ -305,18 +232,47 @@ class _ComentariosScreenContentState extends State<_ComentariosScreenContent> {
 
             // Formulario para agregar comentarios
             const Divider(),
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8.0),
-              child: Text(
-                'Agregar comentario:',
-                style: TextStyle(fontWeight: FontWeight.bold),
+            if (_respondingToId != null)
+              // Mostrar a quién se está respondiendo
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 8,
+                  horizontal: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Respondiendo a ${_respondingToAutor}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, size: 18),
+                      onPressed: _cancelarRespuesta,
+                      tooltip: 'Cancelar respuesta',
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
+                ),
               ),
-            ),
+            const SizedBox(height: 8),
             TextField(
               controller: _comentarioController,
-              decoration: const InputDecoration(
-                hintText: 'Escribe tu comentario',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                hintText:
+                    _respondingToId == null
+                        ? 'Escribe tu comentario'
+                        : 'Escribe tu respuesta...',
+                border: const OutlineInputBorder(),
               ),
               maxLines: 2,
             ),
@@ -331,23 +287,41 @@ class _ComentariosScreenContentState extends State<_ComentariosScreenContent> {
                   );
                   return;
                 }
-                DateTime fecha = DateTime.now();
-                String fechaformateada = fecha.toIso8601String();
 
-                // Usar la instancia global del bloc
+                String fechaFormateada = DateTime.now().toIso8601String();
+
+                if (_respondingToId == null) {
+                  // Agregar comentario normal
+                  context.read<ComentarioBloc>().add(
+                    AddComentario(
+                      noticiaId: widget.noticiaId,
+                      texto: _comentarioController.text,
+                      autor: 'Usuario anónimo',
+                      fecha: fechaFormateada,
+                    ),
+                  );
+                } else {
+                  // Agregar subcomentario
+                  context.read<ComentarioBloc>().add(
+                    AddSubcomentario(
+                      comentarioId: _respondingToId!,
+                      noticiaId: widget.noticiaId, // Añadir esto
+                      texto: _comentarioController.text,
+                      autor: 'Usuario anónimo',
+                    ),
+                  );
+
+                  // Limpiar el estado de respuesta
+                  setState(() {
+                    _respondingToId = null;
+                    _respondingToAutor = null;
+                  });
+                }
+
+                // Actualizar contador y limpiar campo
                 context.read<ComentarioBloc>().add(
-                      AddComentario(
-                        noticiaId: widget.noticiaId,
-                        texto: _comentarioController.text,
-                        autor: 'Usuario anónimo',
-                        fecha: fechaformateada,
-                      ),
-                    );
-
-                context.read<ComentarioBloc>().add(
-                      GetNumeroComentarios(noticiaId: widget.noticiaId),
-                    );
-
+                  GetNumeroComentarios(noticiaId: widget.noticiaId),
+                );
                 _comentarioController.clear();
 
                 SnackBarHelper.showSnackBar(
@@ -357,13 +331,231 @@ class _ComentariosScreenContentState extends State<_ComentariosScreenContent> {
                 );
               },
               icon: const Icon(Icons.send),
-              label: const Text('Publicar comentario'),
+              label: Text(
+                _respondingToId == null
+                    ? 'Publicar comentario'
+                    : 'Enviar respuesta',
+              ),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 12),
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  // Widget para construir un comentario y sus subcomentarios
+  Widget _buildComentarioCard(BuildContext context, Comentario comentario) {
+    final fecha = DateFormat(
+      'dd/MM/yyyy HH:mm',
+    ).format(DateTime.parse(comentario.fecha));
+
+    return Card(
+      elevation: 2,
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Comentario principal
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  comentario.autor,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(comentario.texto),
+                const SizedBox(height: 8),
+                Text(
+                  fecha,
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    // Botón para dar like
+                    IconButton(
+                      icon: const Icon(
+                        Icons.thumb_up_sharp,
+                        size: 16,
+                        color: Colors.green,
+                      ),
+                      onPressed: () {
+                        context.read<ComentarioBloc>().add(
+                          AddReaccion(
+                            noticiaId: widget.noticiaId,
+                            comentarioId: comentario.id,
+                            tipoReaccion: 'like',
+                          ),
+                        );
+                      },
+                    ),
+                    Text(
+                      comentario.likes.toString(),
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                    const SizedBox(width: 8),
+                    // Botón para dar dislike
+                    IconButton(
+                      icon: const Icon(
+                        Icons.thumb_down_sharp,
+                        size: 16,
+                        color: Colors.red,
+                      ),
+                      onPressed: () {
+                        context.read<ComentarioBloc>().add(
+                          AddReaccion(
+                            noticiaId: widget.noticiaId,
+                            comentarioId: comentario.id,
+                            tipoReaccion: 'dislike',
+                          ),
+                        );
+                      },
+                    ),
+                    Text(
+                      comentario.dislikes.toString(),
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                    const Spacer(),
+                    // Botón para responder
+                    TextButton.icon(
+                      icon: const Icon(Icons.reply, size: 16),
+                      label: const Text('Responder'),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      onPressed: () {
+                        // Configurar el estado para responder a este comentario
+                        setState(() {
+                          _respondingToId = comentario.id;
+                          _respondingToAutor = comentario.autor;
+                        });
+
+                        // Opcional: desplazarse al campo de texto
+                        // Requiere un ScrollController y un GlobalKey
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          // Subcomentarios, si existen
+          if (comentario.subcomentarios != null &&
+              comentario.subcomentarios!.isNotEmpty)
+            Container(
+              margin: const EdgeInsets.only(left: 16),
+              decoration: BoxDecoration(
+                border: Border(
+                  left: BorderSide(color: Colors.grey.shade300, width: 2),
+                ),
+              ),
+              child: ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: comentario.subcomentarios!.length,
+                itemBuilder: (context, index) {
+                  final subcomentario = comentario.subcomentarios![index];
+                  final fechaSubcomentario = DateFormat(
+                    'dd/MM/yyyy HH:mm',
+                  ).format(DateTime.parse(subcomentario.fecha));
+
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 12, 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              subcomentario.autor,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(subcomentario.texto),
+                        const SizedBox(height: 4),
+                        Text(
+                          fechaSubcomentario,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        // Botones de like/dislike para subcomentarios
+                        Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(
+                                Icons.thumb_up_sharp,
+                                size: 14,
+                                color: Colors.green,
+                              ),
+                              onPressed: () {
+                                context.read<ComentarioBloc>().add(
+                                  AddReaccion(
+                                    noticiaId: widget.noticiaId,
+                                    comentarioId: subcomentario.id,
+                                    tipoReaccion: 'like',
+                                  ),
+                                );
+                              },
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              subcomentario.likes.toString(),
+                              style: const TextStyle(fontSize: 11),
+                            ),
+                            const SizedBox(width: 16),
+                            IconButton(
+                              icon: const Icon(
+                                Icons.thumb_down_sharp,
+                                size: 14,
+                                color: Colors.red,
+                              ),
+                              onPressed: () {
+                                context.read<ComentarioBloc>().add(
+                                  AddReaccion(
+                                    noticiaId: widget.noticiaId,
+                                    comentarioId: subcomentario.id,
+                                    tipoReaccion: 'dislike',
+                                  ),
+                                );
+                              },
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              subcomentario.dislikes.toString(),
+                              style: const TextStyle(fontSize: 11),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+        ],
       ),
     );
   }

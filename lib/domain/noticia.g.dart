@@ -16,22 +16,12 @@ Noticia _$NoticiaFromJson(Map<String, dynamic> json) => Noticia(
   categoriaId: json['categoriaId'] as String?,
 );
 
-Map<String, dynamic> _$NoticiaToJson(Noticia instance) {
-  final val = <String, dynamic>{};
-  
-  if (instance.id != null) {
-    val['_id'] = instance.id;
-  }
-  
-  val['titulo'] = instance.titulo;
-  val['descripcion'] = instance.descripcion;
-  val['fuente'] = instance.fuente;
-  val['publicadaEl'] = instance.publicadaEl.toIso8601String();
-  val['urlImagen'] = instance.urlImagen;
-  
-  if (instance.categoriaId != null) {
-    val['categoriaId'] = instance.categoriaId;
-  }
-  
-  return val;
-}
+Map<String, dynamic> _$NoticiaToJson(Noticia instance) => <String, dynamic>{
+  if (instance.id case final value?) '_id': value,
+  'titulo': instance.titulo,
+  'descripcion': instance.descripcion,
+  'fuente': instance.fuente,
+  'publicadaEl': instance.publicadaEl.toIso8601String(),
+  'urlImagen': instance.urlImagen,
+  'categoriaId': instance.categoriaId,
+};
