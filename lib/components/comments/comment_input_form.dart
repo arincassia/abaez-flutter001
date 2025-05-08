@@ -45,7 +45,7 @@ class CommentInputForm extends StatelessWidget {
               ? 'Publicar comentario' 
               : 'Enviar respuesta'),
           style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: 12),
+            padding: const EdgeInsets.only(left: 15,right: 15,top: 10, bottom: 10),
           ),
         ),
       ],

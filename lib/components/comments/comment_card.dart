@@ -79,7 +79,7 @@ class CommentCard extends StatelessWidget {
                     ),
                     const Spacer(),
                     TextButton.icon(
-                      icon: const Icon(Icons.reply, size: 16),
+                      icon: const Icon(Icons.reply, size: 24),
                       label: const Text('Responder'),
                       style: TextButton.styleFrom(
                         padding: const EdgeInsets.symmetric(horizontal: 8),
