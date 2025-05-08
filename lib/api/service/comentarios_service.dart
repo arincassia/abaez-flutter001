@@ -3,7 +3,7 @@ import 'package:abaez/domain/comentario.dart';
 import 'package:abaez/constants.dart';
 import 'package:abaez/exceptions/api_exception.dart';
 
-class ComentarioRepository {
+class ComentariosService {
   final Dio dio = Dio();
 
   Future<void> _verificarNoticiaExiste(String noticiaId) async {
@@ -78,6 +78,8 @@ class ComentarioRepository {
       autor: 'Usuario Anónimo',
       likes: 0,
       dislikes: 0,
+      subcomentarios: [],
+      isSubComentario: false, // Inicializar como lista vacía
     );
 
     try {
@@ -199,7 +201,112 @@ class ComentarioRepository {
     }
   }
   
+  /// Agrega un subcomentario a un comentario existente
+  /// Los subcomentarios no pueden tener a su vez subcomentarios
+  Future<Map<String, dynamic>> agregarSubcomentario({
+    required String comentarioId, // ID del comentario principal
+    required String texto,
+    required String autor,
+  }) async {
+    try {
+      // Primero, obtener el comentario al que queremos añadir un subcomentario
+      final response = await dio.get('${ApiConstantes.comentariosUrl}/$comentarioId');
+      if (response.statusCode != 200) {
+        return {
+          'success': false,
+          'message': 'No se pudo encontrar el comentario principal'
+        };
+      }
+      
+      final comentarioData = response.data as Map<String, dynamic>;
+      
+      // Verificar si estamos intentando añadir un subcomentario a otro subcomentario
+      if (comentarioData['isSubComentario'] == true) {
+        // Si no tiene campo de subcomentarios, es probable que estemos intentando 
+        // añadir un subcomentario a otro subcomentario, lo cual no está permitido
+        return {
+          'success': false,
+          'message': 'No se pueden añadir subcomentarios a otros subcomentarios'
+        };
+      }
+      
+      // Verificar si ya existe un subcomentario (opcional, puedes permitir múltiples subcomentarios)
+      if ((comentarioData['subcomentarios'] as List).isNotEmpty) {
+        // Si quieres permitir varios subcomentarios, comenta o elimina esta verificación
+        // return {
+        //   'success': false, 
+        //   'message': 'Este comentario ya contiene un subcomentario, no es posible agregar otro'
+        // };
+      }
+      
+      // Crear el nuevo subcomentario explícitamente SIN campo de subcomentarios
+      final nuevoSubcomentario = Comentario(
+        id: '', // El ID será asignado por el servidor
+        noticiaId: comentarioData['noticiaId'],
+        texto: texto,
+        fecha: DateTime.now().toIso8601String(),
+        autor: autor,
+        likes: 0,
+        dislikes: 0,
+        subcomentarios: [],
+        isSubComentario: true // Explícitamente null para evitar anidación
+      );
+      
+      // Obtener la lista actual de subcomentarios o inicializarla
+      final List<dynamic> subcomentariosActuales = 
+          comentarioData['subcomentarios'] as List<dynamic>? ?? [];
+      
+      // Añadir el nuevo subcomentario a la lista existente
+      final subcomentariosActualizados = [
+        ...subcomentariosActuales,
+        nuevoSubcomentario.toJson()
+      ];
+      
+      // Actualizar el comentario con todos sus subcomentarios
+      await dio.put(
+        '${ApiConstantes.comentariosUrl}/$comentarioId',
+        data: {
+          'noticiaId': comentarioData['noticiaId'],
+          'texto': comentarioData['texto'],
+          'fecha': comentarioData['fecha'],
+          'autor': comentarioData['autor'],
+          'likes': comentarioData['likes'] ?? 0,
+          'dislikes': comentarioData['dislikes'] ?? 0,
+          'subcomentarios': subcomentariosActualizados,
+          'isSubComentario': false // Asegurarse de que el comentario principal no sea un subcomentario
+        },
+        options: Options(headers: {'Content-Type': 'application/json'}),
+      );
+      
+      return {
+        'success': true,
+        'message': 'Subcomentario agregado correctamente'
+      };
+      
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout) {
+        return {
+          'success': false,
+          'message': ApiConstantes.errorTimeout
+        };
+      } else if (e.response?.statusCode == 404) {
+        return {
+          'success': false,
+          'message': ApiConstantes.errorNotFound
+        };
+      } else {
+        return {
+          'success': false,
+          'message': '${ApiConstantes.errorServer}: ${e.toString()}'
+        };
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Error inesperado: ${e.toString()}'
+      };
+    }
+  }
 }
-
-  /// Registra una reacción (like o dislike) a un comentario
 
