@@ -1,10 +1,11 @@
 import 'package:json_annotation/json_annotation.dart';
+
 part 'comentario.g.dart';
 
 @JsonSerializable()
 class Comentario {
   @JsonKey(name: '_id', includeToJson: false)
-  final String id;
+  final String? id; // Cambiado a nullable
   final String noticiaId;
   final String texto;
   final String fecha;
@@ -12,10 +13,11 @@ class Comentario {
   final int likes;
   final int dislikes;
   final List<Comentario>? subcomentarios;
-  final bool? isSubComentario; // Indica si es un subcomentario o no
+  @JsonKey(defaultValue: false)
+  final bool isSubComentario; // Ahora es required con valor por defecto
 
   Comentario({
-    required this.id,
+    this.id, // id ahora es opcional
     required this.noticiaId,
     required this.texto,
     required this.fecha,
@@ -23,12 +25,11 @@ class Comentario {
     required this.likes,
     required this.dislikes,
     this.subcomentarios,
-    this.isSubComentario,
+    this.isSubComentario = false, // Valor por defecto
   });
-  // Método para convertir un JSON de la API a un objeto Category
+
   factory Comentario.fromJson(Map<String, dynamic> json) =>
       _$ComentarioFromJson(json);
 
-  // Método para convertir el objeto Category a JSON para enviar a la API
   Map<String, dynamic> toJson() => _$ComentarioToJson(this);
 }
