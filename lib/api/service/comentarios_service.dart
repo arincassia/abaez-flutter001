@@ -157,12 +157,6 @@ class ComentariosService {
         comentarios[comentarioIndex],
       );
       print(comentarioActualizado);
-      // Actualizamos los likes o dislikes según el tipo de reacción
-     
-
-      /*print(
-        'Actualizando comentario: ${comentarioActualizado['_id']} con $tipoReaccion',
-      );*/
 
       // IMPORTANTE: Al enviar al servidor, usamos el ID específico del comentario con '_id'
       int currentLikes = comentarioActualizado['likes'] ?? 0;
@@ -170,13 +164,14 @@ class ComentariosService {
       await dio.put(
       '${ApiConstantes.comentariosUrl}/$comentarioId',
         data: {
-          'id': comentarioId,
           'noticiaId': comentarioActualizado['noticiaId'],
           'texto': comentarioActualizado['texto'],
           'fecha': comentarioActualizado['fecha'],
           'autor': comentarioActualizado['autor'],
           'likes': tipoReaccion == 'like' ? currentLikes + 1 : currentLikes,
           'dislikes': tipoReaccion == 'dislike' ? currentDislikes + 1 : currentDislikes,
+          'subcomentarios': comentarioActualizado['subcomentarios'] ?? [],
+          'isSubcomentario':false,
         },
       );
     } on DioException catch (e) {
