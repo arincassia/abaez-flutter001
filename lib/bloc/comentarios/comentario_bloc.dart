@@ -1,10 +1,11 @@
 import 'package:abaez/domain/comentario.dart';
-import 'package:abaez/domain/comentario.dart';
+//import 'package:abaez/domain/comentario.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:abaez/bloc/comentarios/comentario_event.dart';
 import 'package:abaez/bloc/comentarios/comentario_state.dart';
-import 'package:abaez/data/comentarios_repository.dart';
+//import 'package:abaez/api/service/comentarios_service.dart';
 import 'package:abaez/exceptions/api_exception.dart';
+import 'package:abaez/data/comentarios_repository.dart';
 
 class ComentarioBloc extends Bloc<ComentarioEvent, ComentarioState> {
   final ComentarioRepository comentarioRepository;

@@ -11,6 +11,7 @@ class Comentario {
   final String autor;
   final int likes;
   final int dislikes;
+  final List<Comentario>? subcomentarios;
 
   Comentario({
     required this.id,
@@ -20,29 +21,8 @@ class Comentario {
     required this.autor,
     required this.likes,
     required this.dislikes,
+    this.subcomentarios,
   });
-  /*
-  // Método para convertir un JSON de la API a un objeto Comentario
-  factory Comentario.fromJson(Map<String, dynamic> json) {
-    return Comentario(
-      id: json['_id'] as String, // El ID lo asigna CrudCrud
-      noticiaId: json['noticiaId'] as String,
-      texto: json['texto'] as String,
-      fecha: json['fecha'] as String,
-      autor: json['autor'] as String,
-    );
-  }
-
-  // Método para convertir el objeto Comentario a JSON para enviar a la API
-  Map<String, dynamic> toJson() {
-    return {
-      'noticiaId': noticiaId,
-      'texto': texto,
-      'fecha': fecha,
-      'autor': autor,
-    };
-  }*/
-
   // Método para convertir un JSON de la API a un objeto Category
   factory Comentario.fromJson(Map<String, dynamic> json) =>
       _$ComentarioFromJson(json);
