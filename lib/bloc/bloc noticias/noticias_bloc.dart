@@ -38,8 +38,8 @@ class NoticiasBloc extends Bloc<NoticiasEvent, NoticiasState> {
         titulo: event.noticia.titulo,
         descripcion: event.noticia.descripcion,
         fuente: event.noticia.fuente,
-        publicadaEl: event.noticia.publicadaEl.toIso8601String(),
-        urlImagen: event.noticia.imageUrl,
+        publicadaEl: event.noticia.publicadaEl,
+        urlImagen: event.noticia.urlImagen,
         categoriaId: event.noticia.categoriaId ?? '',
       );
 
@@ -62,8 +62,8 @@ class NoticiasBloc extends Bloc<NoticiasEvent, NoticiasState> {
         titulo: event.noticia.titulo,
         descripcion: event.noticia.descripcion,
         fuente: event.noticia.fuente,
-        publicadaEl: event.noticia.publicadaEl.toIso8601String(),
-        urlImagen: event.noticia.imageUrl,
+        publicadaEl: event.noticia.publicadaEl,
+        urlImagen: event.noticia.urlImagen,
         categoriaId: event.noticia.categoriaId ?? '',
       );
 
