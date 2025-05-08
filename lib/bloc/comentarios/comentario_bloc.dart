@@ -1,5 +1,4 @@
 import 'package:abaez/domain/comentario.dart';
-import 'package:abaez/domain/comentario.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:abaez/bloc/comentarios/comentario_event.dart';
 import 'package:abaez/bloc/comentarios/comentario_state.dart';
