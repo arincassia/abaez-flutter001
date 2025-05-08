@@ -7,9 +7,14 @@ class ComentarioRepository {
   final ComentariosService _service = ComentariosService();
 
   /// Obtiene los comentarios asociados a una noticia específica
-  Future<List<Comentario>> obtenerComentariosPorNoticia(String noticiaId) async {
+
+  Future<List<Comentario>> obtenerComentariosPorNoticia(
+    String noticiaId,
+  ) async {
     try {
-      final comentarios = await _service.obtenerComentariosPorNoticia(noticiaId);
+      final comentarios = await _service.obtenerComentariosPorNoticia(
+        noticiaId,
+      );
       return comentarios;
     } catch (e) {
       if (e is ApiException) {
@@ -30,14 +35,9 @@ class ComentarioRepository {
     if (texto.isEmpty) {
       throw ApiException('El texto del comentario no puede estar vacío.');
     }
-    
+
     try {
-      await _service.agregarComentario(
-        noticiaId,
-        texto,
-        autor,
-        fecha,
-      );
+      await _service.agregarComentario(noticiaId, texto, autor, fecha);
     } catch (e) {
       if (e is ApiException) {
         rethrow;
@@ -89,7 +89,7 @@ class ComentarioRepository {
     if (texto.isEmpty) {
       return {
         'success': false,
-        'message': 'El texto del subcomentario no puede estar vacío.'
+        'message': 'El texto del subcomentario no puede estar vacío.',
       };
     }
 
@@ -104,7 +104,7 @@ class ComentarioRepository {
       debugPrint('Error inesperado al agregar subcomentario: $e');
       return {
         'success': false,
-        'message': 'Error inesperado al agregar subcomentario: ${e.toString()}'
+        'message': 'Error inesperado al agregar subcomentario: ${e.toString()}',
       };
     }
   }

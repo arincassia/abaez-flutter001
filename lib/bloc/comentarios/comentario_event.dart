@@ -46,12 +46,16 @@ class GetNumeroComentarios extends ComentarioEvent {
 // Evento para agregar una reacción (like o dislike)
 class AddReaccion extends ComentarioEvent {
   final String noticiaId;
-  final String comentarioId;
-  final String tipoReaccion; // 'like' o 'dislike'
+  final String? comentarioId; // Hacerlo opcional
+  final String tipoReaccion;
+
+  // Getter para proporcionar un ID seguro
+  String get safeComentarioId =>
+      comentarioId ?? 'comentario-${DateTime.now().millisecondsSinceEpoch}';
 
   AddReaccion({
     required this.noticiaId,
-    required this.comentarioId,
+    this.comentarioId,
     required this.tipoReaccion,
   });
 

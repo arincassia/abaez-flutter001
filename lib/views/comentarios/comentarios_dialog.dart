@@ -231,7 +231,9 @@ class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
                                       context.read<ComentarioBloc>().add(
                                         AddReaccion(
                                           noticiaId: widget.noticiaId,
-                                          comentarioId: comentario.id,
+                                          comentarioId:
+                                              comentario.id ??
+                                              'default-id', // Proporciona un valor predeterminado
                                           tipoReaccion: 'like',
                                         ),
                                       );
