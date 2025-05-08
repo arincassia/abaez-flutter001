@@ -7,7 +7,7 @@ part of 'comentario.dart';
 // **************************************************************************
 
 Comentario _$ComentarioFromJson(Map<String, dynamic> json) => Comentario(
-  id: json['_id'] as String,
+  id: json['_id'] as String?,
   noticiaId: json['noticiaId'] as String,
   texto: json['texto'] as String,
   fecha: json['fecha'] as String,
@@ -18,7 +18,7 @@ Comentario _$ComentarioFromJson(Map<String, dynamic> json) => Comentario(
       (json['subcomentarios'] as List<dynamic>?)
           ?.map((e) => Comentario.fromJson(e as Map<String, dynamic>))
           .toList(),
-  isSubComentario: json['isSubComentario'] as bool?,
+  isSubComentario: json['isSubComentario'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$ComentarioToJson(Comentario instance) =>
