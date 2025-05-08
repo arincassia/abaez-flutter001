@@ -231,7 +231,7 @@ class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
                                       context.read<ComentarioBloc>().add(
                                         AddReaccion(
                                           noticiaId: widget.noticiaId,
-                                          comentarioId: comentario.id,
+                                          comentarioId: comentario.id ?? '',
                                           tipoReaccion: 'like',
                                         ),
                                       );
@@ -252,7 +252,7 @@ class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
                                       context.read<ComentarioBloc>().add(
                                         AddReaccion(
                                           noticiaId: widget.noticiaId,
-                                          comentarioId: comentario.id,
+                                          comentarioId: comentario.id ?? '',
                                           tipoReaccion: 'dislike',
                                         ),
                                       );

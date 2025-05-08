@@ -78,7 +78,8 @@ class ComentariosService {
       autor: 'Usuario Anónimo',
       likes: 0,
       dislikes: 0,
-      subcomentarios: [], // Inicializar como lista vacía
+      subcomentarios: [],
+      isSubComentario: false, // Inicializar como lista vacía
     );
 
     try {
@@ -126,79 +127,128 @@ class ComentariosService {
   }
 
  Future<void> reaccionarComentario({
-    required String comentarioId,
-    required String tipoReaccion,
-  }) async {
-    try {
-      // Obtenemos todos los comentarios
-      final response = await dio.get(ApiConstantes.comentariosUrl);
-      if (response.statusCode != 200) {
-        throw ApiException(
-          ApiConstantes.errorServer,
-          statusCode: response.statusCode,
-        );
-      }
-
-      final List<dynamic> comentarios = response.data as List<dynamic>;
-
-      // Buscamos el comentario específico por ID (usando '_id' en lugar de 'id')
-      final comentarioIndex = comentarios.indexWhere(
-        (c) => c['_id'] == comentarioId,
+  required String comentarioId,
+  required String tipoReaccion,
+}) async {
+  try {
+    // Obtenemos todos los comentarios
+    final response = await dio.get(ApiConstantes.comentariosUrl);
+    if (response.statusCode != 200) {
+      throw ApiException(
+        ApiConstantes.errorServer,
+        statusCode: response.statusCode,
       );
+    }
 
-      if (comentarioIndex == -1) {
-        print('Comentario no encontrado con ID: $comentarioId');
-        throw ApiException(ApiConstantes.errorNotFound, statusCode: 404);
-      }
+    final List<dynamic> comentarios = response.data as List<dynamic>;
 
-      // Construimos el comentario actualizado
+    // Primero, buscamos si es un comentario principal
+    final comentarioIndex = comentarios.indexWhere(
+      (c) => c['_id'] == comentarioId,
+    );
+
+    // Si lo encontramos como comentario principal
+    if (comentarioIndex != -1) {
       Map<String, dynamic> comentarioActualizado = Map<String, dynamic>.from(
         comentarios[comentarioIndex],
       );
-      print(comentarioActualizado);
-      // Actualizamos los likes o dislikes según el tipo de reacción
-     
-
-      /*print(
-        'Actualizando comentario: ${comentarioActualizado['_id']} con $tipoReaccion',
-      );*/
-
-      // IMPORTANTE: Al enviar al servidor, usamos el ID específico del comentario con '_id'
+      
       int currentLikes = comentarioActualizado['likes'] ?? 0;
       int currentDislikes = comentarioActualizado['dislikes'] ?? 0;
+      
       await dio.put(
-      '${ApiConstantes.comentariosUrl}/$comentarioId',
+        '${ApiConstantes.comentariosUrl}/$comentarioId',
         data: {
-          'id': comentarioId,
           'noticiaId': comentarioActualizado['noticiaId'],
           'texto': comentarioActualizado['texto'],
           'fecha': comentarioActualizado['fecha'],
           'autor': comentarioActualizado['autor'],
           'likes': tipoReaccion == 'like' ? currentLikes + 1 : currentLikes,
           'dislikes': tipoReaccion == 'dislike' ? currentDislikes + 1 : currentDislikes,
+          'subcomentarios': comentarioActualizado['subcomentarios'] ?? [],
+          'isSubComentario': comentarioActualizado['isSubComentario'] ?? false,
         },
       );
-    } on DioException catch (e) {
-      print('Error DioException: ${e.toString()}');
-
-      if (e.type == DioExceptionType.connectionTimeout ||
-          e.type == DioExceptionType.receiveTimeout) {
-        throw ApiException(ApiConstantes.errorTimeout);
-      } else if (e.response?.statusCode == 404) {
-        print('Error 404: Endpoint no encontrado');
-        throw ApiException(ApiConstantes.errorNotFound, statusCode: 404);
-      } else {
-        print('Error del servidor: ${e.response?.statusCode}');
-        throw ApiException(
-          ApiConstantes.errorServer,
-          statusCode: e.response?.statusCode,
-        );
-      }
-    } catch (e) {
-      print('Error inesperado: ${e.toString()}');
-      throw ApiException(ApiConstantes.errorServer);
+      return;
     }
+
+    // Recorrer todos los comentarios principales
+    for (int i = 0; i < comentarios.length; i++) {
+      final comentarioPrincipal = comentarios[i];
+      
+      // Verificar si tiene subcomentarios
+      if (comentarioPrincipal['subcomentarios'] != null && 
+          comentarioPrincipal['subcomentarios'] is List &&
+          (comentarioPrincipal['subcomentarios'] as List).isNotEmpty) {
+        
+        final List<dynamic> subcomentarios = comentarioPrincipal['subcomentarios'];
+        
+        // Buscar en los subcomentarios si alguno coincide con el ID
+        for (int j = 0; j < subcomentarios.length; j++) {
+          final subcomentario = subcomentarios[j];
+          
+          // Si encontramos el ID en el subcomentario (puede estar en _id o en idSubComentario)
+          if (subcomentario['_id'] == comentarioId || 
+              subcomentario['idSubComentario'] == comentarioId) {
+                      
+            // Crear una copia del subcomentario para actualizarlo
+            Map<String, dynamic> subcomentarioActualizado = Map<String, dynamic>.from(subcomentario);
+            
+            // Actualizar el contador correspondiente
+            int currentLikes = subcomentarioActualizado['likes'] ?? 0;
+            int currentDislikes = subcomentarioActualizado['dislikes'] ?? 0;
+            
+            subcomentarioActualizado['likes'] = tipoReaccion == 'like' ? currentLikes + 1 : currentLikes;
+            subcomentarioActualizado['dislikes'] = tipoReaccion == 'dislike' ? currentDislikes + 1 : currentDislikes;
+            
+            // Actualizar la lista de subcomentarios
+            subcomentarios[j] = subcomentarioActualizado;
+            
+            // Actualizar el comentario principal con la nueva lista de subcomentarios
+            await dio.put(
+              '${ApiConstantes.comentariosUrl}/${comentarioPrincipal['_id']}',
+              data: {
+                'noticiaId': comentarioPrincipal['noticiaId'],
+                'texto': comentarioPrincipal['texto'],
+                'fecha': comentarioPrincipal['fecha'],
+                'autor': comentarioPrincipal['autor'],
+                'likes': comentarioPrincipal['likes'] ?? 0,
+                'dislikes': comentarioPrincipal['dislikes'] ?? 0,
+                'subcomentarios': subcomentarios,
+                'isSubComentario': comentarioPrincipal['isSubComentario'] ?? false,
+              },
+            );
+
+            return;
+          }
+        }
+      }
+    }
+    
+
+    throw ApiException(ApiConstantes.errorNotFound, statusCode: 404);
+    
+  } on DioException catch (e) {
+    print('Error DioException: ${e.toString()}');
+
+    if (e.type == DioExceptionType.connectionTimeout ||
+        e.type == DioExceptionType.receiveTimeout) {
+      throw ApiException(ApiConstantes.errorTimeout);
+    } else if (e.response?.statusCode == 404) {
+      print('Error 404: Endpoint no encontrado');
+      throw ApiException(ApiConstantes.errorNotFound, statusCode: 404);
+    } else {
+      print('Error del servidor: ${e.response?.statusCode}');
+      throw ApiException(
+        ApiConstantes.errorServer,
+        statusCode: e.response?.statusCode,
+      );
+    }
+  } catch (e) {
+    print('Error inesperado: ${e.toString()}');
+    throw ApiException(ApiConstantes.errorServer);
   }
+}
   
   /// Agrega un subcomentario a un comentario existente
   /// Los subcomentarios no pueden tener a su vez subcomentarios
@@ -208,6 +258,7 @@ class ComentariosService {
     required String autor,
   }) async {
     try {
+      final subcomentarioId = 'sub_${DateTime.now().millisecondsSinceEpoch}_${texto.hashCode}';
       // Primero, obtener el comentario al que queremos añadir un subcomentario
       final response = await dio.get('${ApiConstantes.comentariosUrl}/$comentarioId');
       if (response.statusCode != 200) {
@@ -220,7 +271,7 @@ class ComentariosService {
       final comentarioData = response.data as Map<String, dynamic>;
       
       // Verificar si estamos intentando añadir un subcomentario a otro subcomentario
-      if (comentarioData['subcomentarios'] == null) {
+      if (comentarioData['isSubComentario'] == true) {
         // Si no tiene campo de subcomentarios, es probable que estemos intentando 
         // añadir un subcomentario a otro subcomentario, lo cual no está permitido
         return {
@@ -240,14 +291,16 @@ class ComentariosService {
       
       // Crear el nuevo subcomentario explícitamente SIN campo de subcomentarios
       final nuevoSubcomentario = Comentario(
-        id: '', // El ID será asignado por el servidor
+        
         noticiaId: comentarioData['noticiaId'],
         texto: texto,
         fecha: DateTime.now().toIso8601String(),
         autor: autor,
         likes: 0,
         dislikes: 0,
-        subcomentarios: null, // Explícitamente null para evitar anidación
+        subcomentarios: [],
+        isSubComentario: true, // Explícitamente null para evitar anidación
+        idSubComentario: subcomentarioId, 
       );
       
       // Obtener la lista actual de subcomentarios o inicializarla
@@ -271,6 +324,7 @@ class ComentariosService {
           'likes': comentarioData['likes'] ?? 0,
           'dislikes': comentarioData['dislikes'] ?? 0,
           'subcomentarios': subcomentariosActualizados,
+          'isSubComentario': false // Asegurarse de que el comentario principal no sea un subcomentario
         },
         options: Options(headers: {'Content-Type': 'application/json'}),
       );

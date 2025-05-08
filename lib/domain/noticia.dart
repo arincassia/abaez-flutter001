@@ -3,7 +3,7 @@ part 'noticia.g.dart';
 
 @JsonSerializable()
 class Noticia {
-  @JsonKey(name: '_id')
+  @JsonKey(name: '_id', includeIfNull: false)
   final String? id;
   final String titulo;
   final String descripcion;
