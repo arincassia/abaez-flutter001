@@ -5,6 +5,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:abaez/bloc/comentarios/comentario_bloc.dart';
 import 'package:abaez/bloc/comentarios/comentario_event.dart';
 import 'package:abaez/bloc/comentarios/comentario_state.dart';
+import 'package:abaez/bloc/reporte/reporte_bloc.dart';
+import 'package:abaez/bloc/reporte/reporte_state.dart';
+import 'package:abaez/bloc/reporte/reporte_event.dart';
+import 'package:abaez/data/reporte_repository.dart';
+import 'package:abaez/domain/reporte.dart';
+import 'package:get_it/get_it.dart';
 
 class NoticiaCard extends StatefulWidget {
   final String? id;
@@ -194,6 +200,11 @@ class _NoticiaCardState extends State<NoticiaCard> {
                         tooltip: 'Eliminar',
                         onPressed: widget.onDelete,
                       ),
+                      IconButton(
+                        icon: const Icon(Icons.report, color: Colors.orange),
+                        tooltip: 'Reportar',
+                        onPressed: () => _mostrarDialogoReporte(context),
+                      ),
                       // Columna que contiene el ícono de comentario y el contador
                       Column(
                         children: [
@@ -221,4 +232,100 @@ class _NoticiaCardState extends State<NoticiaCard> {
       ),
     );
   }
+  void _mostrarDialogoReporte(BuildContext context) {
+  // Cambiar de String a MotivoReporte
+  MotivoReporte motivoSeleccionado = MotivoReporte.noticiaInapropiada;
+    final reportesBloc = ReportesBloc(
+    reporteRepository: GetIt.instance<ReporteRepository>(),
+  );
+  showDialog(
+    context: context,
+    builder: (context) {
+      return BlocProvider(
+        create: (_) => reportesBloc,
+        child: BlocConsumer<ReportesBloc, ReportesState>(
+          listener: (context, state) {
+            if (state is ReporteSuccess) {
+              Navigator.of(context).pop(); // Cerrar el diálogo
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Reporte enviado correctamente')),
+              );
+            } else if (state is ReporteError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Error: ${state.errorMessage}')),
+              );
+            }
+          },
+          builder: (context, state) {
+            return AlertDialog(
+              title: const Text('Reportar Noticia'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('¿Por qué quieres reportar esta noticia?'),
+                  const SizedBox(height: 16),
+                  StatefulBuilder(
+                    builder: (context, setState) {
+                      return DropdownButton<MotivoReporte>(
+                        isExpanded: true,
+                        value: motivoSeleccionado,
+                        onChanged: (MotivoReporte? value) {
+                          if (value != null) {
+                            setState(() {
+                              motivoSeleccionado = value;
+                            });
+                          }
+                        },
+                        items: MotivoReporte.values.map((MotivoReporte motivo) {
+                          return DropdownMenuItem<MotivoReporte>(
+                            value: motivo,
+                            child: Text(_getTextoMotivo(motivo)),
+                          );
+                        }).toList(),
+                      );
+                    }
+                  ),
+                  // Resto del código existente
+                ],
+              ),
+              actions: [
+                // Botón cancelar - sin cambios
+                
+                // Botón para enviar reporte - sin cambios de lógica
+                if (state is! ReporteLoading)
+                  ElevatedButton(
+                    onPressed: () {
+                      if (widget.id != null) {
+                        final reporte = Reporte(
+                          noticiaId: widget.id!,
+                          fecha: DateTime.now().toIso8601String(),
+                          motivo: motivoSeleccionado, // Ahora es correcto porque motivoSeleccionado es MotivoReporte
+                        );
+                        context.read<ReportesBloc>().add(EnviarReporte(reporte));
+                      } else {
+                        // Código existente sin cambios
+                      }
+                    },
+                    child: const Text('Enviar Reporte'),
+                  ),
+              ],
+            );
+          },
+        ),
+      );
+    },
+  );
+}
+
+// Función auxiliar para convertir el enum a texto legible
+String _getTextoMotivo(MotivoReporte motivo) {
+  switch (motivo) {
+    case MotivoReporte.noticiaInapropiada:
+      return 'Noticia Inapropiada';
+    case MotivoReporte.informacionFalsa:
+      return 'Información Falsa';
+    case MotivoReporte.otro:
+      return 'Otro';
+  }
+}
 }
