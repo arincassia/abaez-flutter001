@@ -18,6 +18,11 @@ import 'package:abaez/views/category_screen.dart';
 import 'package:abaez/views/preferencia_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:abaez/helpers/snackbar_helper.dart';
+import 'package:abaez/bloc/reporte/reporte_bloc.dart';
+import 'package:abaez/bloc/reporte/reporte_event.dart';
+import 'package:abaez/bloc/reporte/reporte_state.dart';
+import 'package:abaez/domain/reporte.dart';
+import 'package:watch_it/watch_it.dart';
 
 class NoticiaScreen extends StatelessWidget {
   const NoticiaScreen({super.key});
@@ -315,6 +320,9 @@ class NoticiaScreen extends StatelessWidget {
                       }
                     });
               },
+              onReport: () async {
+                _mostrarDialogoReporte(context, noticia.id!);
+              },
             );
           },
           separatorBuilder:
@@ -351,6 +359,113 @@ class NoticiaScreen extends StatelessWidget {
       message,
       statusCode:
           statusCode, // Pasar el código de estado para el color adecuado
+    );
+  }
+
+  void _mostrarDialogoReporte(BuildContext context, String noticiaId) {
+    MotivoReporte motivoSeleccionado = MotivoReporte.NoticiaInapropiada; // Valor por defecto
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return BlocProvider(
+          create: (context) => di<ReporteBloc>(),
+          child: StatefulBuilder(
+            builder: (context, setState) {
+              return BlocConsumer<ReporteBloc, ReporteState>(
+                listener: (context, state) {
+                  if (state is ReporteSuccess) {
+                    // Mostrar mensaje de éxito
+                    SnackBarHelper.showSuccess(context, state.mensaje);
+                    Navigator.of(context).pop(); // Cerrar el diálogo
+                  } else if (state is ReporteError) {
+                    // Mostrar mensaje de error
+                    SnackBarHelper.showSnackBar(
+                      context,
+                      state.errorMessage,
+                      statusCode: state.statusCode ?? 500,
+                    );
+                  }
+                },
+                builder: (context, state) {
+                  return AlertDialog(
+                    title: const Text('Reportar Noticia'),
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text('Selecciona el motivo del reporte:'),
+                        const SizedBox(height: 16),
+                        
+                        // Mostrar el dropdown para seleccionar motivo
+                        DropdownButton<MotivoReporte>(
+                          value: motivoSeleccionado,
+                          isExpanded: true,
+                          onChanged: state is ReporteLoading 
+                            ? null 
+                            : (MotivoReporte? newValue) {
+                                if (newValue != null) {
+                                  setState(() {
+                                    motivoSeleccionado = newValue;
+                                  });
+                                }
+                              },
+                          items: MotivoReporte.values.map<DropdownMenuItem<MotivoReporte>>((MotivoReporte motivo) {
+                            String label;
+                            switch (motivo) {
+                              case MotivoReporte.NoticiaInapropiada:
+                                label = 'Noticia Inapropiada';
+                                break;
+                              case MotivoReporte.InformacionFalsa:
+                                label = 'Información Falsa';
+                                break;
+                              case MotivoReporte.Otro:
+                                label = 'Otro';
+                                break;
+                            }
+                            return DropdownMenuItem<MotivoReporte>(
+                              value: motivo,
+                              child: Text(label),
+                            );
+                          }).toList(),
+                        ),
+                        
+                        // Mostrar indicador de carga si está enviando
+                        if (state is ReporteLoading)
+                          const Padding(
+                            padding: EdgeInsets.only(top: 16.0),
+                            child: Center(child: CircularProgressIndicator()),
+                          ),
+                      ],
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: state is ReporteLoading 
+                          ? null 
+                          : () => Navigator.of(context).pop(),
+                        child: const Text('Cancelar'),
+                      ),
+                      ElevatedButton(
+                        onPressed: state is ReporteLoading
+                          ? null
+                          : () {
+                              // Enviar el reporte
+                              context.read<ReporteBloc>().add(
+                                EnviarReporte(
+                                  noticiaId: noticiaId,
+                                  motivo: motivoSeleccionado,
+                                ),
+                              );
+                            },
+                        child: const Text('Enviar Reporte'),
+                      ),
+                    ],
+                  );
+                },
+              );
+            }
+          ),
+        );
+      },
     );
   }
 }

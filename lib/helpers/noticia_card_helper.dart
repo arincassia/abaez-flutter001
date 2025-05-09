@@ -8,7 +8,8 @@ class NoticiaCardHelper {
     required Noticia noticia,
     required VoidCallback onEdit, // Callback para editar
     required VoidCallback onDelete,// Callback para eliminar
-    required VoidCallback onComment // Callback para comentar
+    required VoidCallback onComment, // Callback para comentar
+    required VoidCallback onReport, // Nuevo callback para reportar
   }) {
     /// Calcula el tiempo transcurrido desde la fecha de publicación
     String calcularTiempoTranscurrido(DateTime publicadaEl) {
@@ -37,7 +38,8 @@ class NoticiaCardHelper {
       categoriaNombre: '',
       onEdit: onEdit, // Callback para editar
       onDelete: onDelete, 
-      onComment: onComment,// Callback para eliminar
+      onComment: onComment,
+      onReport: onReport, // Añadir el callback para reportar
     );
   }
 }

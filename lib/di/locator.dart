@@ -1,4 +1,5 @@
 import 'package:abaez/bloc/comentarios/comentario_bloc.dart';
+import 'package:abaez/bloc/reporte/reporte_bloc.dart';
 import 'package:abaez/data/categorias_repository.dart';
 import 'package:abaez/data/noticia_repository.dart';
 import 'package:abaez/data/preferencia_repository.dart';
@@ -17,5 +18,6 @@ Future<void> initLocator() async {
   );
   di.registerSingleton<ComentarioRepository>(ComentarioRepository());
   di.registerSingleton<ReporteRepository>(ReporteRepository());
+  di.registerFactory<ReporteBloc>(() => ReporteBloc());
   GetIt.instance.registerSingleton(ComentarioBloc());
 }
