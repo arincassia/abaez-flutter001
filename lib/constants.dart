@@ -63,6 +63,7 @@ class ApiConstantes {
   static final String categoriasUrl = '$newsurl/categorias';
   static final String preferenciasUrl = '$newsurl/preferencias';
   static final String comentariosUrl = '$newsurl/comentarios';
+  static final String reportesUrl = '$newsurl/reportes';
 
   static const int timeoutSeconds = 10; 
   static const String errorTimeout = 'Tiempo de espera agotado'; 
@@ -98,12 +99,12 @@ class NoticiaConstantes {
 }
 
 
-
 class ErrorConstantes {
   static const String errorServer = 'Error del servidor';
   static const String errorNotFound = 'Noticias no encontradas.';
   static const String errorUnauthorized = 'No autorizado';
 }
+
 
 class CategoriaConstantes {
   static const int timeoutSeconds = 10; // Tiempo máximo de espera en segundos
@@ -111,5 +112,14 @@ class CategoriaConstantes {
   static const String errorNoCategoria = 'Categoría no encontrada'; // Mensaje para errores de categorías
   static const String defaultCategoriaId = 'sin_categoria'; // ID por defecto para noticias sin categoría
   static const String mensajeError = 'Error al cargar categorias';
+}
+
+class ReporteConstantes {
+  static const String reporteCreado = 'Reporte enviado con éxito';
+  static const String noticiaNoExiste = 'La noticia reportada no existe';
+  static const String errorCrearReporte = 'Error al crear el reporte';
+  static const String errorObtenerReportes = 'Error al obtener reportes';
+  static const String listaVacia = 'No hay reportes disponibles';
+  static const String mensajeCargando = 'Cargando reportes...';
 }
 
