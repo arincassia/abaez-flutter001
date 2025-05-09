@@ -1,5 +1,7 @@
 import 'package:abaez/bloc/comentarios/comentario_bloc.dart';
 import 'package:abaez/bloc/comentarios/comentario_event.dart';
+import 'package:abaez/bloc/reportes/reporte_bloc.dart';
+import 'package:abaez/components/reporte_dialog.dart';  // Importar el componente ReporteDialog
 import 'package:abaez/views/comentarios/comentarios_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -30,11 +32,11 @@ class NoticiaScreen extends StatelessWidget {
           create: (context) => NoticiasBloc()..add(const FetchNoticias()),
         ),
         BlocProvider(
-          create:
-              (context) => PreferenciaBloc()..add(const CargarPreferencias()),
+          create: (context) => PreferenciaBloc()..add(const CargarPreferencias()),
         ),
         // Asegurarnos de usar el BLoC global
         BlocProvider.value(value: context.read<ComentarioBloc>()),
+        BlocProvider.value(value: context.read<ReporteBloc>()), // Asegúrate de proporcionar el ReporteBloc
       ],
       child: BlocConsumer<NoticiasBloc, NoticiasState>(
         listener: (context, state) {
@@ -58,8 +60,7 @@ class NoticiaScreen extends StatelessWidget {
                     NoticiaConstantes.tituloApp,
                     style: TextStyle(color: Colors.white),
                   ),
-                  if (state
-                      is NoticiasLoaded) // Check if state is NoticiasLoaded before accessing lastUpdated
+                  if (state is NoticiasLoaded)
                     Text(
                       'Última actualización: ${(DateFormat(NoticiaConstantes.formatoFecha)).format(state.lastUpdated)}',
                       style: const TextStyle(fontSize: 12),
@@ -89,7 +90,7 @@ class NoticiaScreen extends StatelessWidget {
                       );
                       if (!context.mounted) return;
                     } catch (e) {
-                      if (e is ApiException) {
+                      if (e is ApiException && context.mounted) {
                         _mostrarError(context, e.statusCode);
                       }
                     }
@@ -131,9 +132,7 @@ class NoticiaScreen extends StatelessWidget {
                           );
                         } else {
                           // Si la lista está vacía, usar el evento FetchNoticias para mostrar todas
-                          context.read<NoticiasBloc>().add(
-                            const FetchNoticias(),
-                          );
+                          context.read<NoticiasBloc>().add(const FetchNoticias());
                         }
                       }
                     });
@@ -237,8 +236,7 @@ class NoticiaScreen extends StatelessWidget {
                 try {
                   await _editarNoticia(context, noticia);
                 } catch (e) {
-                  if (e is ApiException) {
-                    if (!context.mounted) return;
+                  if (e is ApiException && context.mounted) {
                     _mostrarError(context, e.statusCode);
                   }
                 }
@@ -270,9 +268,8 @@ class NoticiaScreen extends StatelessWidget {
                   },
                 );
 
-                if (confirmacion == true) {
+                if (confirmacion == true && context.mounted) {
                   try {
-                    if (!context.mounted) return;
                     context.read<NoticiasBloc>().add(
                       DeleteNoticia(noticia.id!),
                     );
@@ -282,44 +279,35 @@ class NoticiaScreen extends StatelessWidget {
                       statusCode: 200,
                     );
                   } catch (e) {
-                    if (e is ApiException) {
-                      if (!context.mounted) return;
+                    if (e is ApiException && context.mounted) {
                       _mostrarError(context, e.statusCode);
                     }
                   }
                 }
               },
               onComment: () async {
-                // Abrir el diálogo de comentarios
                 if (!context.mounted) return;
 
-                // Mostrar el diálogo de comentarios
                 await Navigator.of(context)
                     .push(
                       MaterialPageRoute(
-                        builder:
-                            (context) =>
-                                ComentariosScreen(noticiaId: noticia.id!),
+                        builder: (context) =>
+                            ComentariosScreen(noticiaId: noticia.id!),
                       ),
                     )
                     .then((_) {
-                      // Cuando el diálogo se cierra, recargar toda la página de noticias
                       if (context.mounted) {
-                        // Recargamos todas las noticias
                         context.read<NoticiasBloc>().add(const FetchNoticias());
-
-                        // También actualizamos el contador específico de comentarios
                         context.read<ComentarioBloc>().add(
                           GetNumeroComentarios(noticiaId: noticia.id!),
                         );
                       }
                     });
               },
+              onReport: () => ReporteDialog.mostrarDialogo(context, noticia.id!),
             );
           },
-          separatorBuilder:
-              (context, index) =>
-                  const Divider(color: Colors.grey, thickness: 0.5, height: 1),
+          separatorBuilder: (context, index) => const SizedBox(height: 8),
         );
       }
     }
@@ -349,8 +337,7 @@ class NoticiaScreen extends StatelessWidget {
     SnackBarHelper.showSnackBar(
       context,
       message,
-      statusCode:
-          statusCode, // Pasar el código de estado para el color adecuado
+      statusCode: statusCode,
     );
   }
 }

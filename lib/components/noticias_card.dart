@@ -1,3 +1,5 @@
+//import 'package:abaez/components/reporte_dialog.dart'; // Añadir esta importación
+import 'package:abaez/components/reporte_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:abaez/constants.dart';
 import 'package:abaez/api/service/categoria_service.dart';
@@ -18,6 +20,7 @@ class NoticiaCard extends StatefulWidget {
   final VoidCallback onDelete;
   final VoidCallback onComment;
   final String categoriaNombre;
+  final VoidCallback? onReport;
 
   const NoticiaCard({
     super.key,
@@ -32,6 +35,7 @@ class NoticiaCard extends StatefulWidget {
     required this.onDelete,
     required this.categoriaNombre,
     required this.onComment,
+    this.onReport,
   });
 
   @override
@@ -41,6 +45,7 @@ class NoticiaCard extends StatefulWidget {
 class _NoticiaCardState extends State<NoticiaCard> {
   int _numeroComentarios = 0;
   bool _isLoading = true;
+  bool _isReported = false; // Nuevo: para seguimiento de estado de reporte
   final CategoriaService _categoriaService = CategoriaService();
 
   @override
@@ -88,6 +93,59 @@ class _NoticiaCardState extends State<NoticiaCard> {
     } catch (e) {
       return 'Sin categoría';
     }
+  }
+  
+  Widget _buildCardActions() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        // Botón existente de editar
+        IconButton(
+          icon: const Icon(Icons.edit, color: Colors.blue),
+          tooltip: 'Editar',
+          onPressed: widget.onEdit,
+        ),
+        // Botón existente de eliminar
+        IconButton(
+          icon: const Icon(Icons.delete, color: Colors.red),
+          tooltip: 'Eliminar',
+          onPressed: widget.onDelete,
+        ),
+        // Columna que contiene el ícono de comentario y el contador
+        Column(
+          children: [
+            IconButton(
+              icon: const Icon(Icons.comment),
+              tooltip: 'Ver comentarios',
+              onPressed: widget.onComment,
+            ),
+            Text(
+              '$_numeroComentarios comentarios',
+              style: const TextStyle(
+                fontSize: 12,
+                color: Colors.grey,
+              ),
+            ),
+          ],
+        ),
+        // Nuevo botón de reportar
+        IconButton(
+          icon: Icon(
+            _isReported ? Icons.warning : Icons.warning_outlined,
+            color: _isReported ? Colors.red : null,
+          ),
+          tooltip: 'Reportar noticia',
+          onPressed: () async {
+            if (widget.onReport != null) {
+              widget.onReport!();
+              setState(() {
+                _isReported = true;
+              });
+            }
+          },
+        ),
+      ],
+    );
   }
 
   @override
@@ -181,38 +239,8 @@ class _NoticiaCardState extends State<NoticiaCard> {
                         : const SizedBox(),
                   ),
                   const SizedBox(height: 8),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.blue),
-                        tooltip: 'Editar',
-                        onPressed: widget.onEdit,
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        tooltip: 'Eliminar',
-                        onPressed: widget.onDelete,
-                      ),
-                      // Columna que contiene el ícono de comentario y el contador
-                      Column(
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.comment),
-                            tooltip: 'Ver comentarios',
-                            onPressed: widget.onComment,
-                          ),
-                          Text(
-                            '$_numeroComentarios comentarios',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                  // Reemplazar esta fila con nuestro método _buildCardActions()
+                  _buildCardActions(),
                 ],
               ),
             ],
