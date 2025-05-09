@@ -79,3 +79,20 @@ class OrdenarComentarios extends ComentarioEvent {
   @override
   List<Object> get props => [ascendente];
 }
+
+class AddSubcomentario extends ComentarioEvent {
+  final String comentarioId;
+  final String noticiaId; // Añadir esto
+  final String texto;
+  final String autor;
+
+  AddSubcomentario({
+    required this.comentarioId,
+    required this.noticiaId, // Añadir esto
+    required this.texto,
+    required this.autor,
+  });
+
+  @override
+  List<Object?> get props => [comentarioId, noticiaId, texto, autor];
+}

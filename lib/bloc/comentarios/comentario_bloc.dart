@@ -1,10 +1,9 @@
 import 'package:abaez/domain/comentario.dart';
-import 'package:abaez/domain/comentario.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:abaez/bloc/comentarios/comentario_event.dart';
 import 'package:abaez/bloc/comentarios/comentario_state.dart';
-import 'package:abaez/data/comentarios_repository.dart';
 import 'package:abaez/exceptions/api_exception.dart';
+import 'package:abaez/data/comentario_repository.dart';
 
 class ComentarioBloc extends Bloc<ComentarioEvent, ComentarioState> {
   final ComentarioRepository comentarioRepository;
@@ -17,7 +16,8 @@ class ComentarioBloc extends Bloc<ComentarioEvent, ComentarioState> {
     on<GetNumeroComentarios>(_onGetNumeroComentarios);
     on<BuscarComentarios>(_onBuscarComentarios);
     on<OrdenarComentarios>(_onOrdenarComentarios);
-    on<AddReaccion>(_onAddReaccion); // <--- nuevo
+    on<AddReaccion>(_onAddReaccion);
+    on<AddSubcomentario>(_onAddSubcomentario);
   }
 
   Future<void> _onLoadComentarios(
@@ -243,6 +243,40 @@ class ComentarioBloc extends Bloc<ComentarioEvent, ComentarioState> {
           ),
         );
       }
+    }
+  }
+
+  Future<void> _onAddSubcomentario(
+    AddSubcomentario event,
+    Emitter<ComentarioState> emit,
+  ) async {
+    try {
+      // Mostrar estado de carga
+      emit(ComentarioLoading());
+
+      // Llamar al repositorio para agregar el subcomentario
+      final resultado = await comentarioRepository.agregarSubcomentario(
+        comentarioId: event.comentarioId,
+        texto: event.texto,
+        autor: event.autor,
+      );
+
+      if (resultado['success'] == true) {
+        // Recargar comentarios usando directamente el noticiaId proporcionado
+        final comentarios = await comentarioRepository
+            .obtenerComentariosPorNoticia(event.noticiaId);
+
+        emit(ComentarioLoaded(comentariosList: comentarios));
+      } else {
+        // Si hubo un error, mostrar el mensaje de error
+        emit(ComentarioError(errorMessage: resultado['message']));
+      }
+    } catch (e) {
+      emit(
+        ComentarioError(
+          errorMessage: 'Error al agregar subcomentario: ${e.toString()}',
+        ),
+      );
     }
   }
 }

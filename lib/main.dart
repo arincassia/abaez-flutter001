@@ -28,6 +28,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (context) => ComentarioBloc()),      
       ],
       child: MaterialApp(
+        debugShowCheckedModeBanner: false,
         title: 'Flutter Demo',
         theme: ThemeData(
     colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 254, 70, 85)),        ),
