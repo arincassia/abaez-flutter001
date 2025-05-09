@@ -1,3 +1,4 @@
+import 'package:abaez/bloc/bloc%20reportes/reportes_bloc.dart';
 import 'package:abaez/bloc/comentarios/comentario_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart'; // Importa flutter_bloc
@@ -25,7 +26,8 @@ class MyApp extends StatelessWidget {
       providers: [
         BlocProvider(create: (context) => ContadorBloc()),
         BlocProvider(create: (context) => PreferenciaBloc()..add(const CargarPreferencias())),
-        BlocProvider(create: (context) => ComentarioBloc()),      
+        BlocProvider(create: (context) => ComentarioBloc()),
+        BlocProvider(create: (context) => ReportesBloc()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

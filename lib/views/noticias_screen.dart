@@ -18,6 +18,7 @@ import 'package:abaez/views/category_screen.dart';
 import 'package:abaez/views/preferencia_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:abaez/helpers/snackbar_helper.dart';
+import 'package:abaez/components/reportes_modal.dart';
 
 class NoticiaScreen extends StatelessWidget {
   const NoticiaScreen({super.key});
@@ -314,6 +315,27 @@ class NoticiaScreen extends StatelessWidget {
                         );
                       }
                     });
+              },
+              onReport: () async {
+                // Abrir el diálogo de reportes
+                if (!context.mounted) return;
+                await ReporteModal.mostrarDialogoReporte(
+                  context: context,
+                  noticiaId: noticia.id!,
+                  onSave: () {
+                    context.read<NoticiasBloc>().add(const FetchNoticias());
+                    SnackBarHelper.showSnackBar(
+                      context,
+                      ApiConstantes.newsuccessReported,
+                      statusCode: 200,
+                    );
+                  },
+                ).then((_) {
+                  // Cuando el diálogo se cierra, recargar toda la página de noticias
+                  if (context.mounted) {
+                    context.read<NoticiasBloc>().add(const FetchNoticias());
+                  }
+                });
               },
             );
           },

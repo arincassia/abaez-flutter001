@@ -17,6 +17,7 @@ class NoticiaCard extends StatefulWidget {
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final VoidCallback onComment;
+  final VoidCallback onReport;
   final String categoriaNombre;
 
   const NoticiaCard({
@@ -32,6 +33,7 @@ class NoticiaCard extends StatefulWidget {
     required this.onDelete,
     required this.categoriaNombre,
     required this.onComment,
+    required this.onReport,
   });
 
   @override
@@ -55,15 +57,15 @@ class _NoticiaCardState extends State<NoticiaCard> {
     try {
       // Cargar el número de comentarios solo la primera vez
       if (_isLoading) {
-        if(widget.id != null) {
+        if (widget.id != null) {
           // Solo cargar si el ID no es nulo
           context.read<ComentarioBloc>().add(
-                GetNumeroComentarios(noticiaId: widget.id!),
-              );
+            GetNumeroComentarios(noticiaId: widget.id!),
+          );
         }
         _isLoading = false;
       }
-      
+
       // Observar cambios en el estado y actualizar si es necesario
       final state = context.watch<ComentarioBloc>().state;
       if (state is NumeroComentariosLoaded && state.noticiaId == widget.id) {
@@ -140,7 +142,8 @@ class _NoticiaCardState extends State<NoticiaCard> {
                     FutureBuilder<String>(
                       future: _obtenerNombreCategoria(widget.categoriaId),
                       builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
                           return const Text(
                             'Cargando categoría...',
                             style: TextStyle(fontSize: 12, color: Colors.grey),
@@ -152,7 +155,8 @@ class _NoticiaCardState extends State<NoticiaCard> {
                             style: TextStyle(fontSize: 12, color: Colors.red),
                           );
                         }
-                        final categoriaNombre = snapshot.data ?? 'Sin categoría';
+                        final categoriaNombre =
+                            snapshot.data ?? 'Sin categoría';
                         return Text(
                           'Categoría: $categoriaNombre',
                           style: const TextStyle(
@@ -171,14 +175,15 @@ class _NoticiaCardState extends State<NoticiaCard> {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: widget.imageUrl.isNotEmpty
-                        ? Image.network(
-                            widget.imageUrl,
-                            fit: BoxFit.cover,
-                            width: 100,
-                            height: 100,
-                          )
-                        : const SizedBox(),
+                    child:
+                        widget.imageUrl.isNotEmpty
+                            ? Image.network(
+                              widget.imageUrl,
+                              fit: BoxFit.cover,
+                              width: 100,
+                              height: 100,
+                            )
+                            : const SizedBox(),
                   ),
                   const SizedBox(height: 8),
                   Row(
@@ -210,6 +215,11 @@ class _NoticiaCardState extends State<NoticiaCard> {
                             ),
                           ),
                         ],
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.report_problem),
+                        tooltip: 'Reportar',
+                        onPressed: widget.onReport,
                       ),
                     ],
                   ),

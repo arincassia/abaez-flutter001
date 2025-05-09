@@ -63,6 +63,7 @@ class ApiConstantes {
   static final String categoriasUrl = '$newsurl/categorias';
   static final String preferenciasUrl = '$newsurl/preferencias';
   static final String comentariosUrl = '$newsurl/comentarios';
+  static final String reportesUrl = '$newsurl/reportes';
 
   static const int timeoutSeconds = 10; 
   static const String errorTimeout = 'Tiempo de espera agotado'; 
@@ -76,6 +77,7 @@ class ApiConstantes {
   static const String newssuccessCreated = 'Noticia creada con éxito';
   static const String newssuccessUpdated = 'Noticia actualizada con éxito';
   static const String newssuccessDeleted = 'Noticia eliminada con éxito';
+  static const String newsuccessReported = 'Noticia reportada con éxito';
 
 
 
