@@ -16,17 +16,17 @@ class ReporteIconHelper {
     String tooltip;
     
     switch (motivo) {
-      case MotivoReporte.NoticiaInapropiada:
+      case MotivoReporte.noticiaInapropiada:
         icono = Icons.block;
         color = Colors.red;
         tooltip = 'Contenido inapropiado';
         break;
-      case MotivoReporte.InformacionFalsa:
+      case MotivoReporte.informacionFalsa:
         icono = Icons.warning;
         color = Colors.orange;
         tooltip = 'Información falsa';
         break;
-      case MotivoReporte.Otro:
+      case MotivoReporte.otro:
         icono = Icons.flag;
         color = Colors.blue;
         tooltip = 'Otro problema';
@@ -56,11 +56,11 @@ class ReporteIconHelper {
   /// Obtiene una descripción textual del motivo de reporte
   static String getMotivoDescript(MotivoReporte motivo) {
     switch (motivo) {
-      case MotivoReporte.NoticiaInapropiada:
+      case MotivoReporte.noticiaInapropiada:
         return 'Contenido inapropiado';
-      case MotivoReporte.InformacionFalsa:
+      case MotivoReporte.informacionFalsa:
         return 'Información falsa';
-      case MotivoReporte.Otro:
+      case MotivoReporte.otro:
         return 'Otro problema';
     }
   }

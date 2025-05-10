@@ -3,7 +3,6 @@ import 'package:abaez/api/service/reporte_service.dart';
 import 'package:abaez/domain/reporte.dart';
 import 'package:abaez/constants.dart';
 import 'package:abaez/exceptions/api_exception.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class ReporteRepository {
   final ReporteService _reporteService = ReporteService();

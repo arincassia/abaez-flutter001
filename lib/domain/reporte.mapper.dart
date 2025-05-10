@@ -25,12 +25,12 @@ class MotivoReporteMapper extends EnumMapper<MotivoReporte> {
   @override
   MotivoReporte decode(dynamic value) {
     switch (value) {
-      case r'NoticiaInapropiada':
-        return MotivoReporte.NoticiaInapropiada;
-      case r'InformacionFalsa':
-        return MotivoReporte.InformacionFalsa;
-      case r'Otro':
-        return MotivoReporte.Otro;
+      case r'noticiaInapropiada':
+        return MotivoReporte.noticiaInapropiada;
+      case r'informacionFalsa':
+        return MotivoReporte.informacionFalsa;
+      case r'otro':
+        return MotivoReporte.otro;
       default:
         throw MapperException.unknownEnumValue(value);
     }
@@ -39,12 +39,12 @@ class MotivoReporteMapper extends EnumMapper<MotivoReporte> {
   @override
   dynamic encode(MotivoReporte self) {
     switch (self) {
-      case MotivoReporte.NoticiaInapropiada:
-        return r'NoticiaInapropiada';
-      case MotivoReporte.InformacionFalsa:
-        return r'InformacionFalsa';
-      case MotivoReporte.Otro:
-        return r'Otro';
+      case MotivoReporte.noticiaInapropiada:
+        return r'noticiaInapropiada';
+      case MotivoReporte.informacionFalsa:
+        return r'informacionFalsa';
+      case MotivoReporte.otro:
+        return r'otro';
     }
   }
 }

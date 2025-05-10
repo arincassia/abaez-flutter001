@@ -5,9 +5,9 @@ part 'reporte.mapper.dart';
 /// Enum para representar los diferentes motivos de reportes
 @MappableEnum()
 enum MotivoReporte {
-  NoticiaInapropiada,
-  InformacionFalsa,
-  Otro
+  noticiaInapropiada,
+  informacionFalsa,
+  otro
 }
 
 /// Modelo para representar un reporte de noticia

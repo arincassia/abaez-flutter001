@@ -9,7 +9,6 @@ import 'package:abaez/bloc/reporte/reporte_bloc.dart';
 import 'package:abaez/bloc/reporte/reporte_event.dart';
 import 'package:abaez/bloc/reporte/reporte_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:abaez/di/locator.dart';
 import 'package:abaez/helpers/snackbar_helper.dart';
 import 'package:watch_it/watch_it.dart';
 
@@ -328,9 +327,9 @@ class _ReporteDialogContentState extends State<_ReporteDialogContent> {
           // Convertir del enum MotivoReporte a strings para mostrar los contadores
           setState(() {
             _estadisticasReportes = {
-              'NoticiaInapropiada': state.estadisticas[MotivoReporte.NoticiaInapropiada] ?? 0,
-              'InformacionFalsa': state.estadisticas[MotivoReporte.InformacionFalsa] ?? 0,
-              'Otro': state.estadisticas[MotivoReporte.Otro] ?? 0,
+              'NoticiaInapropiada': state.estadisticas[MotivoReporte.noticiaInapropiada] ?? 0,
+              'InformacionFalsa': state.estadisticas[MotivoReporte.informacionFalsa] ?? 0,
+              'Otro': state.estadisticas[MotivoReporte.otro] ?? 0,
             };
           });
         }
@@ -367,32 +366,32 @@ class _ReporteDialogContentState extends State<_ReporteDialogContent> {
                 children: [
                   _buildMotivoButton(
                     context: context,
-                    motivo: MotivoReporte.NoticiaInapropiada,
+                    motivo: MotivoReporte.noticiaInapropiada,
                     icon: Icons.warning,
                     color: Colors.red,
                     label: 'Inapropiada',
                     iconNumber: '${_estadisticasReportes['NoticiaInapropiada']}',
-                    isLoading: _reporteEnviando && _ultimoMotivoReportado == MotivoReporte.NoticiaInapropiada,
+                    isLoading: _reporteEnviando && _ultimoMotivoReportado == MotivoReporte.noticiaInapropiada,
                     smallSize: true, // Indicador para tamaño reducido
                   ),
                   _buildMotivoButton(
                     context: context,
-                    motivo: MotivoReporte.InformacionFalsa,
+                    motivo: MotivoReporte.informacionFalsa,
                     icon: Icons.info,
                     color: Colors.amber,
                     label: 'Falsa',
                     iconNumber: '${_estadisticasReportes['InformacionFalsa']}',
-                    isLoading: _reporteEnviando && _ultimoMotivoReportado == MotivoReporte.InformacionFalsa,
+                    isLoading: _reporteEnviando && _ultimoMotivoReportado == MotivoReporte.informacionFalsa,
                     smallSize: true, // Indicador para tamaño reducido
                   ),
                   _buildMotivoButton(
                     context: context,
-                    motivo: MotivoReporte.Otro,
+                    motivo: MotivoReporte.otro,
                     icon: Icons.flag,
                     color: Colors.blue,
                     label: 'Otro',
                     iconNumber: '${_estadisticasReportes['Otro']}',
-                    isLoading: _reporteEnviando && _ultimoMotivoReportado == MotivoReporte.Otro,
+                    isLoading: _reporteEnviando && _ultimoMotivoReportado == MotivoReporte.otro,
                     smallSize: true, // Indicador para tamaño reducido
                   ),
                 ],

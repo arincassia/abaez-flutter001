@@ -7,13 +7,17 @@ class ErrorHelper {
     Color color;
 
     switch (statusCode) {
+      case 200:
+        message = 'Operación exitosa';
+        color = Colors.green;
+        break;
       case 400:
         message = NoticiaConstantes.mensajeError;
-        color = Colors.orange;
+        color = Colors.red;
         break;
       case 401:
         message = ErrorConstantes.errorUnauthorized;
-        color = Colors.red;
+        color = Colors.orange;
         break;
       case 403:
         message = ErrorConstantes.errorUnauthorized;
@@ -29,7 +33,7 @@ class ErrorHelper {
         break;
       default:
         message = 'Ocurrió un error desconocido.';
-        color = Colors.black;
+        color = Colors.grey;
         break;
     }
 
