@@ -32,6 +32,25 @@ class NoticiaService {
     }
   }
 
+  /// Obtiene una noticia específica por su ID
+  Future<dynamic> getNoticiaById(String id) async {
+    try {
+      final url = '${ApiConstantes.noticiasUrl}/$id';
+      final response = await _dioNew.get(url);
+
+      if (response.statusCode == 200) {
+        return response.data;
+      } else {
+        throw ApiException('Error desconocido', statusCode: response.statusCode);
+      }
+    } on DioException catch (e) {
+      final errorData = ErrorHelper.getErrorMessageAndColor(e.response?.statusCode);
+      throw ApiException(errorData['message'], statusCode: e.response?.statusCode);
+    } catch (e) {
+      throw ApiException('Error inesperado: $e');
+    }
+  }
+
   /// Edita una noticia en la API de CrudCrud
   Future<void> editarNoticia(String id, Noticia noticia) async {
     try {

@@ -17,6 +17,7 @@ class NoticiaCard extends StatefulWidget {
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final VoidCallback onComment;
+  final VoidCallback onReport;
   final String categoriaNombre;
 
   const NoticiaCard({
@@ -32,6 +33,7 @@ class NoticiaCard extends StatefulWidget {
     required this.onDelete,
     required this.categoriaNombre,
     required this.onComment,
+    required this.onReport,
   });
 
   @override
@@ -55,7 +57,7 @@ class _NoticiaCardState extends State<NoticiaCard> {
     try {
       // Cargar el número de comentarios solo la primera vez
       if (_isLoading) {
-        if(widget.id != null) {
+        if (widget.id != null) {
           // Solo cargar si el ID no es nulo
           context.read<ComentarioBloc>().add(
                 GetNumeroComentarios(noticiaId: widget.id!),
@@ -63,7 +65,7 @@ class _NoticiaCardState extends State<NoticiaCard> {
         }
         _isLoading = false;
       }
-      
+
       // Observar cambios en el estado y actualizar si es necesario
       final state = context.watch<ComentarioBloc>().state;
       if (state is NumeroComentariosLoaded && state.noticiaId == widget.id) {
@@ -210,6 +212,11 @@ class _NoticiaCardState extends State<NoticiaCard> {
                             ),
                           ),
                         ],
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.report, color: Colors.orange),
+                        tooltip: 'Reportar',
+                        onPressed: widget.onReport,
                       ),
                     ],
                   ),
