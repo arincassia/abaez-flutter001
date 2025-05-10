@@ -8,8 +8,12 @@ import 'package:abaez/bloc/bloc%20noticias/noticias_state.dart';
 import 'package:abaez/bloc/bloc%20noticias/noticias_bloc.dart';
 import 'package:abaez/bloc/preferencia/preferencia_bloc.dart';
 import 'package:abaez/bloc/preferencia/preferencia_event.dart';
+import 'package:abaez/bloc/reporte/reporte_bloc.dart';
+import 'package:abaez/bloc/reporte/reporte_event.dart';
+import 'package:abaez/bloc/reporte/reporte_state.dart';
 import 'package:abaez/components/noticia_dialogs.dart';
 import 'package:abaez/domain/noticia.dart';
+import 'package:abaez/domain/reporte.dart';
 import 'package:abaez/constants.dart';
 import 'package:abaez/helpers/noticia_card_helper.dart';
 import 'package:abaez/exceptions/api_exception.dart';
@@ -18,6 +22,9 @@ import 'package:abaez/views/category_screen.dart';
 import 'package:abaez/views/preferencia_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:abaez/helpers/snackbar_helper.dart';
+import 'package:get_it/get_it.dart';
+
+final locator = GetIt.instance;
 
 class NoticiaScreen extends StatelessWidget {
   const NoticiaScreen({super.key});
@@ -315,6 +322,7 @@ class NoticiaScreen extends StatelessWidget {
                       }
                     });
               },
+              onReport: () => _mostrarDialogoReporte(context, noticia),
             );
           },
           separatorBuilder:
@@ -352,5 +360,129 @@ class NoticiaScreen extends StatelessWidget {
       statusCode:
           statusCode, // Pasar el código de estado para el color adecuado
     );
+  }
+
+  void _mostrarDialogoReporte(BuildContext context, Noticia noticia) {
+    // Variable para almacenar el motivo seleccionado
+    MotivoReporte motivoSeleccionado = MotivoReporte.noticiaInapropiada;
+
+    // Create a local ReporteBloc without using GetIt to avoid conflicts
+    final reporteBloc = ReporteBloc();
+
+    // Usar BlocProvider.value para proporcionar el bloc creado localmente
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return BlocProvider.value(
+          value: reporteBloc,
+          child: BlocConsumer<ReporteBloc, ReporteState>(
+            listener: (context, state) {
+              if (state is ReporteSuccess) {
+                Navigator.of(dialogContext).pop();
+                SnackBarHelper.showSnackBar(
+                  context,
+                  'Reporte enviado correctamente',
+                  statusCode: 200,
+                );
+              } else if (state is ReporteError) {
+                SnackBarHelper.showSnackBar(
+                  context,
+                  'Error al enviar el reporte: ${state.errorMessage}',
+                  statusCode: 400,
+                );
+              }
+            },
+            builder: (context, state) {
+              return AlertDialog(
+                title: const Text('Reportar Noticia'),
+                content: state is ReporteLoading
+                    ? const Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CircularProgressIndicator(),
+                          SizedBox(height: 16),
+                          Text('Enviando reporte...'),
+                        ],
+                      )
+                    : StatefulBuilder(
+                        builder: (context, setState) {
+                          return Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text(
+                                'Selecciona el motivo del reporte:',
+                              ),
+                              const SizedBox(height: 16),
+                              DropdownButton<MotivoReporte>(
+                                value: motivoSeleccionado,
+                                isExpanded: true,
+                                onChanged: (MotivoReporte? value) {
+                                  if (value != null) {
+                                    setState(() {
+                                      motivoSeleccionado = value;
+                                    });
+                                  }
+                                },
+                                items: [
+                                  const DropdownMenuItem(
+                                    value: MotivoReporte.noticiaInapropiada,
+                                    child: Text('Noticia Inapropiada'),
+                                  ),
+                                  const DropdownMenuItem(
+                                    value: MotivoReporte.informacionFalsa,
+                                    child: Text('Información Falsa'),
+                                  ),
+                                  const DropdownMenuItem(
+                                    value: MotivoReporte.otro,
+                                    child: Text('Otro'),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                actions: [
+                  TextButton(
+                    onPressed: state is ReporteLoading 
+                        ? null 
+                        : () {
+                            Navigator.pop(dialogContext);
+                            // Close the bloc when dialog is closed via cancel
+                            reporteBloc.close();
+                          },
+                    child: const Text('Cancelar'),
+                  ),
+                  ElevatedButton(
+                    onPressed: state is ReporteLoading
+                        ? null
+                        : () {
+                            // Crear instancia de Reporte
+                            final reporte = Reporte(
+                              noticiaId: noticia.id!,
+                              fecha: DateTime.now(),
+                              motivo: motivoSeleccionado,
+                            );
+
+                            // Emitir evento para enviar el reporte
+                            reporteBloc.add(EnviarReporte(reporte));
+                            // Don't close the bloc here, it will be handled in the listener when state is ReporteSuccess
+                          },
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: Colors.blue,
+                    ),
+                    child: const Text('Enviar'),
+                  ),
+                ],
+              );
+            },
+          ),
+        );
+      },
+    ).then((_) {
+      // Ensure bloc is closed when the dialog is dismissed in any way
+      reporteBloc.close();
+    });
   }
 }
