@@ -62,6 +62,7 @@ class ApiConstantes {
   static final String noticiasUrl = '$newsurl/noticias';
   static final String categoriasUrl = '$newsurl/categorias';
   static final String preferenciasUrl = '$newsurl/preferencias';
+  static final String reportesUrl = '$newsurl/reportes';
   static final String comentariosUrl = '$newsurl/comentarios';
 
   static const int timeoutSeconds = 10; 
