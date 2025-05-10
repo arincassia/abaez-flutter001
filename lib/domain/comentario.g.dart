@@ -19,6 +19,7 @@ Comentario _$ComentarioFromJson(Map<String, dynamic> json) => Comentario(
           ?.map((e) => Comentario.fromJson(e as Map<String, dynamic>))
           .toList(),
   isSubComentario: json['isSubComentario'] as bool? ?? false,
+  idSubComentario: json['idSubComentario'] as String?,
 );
 
 Map<String, dynamic> _$ComentarioToJson(Comentario instance) =>
@@ -31,4 +32,5 @@ Map<String, dynamic> _$ComentarioToJson(Comentario instance) =>
       'dislikes': instance.dislikes,
       'subcomentarios': instance.subcomentarios,
       'isSubComentario': instance.isSubComentario,
+      'idSubComentario': instance.idSubComentario,
     };

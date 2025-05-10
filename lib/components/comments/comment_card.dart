@@ -104,10 +104,9 @@ class CommentCard extends StatelessWidget {
               child: ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: comentario.subcomentarios!.length,
-                itemBuilder: (context, index) => SubcommentCard(
+                itemCount: comentario.subcomentarios!.length,                itemBuilder: (context, index) => SubcommentCard(
                   subcomentario: comentario.subcomentarios![index],
-                  //noticiaId: noticiaId,
+                  noticiaId: noticiaId,
                 ),
               ),
             ),

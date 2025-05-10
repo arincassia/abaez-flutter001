@@ -1,4 +1,5 @@
 import 'package:abaez/bloc/comentarios/comentario_bloc.dart';
+import 'package:abaez/bloc/reporte/reporte_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart'; // Importa flutter_bloc
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -26,8 +27,11 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (context) => ContadorBloc()),
         BlocProvider(create: (context) => PreferenciaBloc()..add(const CargarPreferencias())),
         BlocProvider(create: (context) => ComentarioBloc()),      
+        BlocProvider(create: (context) => ReporteBloc()),      
+
       ],
       child: MaterialApp(
+        debugShowCheckedModeBanner: false,
         title: 'Flutter Demo',
         theme: ThemeData(
     colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 254, 70, 85)),        ),

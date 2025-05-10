@@ -15,6 +15,7 @@ class Comentario {
   final List<Comentario>? subcomentarios;
   @JsonKey(defaultValue: false)
   final bool isSubComentario; // Ahora es required con valor por defecto
+  final String? idSubComentario; // idNoticia es opcional
 
   Comentario({
     this.id, // id ahora es opcional
@@ -26,6 +27,7 @@ class Comentario {
     required this.dislikes,
     this.subcomentarios,
     this.isSubComentario = false, // Valor por defecto
+    this.idSubComentario, // idSubComentario es opcional
   });
 
   factory Comentario.fromJson(Map<String, dynamic> json) =>
