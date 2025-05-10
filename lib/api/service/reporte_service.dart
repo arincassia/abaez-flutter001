@@ -122,7 +122,7 @@ class ReporteService {
 
   Future<List<Map<String, dynamic>>> obtenerReportesRaw() async {
     try {
-      final Response response = await _dio.get('/reportes');
+      final Response response = await _dio.get(ApiConstantes.reportesUrl);
 
       if (response.data is! List) {
         throw ApiException('Formato de respuesta inválido', statusCode: 500);

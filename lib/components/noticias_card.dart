@@ -1,5 +1,7 @@
 import 'package:abaez/bloc/reporte/reporte_bloc.dart';
 import 'package:abaez/bloc/reporte/reporte_event.dart';
+import 'package:abaez/bloc/reporte/reporte_state.dart';
+import 'package:abaez/data/reporte_repository.dart';
 import 'package:abaez/domain/reporte.dart';
 import 'package:abaez/helpers/snackbar_helper.dart';
 import 'package:flutter/material.dart';
@@ -46,7 +48,7 @@ class _NoticiaCardState extends State<NoticiaCard> {
   int _numeroComentarios = 0;
   bool _isLoading = true;
   final CategoriaService _categoriaService = CategoriaService();
-
+  final ReporteRepository _reporteRepository = ReporteRepository();
   @override
   void initState() {
     super.initState();
@@ -96,118 +98,164 @@ class _NoticiaCardState extends State<NoticiaCard> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        vertical: AppConstants.espaciadoAlto,
-        horizontal: 16,
-      ),
-      child: Card(
-        color: Colors.white,
-        elevation: 4,
-        child: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.titulo,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      widget.fuente,
-                      style: const TextStyle(
-                        fontStyle: FontStyle.italic,
-                        fontWeight: FontWeight.w300,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      widget.descripcion,
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 14),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${AppConstants.publicadaEl} ${widget.publicadaEl}',
-                      style: const TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
-                    const SizedBox(height: 4),
-                    FutureBuilder<String>(
-                      future: _obtenerNombreCategoria(widget.categoriaId),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const Text(
-                            'Cargando categoría...',
-                            style: TextStyle(fontSize: 12, color: Colors.grey),
-                          );
-                        }
-                        if (snapshot.hasError) {
-                          return const Text(
-                            'Error al cargar categoría',
-                            style: TextStyle(fontSize: 12, color: Colors.red),
-                          );
-                        }
-                        final categoriaNombre =
-                            snapshot.data ?? 'Sin categoría';
-                        return Text(
-                          'Categoría: $categoriaNombre',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey,
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child:
-                        widget.imageUrl.isNotEmpty
-                            ? Image.network(
-                              widget.imageUrl,
-                              fit: BoxFit.cover,
-                              width: 100,
-                              height: 100,
-                            )
-                            : const SizedBox(),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
+    return BlocListener<ReporteBloc, ReporteState>(
+      listener: (context, state) {
+        if (state is ReporteSuccess) {}
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          vertical: AppConstants.espaciadoAlto,
+          horizontal: 16,
+        ),
+        child: Card(
+          color: Colors.white,
+          elevation: 4,
+          child: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.blue),
-                        tooltip: 'Editar',
-                        onPressed: widget.onEdit,
+                      Text(
+                        widget.titulo,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        tooltip: 'Eliminar',
-                        onPressed: widget.onDelete,
+                      const SizedBox(height: 4),
+                      Text(
+                        widget.fuente,
+                        style: const TextStyle(
+                          fontStyle: FontStyle.italic,
+                          fontWeight: FontWeight.w300,
+                        ),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.report),
-                        tooltip: 'Reportar Noticia',
-                        onPressed: () => _mostrarReporteModal(context),
+                      const SizedBox(height: 4),
+                      Text(
+                        widget.descripcion,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 14),
                       ),
-                      // Columna que contiene el ícono de comentario y el contador
-                      Column(
+                      const SizedBox(height: 4),
+                      Text(
+                        '${AppConstants.publicadaEl} ${widget.publicadaEl}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      FutureBuilder<String>(
+                        future: _obtenerNombreCategoria(widget.categoriaId),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Text(
+                              'Cargando categoría...',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                            );
+                          }
+                          if (snapshot.hasError) {
+                            return const Text(
+                              'Error al cargar categoría',
+                              style: TextStyle(fontSize: 12, color: Colors.red),
+                            );
+                          }
+                          final categoriaNombre =
+                              snapshot.data ?? 'Sin categoría';
+                          return Text(
+                            'Categoría: $categoriaNombre',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child:
+                          widget.imageUrl.isNotEmpty
+                              ? Image.network(
+                                widget.imageUrl,
+                                fit: BoxFit.cover,
+                                width: 100,
+                                height: 100,
+                              )
+                              : const SizedBox(),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '$_numeroComentarios',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.black,
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.comment),
+                          tooltip: 'Ver comentarios',
+                          onPressed: widget.onComment,
+                        ),
+                        FutureBuilder<int>(
+                          future: _reporteRepository.getReportesPorNoticia(
+                            widget.id!,
+                          ), // Future a esperar
+                          builder: (context, snapshot) {
+                            // Estados posibles del Future
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const CircularProgressIndicator(); // Muestra spinner mientras carga
+                            }
+
+                            if (snapshot.hasError) {
+                              return Text(
+                                'Error: ${snapshot.error}',
+                              ); // Manejo de errores
+                            }
+
+                            return Text(
+                              '${snapshot.data}',
+                            ); // Muestra el valor cuando está cargado
+                          },
+                        ),
+
+                        IconButton(
+                          icon: const Icon(Icons.flag, color: Colors.red),
+                          tooltip: 'Reportar Noticia',
+                          onPressed: () => _mostrarReporteModal(context),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.edit, color: Colors.blue),
+                          tooltip: 'Editar',
+                          onPressed: widget.onEdit,
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          tooltip: 'Eliminar',
+                          onPressed: widget.onDelete,
+                        ),
+
+                        // Columna que contiene el ícono de comentario y el contador
+                        /*Column(
                         children: [
                           IconButton(
                             icon: const Icon(Icons.comment),
@@ -222,12 +270,13 @@ class _NoticiaCardState extends State<NoticiaCard> {
                             ),
                           ),
                         ],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
+                      ),*/
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -243,7 +292,11 @@ class _NoticiaCardState extends State<NoticiaCard> {
           (context) => StatefulBuilder(
             builder: (context, setState) {
               return AlertDialog(
-                title: const Text('Reportar Noticia'),
+                title: const Text('Reportar Noticia',
+                style:TextStyle(
+                  fontWeight: FontWeight.bold
+                )
+                ),
                 content: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -251,6 +304,12 @@ class _NoticiaCardState extends State<NoticiaCard> {
                     const SizedBox(height: 10),
                     DropdownButton<MotivoReporte>(
                       value: selectedMotivo,
+                      hint: const Text('Selecciona una opción'), // Texto cuando no hay selección
+                      isExpanded: true,
+                      borderRadius: BorderRadius.circular(20.0), // Borde redondeado del menú desplegable
+
+                      dropdownColor: const Color.fromARGB(255, 236, 199, 212), // Color del menú desplegado
+
                       onChanged: (MotivoReporte? newValue) {
                         setState(() {
                           selectedMotivo = newValue;
@@ -260,9 +319,11 @@ class _NoticiaCardState extends State<NoticiaCard> {
                           MotivoReporte.values.map((MotivoReporte motivo) {
                             return DropdownMenuItem<MotivoReporte>(
                               value: motivo,
+                            
                               child: Text(_mapMotivoToString(motivo)),
                             );
                           }).toList(),
+                      
                     ),
                   ],
                 ),
@@ -272,6 +333,24 @@ class _NoticiaCardState extends State<NoticiaCard> {
                     child: const Text('Cancelar'),
                   ),
                   ElevatedButton(
+                    style:ButtonStyle(
+                      backgroundColor: WidgetStatePropertyAll(
+                        WidgetStateColor.resolveWith((states) {
+                          if (states.contains(WidgetState.pressed)) {
+                            return const Color.fromARGB(255, 82, 53, 67);
+                          }
+                          return const Color.fromARGB(255, 117, 80, 98);
+                        }),
+                      ),
+                      foregroundColor: WidgetStatePropertyAll(
+                        WidgetStateColor.resolveWith((states) {
+                          if (states.contains(WidgetState.pressed)) {
+                            return Colors.white;
+                          }
+                          return Colors.white;
+                        }),
+                      ),
+                    ),
                     onPressed: () {
                       if (selectedMotivo != null && widget.id != null) {
                         Navigator.pop(context);
@@ -309,8 +388,6 @@ class _NoticiaCardState extends State<NoticiaCard> {
         return 'Información falsa';
       case MotivoReporte.otro:
         return 'Otro motivo';
-      default:
-        return 'Otro';
     }
   }
 }
