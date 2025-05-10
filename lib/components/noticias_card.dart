@@ -17,6 +17,7 @@ class NoticiaCard extends StatefulWidget {
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final VoidCallback onComment;
+  final VoidCallback onReport; // Nuevo callback
   final String categoriaNombre;
 
   const NoticiaCard({
@@ -30,8 +31,9 @@ class NoticiaCard extends StatefulWidget {
     required this.categoriaId,
     required this.onEdit,
     required this.onDelete,
-    required this.categoriaNombre,
     required this.onComment,
+    required this.onReport, // Añadir parámetro
+    required this.categoriaNombre,
   });
 
   @override
@@ -210,6 +212,12 @@ class _NoticiaCardState extends State<NoticiaCard> {
                             ),
                           ),
                         ],
+                      ),
+                      // Nuevo botón para reportar
+                      IconButton(
+                        icon: const Icon(Icons.report_problem, color: Colors.orange),
+                        tooltip: 'Reportar noticia',
+                        onPressed: widget.onReport,
                       ),
                     ],
                   ),

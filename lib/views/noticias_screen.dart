@@ -315,6 +315,9 @@ class NoticiaScreen extends StatelessWidget {
                       }
                     });
               },
+              onReport: () async {
+                _mostrarDialogoReporte(context, noticia.id!);
+              },
             );
           },
           separatorBuilder:
@@ -351,6 +354,14 @@ class NoticiaScreen extends StatelessWidget {
       message,
       statusCode:
           statusCode, // Pasar el código de estado para el color adecuado
+    );
+  }
+
+  void _mostrarDialogoReporte(BuildContext context, String noticiaId) {
+    // Utilizar nuestro nuevo diálogo visual de reportes
+    ReporteDialog.mostrarDialogoReporte(
+      context: context,
+      noticiaId: noticiaId,
     );
   }
 }

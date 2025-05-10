@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart'; // Importa flutter_bloc
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:abaez/bloc/preferencia/preferencia_bloc.dart';
 import 'package:abaez/bloc/preferencia/preferencia_event.dart';
+import 'package:abaez/bloc/reporte/reporte_bloc.dart'; // Añadir importación para ReporteBloc
 import 'package:abaez/di/locator.dart';
 
 import 'package:abaez/views/login_screen.dart';
@@ -25,7 +26,8 @@ class MyApp extends StatelessWidget {
       providers: [
         BlocProvider(create: (context) => ContadorBloc()),
         BlocProvider(create: (context) => PreferenciaBloc()..add(const CargarPreferencias())),
-        BlocProvider(create: (context) => ComentarioBloc()),      
+        BlocProvider(create: (context) => ComentarioBloc()),
+        BlocProvider(create: (context) => ReporteBloc()), // Añadir ReporteBloc global      
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
