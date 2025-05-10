@@ -4,6 +4,15 @@ import 'package:abaez/data/noticia_repository.dart';
 import 'package:abaez/constants.dart';
 import 'package:abaez/domain/categoria.dart';
 import 'package:abaez/api/service/categoria_service.dart';
+import 'package:abaez/domain/reporte.dart'; // Añadir importación para MotivoReporte
+import 'package:abaez/bloc/reporte/reporte_bloc.dart';
+import 'package:abaez/bloc/reporte/reporte_event.dart';
+import 'package:abaez/bloc/reporte/reporte_state.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:abaez/di/locator.dart';
+import 'package:abaez/helpers/snackbar_helper.dart';
+import 'package:watch_it/watch_it.dart';
+
 class NoticiaModal {
   static Future<void> mostrarModal({
     required BuildContext context,
@@ -229,5 +238,263 @@ class NoticiaModal {
         );
       },
     );
+  }
+}
+
+/// Clase para mostrar el diálogo de reportes de noticias
+class ReporteDialog {
+  /// Muestra un diálogo de reporte para una noticia
+  static Future<void> mostrarDialogoReporte({
+    required BuildContext context,
+    required String noticiaId,
+  }) async {
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return BlocProvider(
+          create: (context) => di<ReporteBloc>(),
+          child: _ReporteDialogContent(noticiaId: noticiaId),
+        );
+      },
+    );
+  }
+}
+
+class _ReporteDialogContent extends StatefulWidget {
+  final String noticiaId;
+
+  const _ReporteDialogContent({required this.noticiaId});
+
+  @override
+  State<_ReporteDialogContent> createState() => _ReporteDialogContentState();
+}
+
+class _ReporteDialogContentState extends State<_ReporteDialogContent> {
+  // Estadísticas de reportes
+  Map<String, int> _estadisticasReportes = {
+    'NoticiaInapropiada': 0,
+    'InformacionFalsa': 0,
+    'Otro': 0,
+  };
+  
+  @override
+  void initState() {
+    super.initState();
+    // Cargar estadísticas al iniciar
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _cargarEstadisticasReportes();
+    });
+  }
+  
+  void _cargarEstadisticasReportes() {
+    // Solicitar estadísticas de reportes
+    context.read<ReporteBloc>().add(CargarEstadisticasReporte(
+      noticiaId: widget.noticiaId,
+    ));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocListener<ReporteBloc, ReporteState>(
+      listener: (context, state) {
+        if (state is ReporteSuccess) {
+          // Solicitar actualización de estadísticas después de un reporte exitoso
+          _cargarEstadisticasReportes();
+          
+          // Mostrar mensaje de éxito y cerrar el diálogo después de un tiempo
+          SnackBarHelper.showSnackBar(
+            context,
+            state.mensaje,
+            statusCode: 200,
+          );
+          
+          // No cerramos el diálogo inmediatamente para que el usuario vea los contadores actualizados
+          Future.delayed(const Duration(seconds: 1), () {
+            if (context.mounted) {
+              Navigator.of(context).pop();
+            }
+          });
+        } else if (state is ReporteError) {
+          // Mostrar mensaje de error
+          SnackBarHelper.showSnackBar(
+            context,
+            state.errorMessage,
+            statusCode: state.statusCode ?? 400,
+          );
+        } else if (state is ReporteEstadisticasLoaded && state.noticiaId == widget.noticiaId) {
+          // Actualizar contadores cuando se cargan las estadísticas
+          // Convertir del enum MotivoReporte a strings para mostrar los contadores
+          setState(() {
+            _estadisticasReportes = {
+              'NoticiaInapropiada': state.estadisticas[MotivoReporte.NoticiaInapropiada] ?? 0,
+              'InformacionFalsa': state.estadisticas[MotivoReporte.InformacionFalsa] ?? 0,
+              'Otro': state.estadisticas[MotivoReporte.Otro] ?? 0,
+            };
+          });
+        }
+      },
+      child: Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: const Color(0xFFFCEAE8), // Color rosa suave
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Reportar Noticia',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Selecciona el motivo del reporte:',
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              
+              // Opciones de reporte con íconos y contadores
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildMotivoButton(
+                    context: context,
+                    motivo: MotivoReporte.NoticiaInapropiada,
+                    icon: Icons.warning,
+                    color: Colors.red,
+                    label: 'Inapropiada',
+                    iconNumber: '${_estadisticasReportes['NoticiaInapropiada']}',
+                  ),
+                  _buildMotivoButton(
+                    context: context,
+                    motivo: MotivoReporte.InformacionFalsa,
+                    icon: Icons.info,
+                    color: Colors.amber,
+                    label: 'Falsa',
+                    iconNumber: '${_estadisticasReportes['InformacionFalsa']}',
+                  ),
+                  _buildMotivoButton(
+                    context: context,
+                    motivo: MotivoReporte.Otro,
+                    icon: Icons.flag,
+                    color: Colors.blue,
+                    label: 'Otro',
+                    iconNumber: '${_estadisticasReportes['Otro']}',
+                  ),
+                ],
+              ),
+              
+              const SizedBox(height: 20),
+              
+              // Indicador de cargando cuando se está enviando un reporte
+              BlocBuilder<ReporteBloc, ReporteState>(
+                builder: (context, state) {
+                  if (state is ReporteLoading) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8.0),
+                      child: Center(
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
+              
+              // Botón para cerrar el diálogo
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text(
+                    'Cerrar',
+                    style: TextStyle(
+                      color: Colors.brown,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMotivoButton({
+    required BuildContext context,
+    required MotivoReporte motivo,
+    required IconData icon,
+    required Color color,
+    required String label,
+    required String iconNumber,
+  }) {
+    return Column(
+      children: [
+        InkWell(
+          onTap: () => _enviarReporte(context, motivo),
+          child: Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Icon(
+                  icon,
+                  color: color,
+                  size: 30,
+                ),
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: Container(
+                    width: 18,
+                    height: 18,
+                    decoration: BoxDecoration(
+                      color: color,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Text(
+                        iconNumber,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 12),
+        ),
+      ],
+    );
+  }
+
+  void _enviarReporte(BuildContext context, MotivoReporte motivo) {
+    // Enviar el reporte usando el bloc
+    context.read<ReporteBloc>().add(EnviarReporte(
+          noticiaId: widget.noticiaId,
+          motivo: motivo,
+        ));
   }
 }

@@ -12,6 +12,8 @@ class ReporteBloc extends Bloc<ReporteEvent, ReporteState> {
   
   ReporteBloc() : super(ReporteInitial()) {
     on<EnviarReporte>(_onEnviarReporte);
+    on<CargarEstadisticasReporte>(_onCargarEstadisticasReporte);
+    on<VerificarReporteUsuario>(_onVerificarReporteUsuario);
   }
 
   Future<void> _onEnviarReporte(
@@ -31,6 +33,9 @@ class ReporteBloc extends Bloc<ReporteEvent, ReporteState> {
       // Si la operación fue exitosa
       if (exito) {
         emit(const ReporteSuccess(mensaje: ReporteConstantes.reporteCreado));
+        
+        // Cargar las estadísticas actualizadas
+        await _cargarEstadisticas(event.noticiaId, emit);
       } else {
         // Este caso no debería ocurrir dado que el método lanza excepciones en caso de error
         // Pero lo incluimos por completitud
@@ -51,5 +56,55 @@ class ReporteBloc extends Bloc<ReporteEvent, ReporteState> {
         errorMessage: ReporteConstantes.errorCrearReporte,
       ));
     }
+  }
+
+  Future<void> _onCargarEstadisticasReporte(
+    CargarEstadisticasReporte event,
+    Emitter<ReporteState> emit,
+  ) async {
+    try {
+      emit(ReporteLoading());
+      await _cargarEstadisticas(event.noticiaId, emit);
+    } catch (e) {
+      debugPrint('Error al cargar estadísticas: $e');
+      emit(const ReporteError(
+        errorMessage: ReporteConstantes.errorObtenerReportes,
+      ));
+    }
+  }
+
+  Future<void> _onVerificarReporteUsuario(
+    VerificarReporteUsuario event,
+    Emitter<ReporteState> emit,
+  ) async {
+    try {
+      final bool yaReportado = await _reporteRepository.verificarReporteUsuario(
+        noticiaId: event.noticiaId,
+        motivo: event.motivo,
+      );
+      
+      emit(ReporteUsuarioVerificado(
+        noticiaId: event.noticiaId,
+        motivo: event.motivo,
+        reportado: yaReportado,
+      ));
+    } catch (e) {
+      debugPrint('Error al verificar reporte de usuario: $e');
+      // No emitimos error aquí, pues es menos crítico
+      emit(ReporteUsuarioVerificado(
+        noticiaId: event.noticiaId,
+        motivo: event.motivo,
+        reportado: false,
+      ));
+    }
+  }
+  
+  // Método auxiliar para cargar estadísticas
+  Future<void> _cargarEstadisticas(String noticiaId, Emitter<ReporteState> emit) async {
+    final estadisticas = await _reporteRepository.obtenerEstadisticasReportesPorNoticia(noticiaId);
+    emit(ReporteEstadisticasLoaded(
+      noticiaId: noticiaId,
+      estadisticas: estadisticas,
+    ));
   }
 }

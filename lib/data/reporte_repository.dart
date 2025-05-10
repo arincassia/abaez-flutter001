@@ -3,6 +3,7 @@ import 'package:abaez/api/service/reporte_service.dart';
 import 'package:abaez/domain/reporte.dart';
 import 'package:abaez/constants.dart';
 import 'package:abaez/exceptions/api_exception.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ReporteRepository {
   final ReporteService _reporteService = ReporteService();
@@ -95,7 +96,42 @@ class ReporteRepository {
       throw ApiException(ReporteConstantes.errorObtenerReportes);
     }
   }
-
+  
+  /// Obtiene estadísticas de reportes de una noticia específica
+  Future<Map<MotivoReporte, int>> obtenerEstadisticasReportesPorNoticia(String noticiaId) async {
+    try {
+      final reportes = await obtenerReportes();
+      final estadisticas = <MotivoReporte, int>{};
+      
+      // Inicializar contadores
+      for (final motivo in MotivoReporte.values) {
+        estadisticas[motivo] = 0;
+      }
+      
+      // Contar reportes por motivo para esta noticia
+      for (final reporte in reportes) {
+        if (reporte.noticiaId == noticiaId) {
+          estadisticas[reporte.motivo] = (estadisticas[reporte.motivo] ?? 0) + 1;
+        }
+      }
+      
+      return estadisticas;
+    } catch (e) {
+      debugPrint('Error al obtener estadísticas por noticia: $e');
+      if (e is ApiException) {
+        rethrow;
+      }
+      throw ApiException(ReporteConstantes.errorObtenerReportes);
+    }
+  }
+  
+  /// Verifica si el usuario actual ha reportado una noticia con un motivo específico
+  /// Ahora siempre devuelve false para permitir reportes múltiples
+  Future<bool> verificarReporteUsuario({required String noticiaId, required MotivoReporte motivo}) async {
+    // Siempre retornar false para permitir que el usuario reporte múltiples veces
+    return false;
+  }
+  
   /// Limpia la caché para forzar una recarga desde la API
   void invalidarCache() {
     _cachedReportes = null;
