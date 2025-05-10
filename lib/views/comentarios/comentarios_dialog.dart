@@ -13,9 +13,10 @@ class ComentariosDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Usar un BlocProvider.value para compartir la misma instancia del bloc que se usa en la app
     return BlocProvider.value(
-      value: context.read<ComentarioBloc>()..add(LoadComentarios(noticiaId: noticiaId)),
+      value:
+          context.read<ComentarioBloc>()
+            ..add(LoadComentarios(noticiaId: noticiaId)),
       child: _ComentariosDialogContent(noticiaId: noticiaId),
     );
   }
@@ -33,15 +34,19 @@ class _ComentariosDialogContent extends StatefulWidget {
 
 class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
   final TextEditingController _comentarioController = TextEditingController();
+  final TextEditingController _busquedaController = TextEditingController();
+  bool _ordenAscendente = true;
 
   @override
   void dispose() {
     _comentarioController.dispose();
+    _busquedaController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    //aqui se pueden definir variables
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Container(
@@ -63,10 +68,106 @@ class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
                 ),
                 IconButton(
                   icon: const Icon(Icons.close),
+                  tooltip: 'Cerrar',
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
             ),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _busquedaController,
+                    decoration: InputDecoration(
+                      hintText: 'Buscar en comentarios...',
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      prefixIcon: const Icon(Icons.search),
+                      // Usar ValueListenableBuilder para reaccionar a cambios en el texto
+                      suffixIcon: ValueListenableBuilder<TextEditingValue>(
+                        valueListenable: _busquedaController,
+                        builder: (context, value, child) {
+                          return value.text.isNotEmpty
+                              ? IconButton(
+                                icon: const Icon(Icons.clear),
+                                tooltip: 'Limpiar búsqueda',
+                                onPressed: () {
+                                  // Limpiar el campo de búsqueda
+                                  _busquedaController.clear();
+                                  // Recargar todos los comentarios
+                                  context.read<ComentarioBloc>().add(
+                                    LoadComentarios(
+                                      noticiaId: widget.noticiaId,
+                                    ),
+                                  );
+                                },
+                              )
+                              : const SizedBox.shrink();
+                        },
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: () {
+                    // Emitir evento para filtrar comentarios
+                    if (_busquedaController.text.isEmpty) {
+                      // Si está vacío, cargar todos los comentarios
+                      context.read<ComentarioBloc>().add(
+                        LoadComentarios(noticiaId: widget.noticiaId),
+                      );
+                    } else {
+                      // Si tiene texto, filtrar comentarios
+                      context.read<ComentarioBloc>().add(
+                        BuscarComentarios(
+                          noticiaId: widget.noticiaId,
+                          criterioBusqueda: _busquedaController.text,
+                        ),
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                  child: const Text('Buscar'),
+                ),
+                const SizedBox(width: 8),
+                // Botón de ordenamiento
+                Tooltip(
+                  message:
+                      _ordenAscendente
+                          ? 'Ordenar por más recientes'
+                          : 'Ordenar por más antiguos',
+                  child: ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _ordenAscendente = !_ordenAscendente;
+                      });
+                      // Disparar evento de ordenamiento
+                      context.read<ComentarioBloc>().add(
+                        OrdenarComentarios(
+                          ascendente: _ordenAscendente ? true : false,
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      shape: const CircleBorder(),
+                      padding: const EdgeInsets.all(12),
+                    ),
+                    child: const Icon(Icons.arrow_downward),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
             const Divider(),
 
             // Lista de comentarios
@@ -89,7 +190,9 @@ class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
 
                     if (comentarios.isEmpty) {
                       return const Center(
-                        child: Text('No hay comentarios para esta noticia'),
+                        child: Text(
+                          'No hay comentarios que coincidan con tu búsqueda',
+                        ),
                       );
                     }
 
@@ -114,6 +217,52 @@ class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
                                   fontSize: 12,
                                   color: Colors.grey,
                                 ),
+                              ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.thumb_up_sharp,
+                                      size: 16,
+                                      color: Colors.green,
+                                    ),
+                                    onPressed: () {
+                                      context.read<ComentarioBloc>().add(
+                                        AddReaccion(
+                                          noticiaId: widget.noticiaId,
+                                          comentarioId: comentario.id ?? '',
+                                          tipoReaccion: 'like',
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  Text(
+                                    comentario.likes.toString(),
+                                    style: const TextStyle(fontSize: 12),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.thumb_down_sharp,
+                                      size: 16,
+                                      color: Colors.red,
+                                    ),
+                                    onPressed: () {
+                                      context.read<ComentarioBloc>().add(
+                                        AddReaccion(
+                                          noticiaId: widget.noticiaId,
+                                          comentarioId: comentario.id ?? '',
+                                          tipoReaccion: 'dislike',
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  Text(
+                                    comentario.dislikes.toString(),
+                                    style: const TextStyle(fontSize: 12),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
@@ -166,26 +315,23 @@ class _ComentariosDialogContentState extends State<_ComentariosDialogContent> {
                 }
                 DateTime fecha = DateTime.now();
                 String fechaformateada = fecha.toIso8601String();
-                
+
                 // Usar la instancia global del bloc
                 context.read<ComentarioBloc>().add(
                   AddComentario(
                     noticiaId: widget.noticiaId,
                     texto: _comentarioController.text,
                     autor: 'Usuario anónimo',
-                    fecha: fechaformateada
+                    fecha: fechaformateada,
                   ),
                 );
 
-                // Una vez agregado el comentario, actualizar el contador
                 context.read<ComentarioBloc>().add(
                   GetNumeroComentarios(noticiaId: widget.noticiaId),
                 );
 
-                // Limpiamos el campo
                 _comentarioController.clear();
 
-                // Mostramos confirmación
                 SnackBarHelper.showSnackBar(
                   context,
                   'Comentario agregado con éxito',

@@ -62,7 +62,6 @@ class NoticiaModal {
       if (formKey.currentState!.validate()) {
         try {
           // Convierte la fecha seleccionada al formato ISO 8601
-          final fechaIso8601 = fechaSeleccionada?.toUtc().toIso8601String();
 
           if (noticia == null) {
             // Crear nueva noticia
@@ -70,7 +69,7 @@ class NoticiaModal {
               titulo: tituloController.text,
               descripcion: descripcionController.text,
               fuente: fuenteController.text,
-              publicadaEl: fechaIso8601 ?? '',
+              publicadaEl: fechaSeleccionada ?? DateTime.now(),
               urlImagen: imagenUrlController.text,
               categoriaId: categoriaSeleccionada ?? CategoriaConstantes.defaultCategoriaId,
             );
@@ -81,7 +80,7 @@ class NoticiaModal {
               titulo: tituloController.text,
               descripcion: descripcionController.text,
               fuente: fuenteController.text,
-              publicadaEl: fechaIso8601 ?? '',
+               publicadaEl: fechaSeleccionada ?? DateTime.now(),
               urlImagen: imagenUrlController.text,
               categoriaId: categoriaSeleccionada ?? CategoriaConstantes.defaultCategoriaId,
             );

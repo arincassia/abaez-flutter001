@@ -25,18 +25,18 @@ class NoticiaRepository {
     required String titulo,
     required String descripcion,
     required String fuente,
-    required String publicadaEl,
+    required DateTime publicadaEl,
     required String urlImagen,
     required String categoriaId,
   }) async {
-    final noticia = {
-      'titulo': titulo,
-      'descripcion': descripcion,
-      'fuente': fuente,
-      'publicadaEl': publicadaEl,
-      'urlImagen': urlImagen,
-      'categoriaId': categoriaId,
-    };
+    final noticia = Noticia(
+      titulo: titulo,
+      descripcion: descripcion,
+      fuente: fuente,
+      publicadaEl: publicadaEl,
+      urlImagen: urlImagen,
+      categoriaId: categoriaId,
+    );
     try {
       await _service.crearNoticia(noticia);
     } catch (e) {
@@ -70,28 +70,23 @@ class NoticiaRepository {
     required String titulo,
     required String descripcion,
     required String fuente,
-    required String publicadaEl,
+    required DateTime publicadaEl,
     required String urlImagen,
     required String categoriaId,
   }) async {
-    if (id.isEmpty) {
-      throw ApiException('El ID de la noticia no puede estar vacío.');
-    }
-
     if (titulo.isEmpty || descripcion.isEmpty || fuente.isEmpty) {
       throw ApiException(
         'Los campos título, descripción y fuente no pueden estar vacíos.',
       );
     }
-
-    final noticia = {
-      'titulo': titulo,
-      'descripcion': descripcion,
-      'fuente': fuente,
-      'publicadaEl': publicadaEl,
-      'urlImagen': urlImagen,
-      'categoriaId': categoriaId,
-    };
+    final noticia = Noticia(
+      titulo: titulo,
+      descripcion: descripcion,
+      fuente: fuente,
+      publicadaEl: publicadaEl,
+      urlImagen: urlImagen,
+      categoriaId: categoriaId,
+    );
     try {
       await _service.editarNoticia(id, noticia);
     } catch (e) {
