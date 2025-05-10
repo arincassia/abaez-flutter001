@@ -276,7 +276,9 @@ class _ReporteDialogContentState extends State<_ReporteDialogContent> {
     'InformacionFalsa': 0,
     'Otro': 0,
   };
-  
+  bool _reporteEnviando = false;
+  MotivoReporte? _ultimoMotivoReportado;
+
   @override
   void initState() {
     super.initState();
@@ -336,26 +338,30 @@ class _ReporteDialogContentState extends State<_ReporteDialogContent> {
       child: Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         backgroundColor: const Color(0xFFFCEAE8), // Color rosa suave
+        // Configurar un ancho máximo para el diálogo
+        insetPadding: const EdgeInsets.symmetric(horizontal: 70.0, vertical: 24.0),
         child: Padding(
-          padding: const EdgeInsets.all(20.0),
+          padding: const EdgeInsets.all(16.0), // Reducir el padding interno
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
                 'Reportar Noticia',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 16, // Reducir tamaño de fuente
                   fontWeight: FontWeight.bold,
                 ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Selecciona el motivo del reporte:',
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 12), // Reducir espacio
+              const Text(
+                'Selecciona el motivo:',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14),
+              ),
+              const SizedBox(height: 16), // Reducir espacio
               
-              // Opciones de reporte con íconos y contadores
+              // Opciones de reporte con íconos y contadores - más compactas
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -366,6 +372,8 @@ class _ReporteDialogContentState extends State<_ReporteDialogContent> {
                     color: Colors.red,
                     label: 'Inapropiada',
                     iconNumber: '${_estadisticasReportes['NoticiaInapropiada']}',
+                    isLoading: _reporteEnviando && _ultimoMotivoReportado == MotivoReporte.NoticiaInapropiada,
+                    smallSize: true, // Indicador para tamaño reducido
                   ),
                   _buildMotivoButton(
                     context: context,
@@ -374,6 +382,8 @@ class _ReporteDialogContentState extends State<_ReporteDialogContent> {
                     color: Colors.amber,
                     label: 'Falsa',
                     iconNumber: '${_estadisticasReportes['InformacionFalsa']}',
+                    isLoading: _reporteEnviando && _ultimoMotivoReportado == MotivoReporte.InformacionFalsa,
+                    smallSize: true, // Indicador para tamaño reducido
                   ),
                   _buildMotivoButton(
                     context: context,
@@ -382,40 +392,24 @@ class _ReporteDialogContentState extends State<_ReporteDialogContent> {
                     color: Colors.blue,
                     label: 'Otro',
                     iconNumber: '${_estadisticasReportes['Otro']}',
+                    isLoading: _reporteEnviando && _ultimoMotivoReportado == MotivoReporte.Otro,
+                    smallSize: true, // Indicador para tamaño reducido
                   ),
                 ],
               ),
               
-              const SizedBox(height: 20),
-              
-              // Indicador de cargando cuando se está enviando un reporte
-              BlocBuilder<ReporteBloc, ReporteState>(
-                builder: (context, state) {
-                  if (state is ReporteLoading) {
-                    return const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 8.0),
-                      child: Center(
-                        child: SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      ),
-                    );
-                  }
-                  return const SizedBox.shrink();
-                },
-              ),
+              const SizedBox(height: 16), // Reducir espacio
               
               // Botón para cerrar el diálogo
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: _reporteEnviando ? null : () => Navigator.of(context).pop(),
                   child: const Text(
                     'Cerrar',
                     style: TextStyle(
                       color: Colors.brown,
+                      fontSize: 14, // Reducir tamaño
                     ),
                   ),
                 ),
@@ -434,14 +428,24 @@ class _ReporteDialogContentState extends State<_ReporteDialogContent> {
     required Color color,
     required String label,
     required String iconNumber,
+    bool isLoading = false,
+    bool smallSize = false, // Nuevo parámetro para tamaño reducido
   }) {
+    // Definir tamaños según el parámetro smallSize
+    final buttonSize = smallSize ? 50.0 : 60.0;
+    final iconSize = smallSize ? 24.0 : 30.0;
+    final badgeSize = smallSize ? 16.0 : 18.0;
+    final fontSize = smallSize ? 10.0 : 12.0;
+    
     return Column(
       children: [
         InkWell(
-          onTap: () => _enviarReporte(context, motivo),
+          onTap: _reporteEnviando 
+              ? null 
+              : () => _enviarReporte(context, motivo),
           child: Container(
-            width: 60,
-            height: 60,
+            width: buttonSize,
+            height: buttonSize,
             decoration: BoxDecoration(
               color: Colors.white,
               shape: BoxShape.circle,
@@ -450,17 +454,28 @@ class _ReporteDialogContentState extends State<_ReporteDialogContent> {
             child: Stack(
               alignment: Alignment.center,
               children: [
-                Icon(
-                  icon,
-                  color: color,
-                  size: 30,
-                ),
+                // Mostrar un indicador de carga si este botón está en proceso
+                if (isLoading)
+                  SizedBox(
+                    width: iconSize,
+                    height: iconSize,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(color),
+                    ),
+                  )
+                else
+                  Icon(
+                    icon,
+                    color: color,
+                    size: iconSize,
+                  ),
                 Positioned(
                   bottom: 0,
                   right: 0,
                   child: Container(
-                    width: 18,
-                    height: 18,
+                    width: badgeSize,
+                    height: badgeSize,
                     decoration: BoxDecoration(
                       color: color,
                       shape: BoxShape.circle,
@@ -468,9 +483,9 @@ class _ReporteDialogContentState extends State<_ReporteDialogContent> {
                     child: Center(
                       child: Text(
                         iconNumber,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
-                          fontSize: 12,
+                          fontSize: fontSize,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -481,16 +496,20 @@ class _ReporteDialogContentState extends State<_ReporteDialogContent> {
             ),
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: smallSize ? 6.0 : 8.0),
         Text(
           label,
-          style: const TextStyle(fontSize: 12),
+          style: TextStyle(fontSize: fontSize),
         ),
       ],
     );
   }
 
   void _enviarReporte(BuildContext context, MotivoReporte motivo) {
+    setState(() {
+      _reporteEnviando = true;
+      _ultimoMotivoReportado = motivo;
+    });
     // Enviar el reporte usando el bloc
     context.read<ReporteBloc>().add(EnviarReporte(
           noticiaId: widget.noticiaId,
