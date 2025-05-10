@@ -1,5 +1,6 @@
 import 'package:abaez/bloc/comentarios/comentario_bloc.dart';
 import 'package:abaez/bloc/comentarios/comentario_event.dart';
+import 'package:abaez/bloc/reporte/reporte_bloc.dart';
 import 'package:abaez/views/comentarios/comentarios_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -35,6 +36,8 @@ class NoticiaScreen extends StatelessWidget {
         ),
         // Asegurarnos de usar el BLoC global
         BlocProvider.value(value: context.read<ComentarioBloc>()),
+        BlocProvider(create: (context) => ReporteBloc()),
+
       ],
       child: BlocConsumer<NoticiasBloc, NoticiasState>(
         listener: (context, state) {
@@ -107,6 +110,7 @@ class NoticiaScreen extends StatelessWidget {
                     );
                   },
                 ),
+
                 IconButton(
                   icon: Icon(
                     Icons.filter_list,
@@ -218,7 +222,6 @@ class NoticiaScreen extends StatelessWidget {
       ),
     );
   }
-
   Widget _buildBody(NoticiasState state) {
     if (state is NoticiasLoading) {
       return const Center(child: CircularProgressIndicator());

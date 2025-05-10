@@ -1,3 +1,7 @@
+import 'package:abaez/bloc/reporte/reporte_bloc.dart';
+import 'package:abaez/bloc/reporte/reporte_event.dart';
+import 'package:abaez/domain/reporte.dart';
+import 'package:abaez/helpers/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:abaez/constants.dart';
 import 'package:abaez/api/service/categoria_service.dart';
@@ -55,15 +59,15 @@ class _NoticiaCardState extends State<NoticiaCard> {
     try {
       // Cargar el número de comentarios solo la primera vez
       if (_isLoading) {
-        if(widget.id != null) {
+        if (widget.id != null) {
           // Solo cargar si el ID no es nulo
           context.read<ComentarioBloc>().add(
-                GetNumeroComentarios(noticiaId: widget.id!),
-              );
+            GetNumeroComentarios(noticiaId: widget.id!),
+          );
         }
         _isLoading = false;
       }
-      
+
       // Observar cambios en el estado y actualizar si es necesario
       final state = context.watch<ComentarioBloc>().state;
       if (state is NumeroComentariosLoaded && state.noticiaId == widget.id) {
@@ -140,7 +144,8 @@ class _NoticiaCardState extends State<NoticiaCard> {
                     FutureBuilder<String>(
                       future: _obtenerNombreCategoria(widget.categoriaId),
                       builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
                           return const Text(
                             'Cargando categoría...',
                             style: TextStyle(fontSize: 12, color: Colors.grey),
@@ -152,7 +157,8 @@ class _NoticiaCardState extends State<NoticiaCard> {
                             style: TextStyle(fontSize: 12, color: Colors.red),
                           );
                         }
-                        final categoriaNombre = snapshot.data ?? 'Sin categoría';
+                        final categoriaNombre =
+                            snapshot.data ?? 'Sin categoría';
                         return Text(
                           'Categoría: $categoriaNombre',
                           style: const TextStyle(
@@ -171,14 +177,15 @@ class _NoticiaCardState extends State<NoticiaCard> {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: widget.imageUrl.isNotEmpty
-                        ? Image.network(
-                            widget.imageUrl,
-                            fit: BoxFit.cover,
-                            width: 100,
-                            height: 100,
-                          )
-                        : const SizedBox(),
+                    child:
+                        widget.imageUrl.isNotEmpty
+                            ? Image.network(
+                              widget.imageUrl,
+                              fit: BoxFit.cover,
+                              width: 100,
+                              height: 100,
+                            )
+                            : const SizedBox(),
                   ),
                   const SizedBox(height: 8),
                   Row(
@@ -193,6 +200,11 @@ class _NoticiaCardState extends State<NoticiaCard> {
                         icon: const Icon(Icons.delete, color: Colors.red),
                         tooltip: 'Eliminar',
                         onPressed: widget.onDelete,
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.report),
+                        tooltip: 'Reportar Noticia',
+                        onPressed: () => _mostrarReporteModal(context),
                       ),
                       // Columna que contiene el ícono de comentario y el contador
                       Column(
@@ -220,5 +232,85 @@ class _NoticiaCardState extends State<NoticiaCard> {
         ),
       ),
     );
+  }
+
+  void _mostrarReporteModal(BuildContext context) {
+    MotivoReporte? selectedMotivo;
+
+    showDialog(
+      context: context,
+      builder:
+          (context) => StatefulBuilder(
+            builder: (context, setState) {
+              return AlertDialog(
+                title: const Text('Reportar Noticia'),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Seleccione el motivo del reporte:'),
+                    const SizedBox(height: 10),
+                    DropdownButton<MotivoReporte>(
+                      value: selectedMotivo,
+                      onChanged: (MotivoReporte? newValue) {
+                        setState(() {
+                          selectedMotivo = newValue;
+                        });
+                      },
+                      items:
+                          MotivoReporte.values.map((MotivoReporte motivo) {
+                            return DropdownMenuItem<MotivoReporte>(
+                              value: motivo,
+                              child: Text(_mapMotivoToString(motivo)),
+                            );
+                          }).toList(),
+                    ),
+                  ],
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancelar'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      if (selectedMotivo != null && widget.id != null) {
+                        Navigator.pop(context);
+
+                        context.read<ReporteBloc>().add(
+                          EnviarReporteEvent(
+                            noticiaId: widget.id!,
+                            motivo:
+                                selectedMotivo!, // Enviamos el enum directamente
+                          ),
+                        );
+
+                        SnackBarHelper.showSnackBar(
+                          context,
+                          'Reporte enviado exitosamente',
+                          statusCode: 200,
+                        );
+                      }
+                    },
+                    child: const Text('Enviar Reporte'),
+                  ),
+                ],
+              );
+            },
+          ),
+    );
+  }
+
+  // Función para traducir los valores del enum
+  String _mapMotivoToString(MotivoReporte motivo) {
+    switch (motivo) {
+      case MotivoReporte.noticiaInapropiada:
+        return 'Contenido inapropiado';
+      case MotivoReporte.informacionFalsa:
+        return 'Información falsa';
+      case MotivoReporte.otro:
+        return 'Otro motivo';
+      default:
+        return 'Otro';
+    }
   }
 }
