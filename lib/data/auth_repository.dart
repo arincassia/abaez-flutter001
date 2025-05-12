@@ -1,6 +1,7 @@
 import 'package:abaez/api/service/auth_service.dart';
 import 'package:abaez/helpers/secure_storage_service.dart';
 import 'package:abaez/domain/login_response.dart';
+import 'package:abaez/domain/login_request.dart';
 
 class AuthRepository {
   final AuthService _authService = AuthService();
@@ -12,7 +13,13 @@ class AuthRepository {
       if (email.isEmpty || password.isEmpty) {
         throw ArgumentError('Error: Email and password cannot be empty.');
       }
-      final LoginResponse response = await _authService.login(email, password);
+      
+      final loginRequest = LoginRequest(
+        username: email,
+        password: password,
+      );
+      
+      final LoginResponse response = await _authService.login(loginRequest);
       await _secureStorage.saveJwt(response.sessionToken);
       return true;
     } catch (e) {
