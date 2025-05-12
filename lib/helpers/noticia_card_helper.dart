@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:abaez/domain/noticia.dart';
 import 'package:abaez/components/noticias_card.dart';
 
-class NoticiaCardHelper {
-  /// Construye un widget NoticiaCard directamente desde una instancia de Noticia
+class NoticiaCardHelper {  /// Construye un widget NoticiaCard directamente desde una instancia de Noticia
   static Widget buildNoticiaCard({
     required Noticia noticia,
     required VoidCallback onEdit, // Callback para editar
     required VoidCallback onDelete,// Callback para eliminar
-    required VoidCallback onComment // Callback para comentar
+    required VoidCallback onComment, // Callback para comentar
+    required VoidCallback onReport // Callback para reportar
   }) {
     /// Calcula el tiempo transcurrido desde la fecha de publicación
     String calcularTiempoTranscurrido(DateTime publicadaEl) {
@@ -24,9 +24,7 @@ class NoticiaCardHelper {
       }
     }
 
-    final tiempoTranscurrido = calcularTiempoTranscurrido(noticia.publicadaEl);
-
-    return NoticiaCard(
+    final tiempoTranscurrido = calcularTiempoTranscurrido(noticia.publicadaEl);    return NoticiaCard(
       id: noticia.id, // Pasar el ID de la noticia
       titulo: noticia.titulo,
       descripcion: noticia.descripcion,
@@ -37,7 +35,8 @@ class NoticiaCardHelper {
       categoriaNombre: '',
       onEdit: onEdit, // Callback para editar
       onDelete: onDelete, 
-      onComment: onComment,// Callback para eliminar
+      onComment: onComment, // Callback para comentar
+      onReport: onReport, // Callback para reportar
     );
   }
 }

@@ -17,8 +17,8 @@ class NoticiaCard extends StatefulWidget {
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final VoidCallback onComment;
+  final VoidCallback onReport;
   final String categoriaNombre;
-
   const NoticiaCard({
     super.key,
     this.id,
@@ -32,6 +32,7 @@ class NoticiaCard extends StatefulWidget {
     required this.onDelete,
     required this.categoriaNombre,
     required this.onComment,
+    required this.onReport,
   });
 
   @override
@@ -104,7 +105,9 @@ class _NoticiaCardState extends State<NoticiaCard> {
           padding: const EdgeInsets.all(12.0),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
+              // Columna de texto - Esta se expande para ocupar el espacio disponible
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -113,7 +116,7 @@ class _NoticiaCardState extends State<NoticiaCard> {
                       widget.titulo,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 18,
+                        fontSize: 16, // Reducido para dar más espacio
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -122,6 +125,7 @@ class _NoticiaCardState extends State<NoticiaCard> {
                       style: const TextStyle(
                         fontStyle: FontStyle.italic,
                         fontWeight: FontWeight.w300,
+                        fontSize: 12, // Reducido para dar más espacio
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -134,7 +138,7 @@ class _NoticiaCardState extends State<NoticiaCard> {
                     const SizedBox(height: 4),
                     Text(
                       '${AppConstants.publicadaEl} ${widget.publicadaEl}',
-                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                      style: const TextStyle(fontSize: 10, color: Colors.grey),
                     ),
                     const SizedBox(height: 4),
                     FutureBuilder<String>(
@@ -142,21 +146,21 @@ class _NoticiaCardState extends State<NoticiaCard> {
                       builder: (context, snapshot) {
                         if (snapshot.connectionState == ConnectionState.waiting) {
                           return const Text(
-                            'Cargando categoría...',
-                            style: TextStyle(fontSize: 12, color: Colors.grey),
+                            'Cargando...',
+                            style: TextStyle(fontSize: 10, color: Colors.grey),
                           );
                         }
                         if (snapshot.hasError) {
                           return const Text(
-                            'Error al cargar categoría',
-                            style: TextStyle(fontSize: 12, color: Colors.red),
+                            'Error',
+                            style: TextStyle(fontSize: 10, color: Colors.red),
                           );
                         }
                         final categoriaNombre = snapshot.data ?? 'Sin categoría';
                         return Text(
-                          'Categoría: $categoriaNombre',
+                          'Cat: $categoriaNombre',
                           style: const TextStyle(
-                            fontSize: 12,
+                            fontSize: 10,
                             color: Colors.grey,
                           ),
                         );
@@ -165,59 +169,95 @@ class _NoticiaCardState extends State<NoticiaCard> {
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: widget.imageUrl.isNotEmpty
-                        ? Image.network(
-                            widget.imageUrl,
-                            fit: BoxFit.cover,
-                            width: 100,
-                            height: 100,
-                          )
-                        : const SizedBox(),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.blue),
-                        tooltip: 'Editar',
-                        onPressed: widget.onEdit,
+                // Espacio adecuado entre contenido y botones
+              const SizedBox(width: 4),
+              // Columna de imagen y botones con ancho suficiente para iconos de tamaño normal
+              SizedBox(
+                width: 100, // Espacio suficiente para los iconos de tamaño normal
+                child: Column(
+                  mainAxisSize: MainAxisSize.min, // Importante para minimizar altura
+                  children: [                    // Imagen con tamaño estándar
+                    if (widget.imageUrl.isNotEmpty)
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: Image.network(
+                          widget.imageUrl,
+                          fit: BoxFit.cover,
+                          width: 60, // Tamaño estándar para la imagen
+                          height: 60, // Tamaño estándar para la imagen
+                          errorBuilder: (context, error, stackTrace) {                            return Container(
+                              width: 60, // Tamaño estándar
+                              height: 60, // Tamaño estándar
+                              color: Colors.grey[300],
+                              child: const Icon(Icons.broken_image, size: 24),
+                            );
+                          },
+                        ),
+                      ),                    
+                    const SizedBox(height: 8), // Espaciado vertical normal
+                    // Fila horizontal de botones con espacio normal
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        _buildIconButton(
+                          icon: Icons.edit, 
+                          color: Colors.blue,
+                          onPressed: widget.onEdit,
+                          tooltip: 'Editar',
+                        ),
+                        _buildIconButton(
+                          icon: Icons.delete, 
+                          color: Colors.red,
+                          onPressed: widget.onDelete,
+                          tooltip: 'Eliminar',
+                        ),
+                        _buildIconButton(
+                          icon: Icons.comment,
+                          onPressed: widget.onComment,
+                          tooltip: 'Ver',
+                        ),
+                        _buildIconButton(
+                          icon: Icons.report,
+                          color: Colors.amber,
+                          onPressed: widget.onReport,
+                          tooltip: 'Reportar',
+                        ),
+                      ],
+                    ),
+                      // Contador de comentarios
+                    Text(
+                      '$_numeroComentarios',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        tooltip: 'Eliminar',
-                        onPressed: widget.onDelete,
-                      ),
-                      // Columna que contiene el ícono de comentario y el contador
-                      Column(
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.comment),
-                            tooltip: 'Ver comentarios',
-                            onPressed: widget.onComment,
-                          ),
-                          Text(
-                            '$_numeroComentarios comentarios',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }  // Widget helper para crear botones de iconos de tamaño normal
+  Widget _buildIconButton({
+    required IconData icon,
+    Color? color,
+    required VoidCallback onPressed,
+    required String tooltip,
+  }) {
+    return IconButton(
+      icon: Icon(icon, size: 20, color: color), // Tamaño normal de iconos
+      tooltip: tooltip,
+      onPressed: onPressed,
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(
+        minWidth: 24, // Tamaño estándar para botones
+        minHeight: 24,
+        maxWidth: 24, // Tamaño estándar para botones
+        maxHeight: 24,
       ),
     );
   }
