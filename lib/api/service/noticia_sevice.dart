@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:abaez/core/api_config.dart';
 import 'package:abaez/exceptions/api_exception.dart';
 import 'package:abaez/helpers/error_helper.dart';
 import 'package:abaez/domain/noticia.dart';
@@ -7,8 +8,13 @@ import 'package:abaez/constants.dart';
 
 class NoticiaService {
   final Dio _dioNew = Dio(BaseOptions(
+    baseUrl: ApiConfig.beeceptorBaseUrl, // URL base para los endpoints
     connectTimeout: const Duration(seconds: CategoriaConstantes.timeoutSeconds), // Tiempo de conexión
     receiveTimeout: const Duration(seconds:CategoriaConstantes.timeoutSeconds), // Tiempo de recepción
+    headers: {
+            'Authorization': 'Bearer ${ApiConfig.beeceptorApiKey}', // Añadir API Key
+            'Content-Type': 'application/json',
+          },
   ));
  
   
