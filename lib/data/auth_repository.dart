@@ -13,7 +13,6 @@ class AuthRepository {
       if (email.isEmpty || password.isEmpty) {
         throw ArgumentError('Error: Email and password cannot be empty.');
       }
-      
       final loginRequest = LoginRequest(
         username: email,
         password: password,
@@ -21,6 +20,7 @@ class AuthRepository {
       
       final LoginResponse response = await _authService.login(loginRequest);
       await _secureStorage.saveJwt(response.sessionToken);
+      await _secureStorage.saveUserEmail(email);
       return true;
     } catch (e) {
       print('Login error: $e');
@@ -31,6 +31,7 @@ class AuthRepository {
   // Logout user
   Future<void> logout() async {
     await _secureStorage.clearJwt();
+    await _secureStorage.clearUserEmail();
   }
   
   // Check if user is authenticated
