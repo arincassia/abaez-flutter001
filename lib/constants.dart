@@ -64,6 +64,7 @@ class ApiConstantes {
   static final String preferenciasUrl = '$newsurl/preferencias';
   static final String comentariosUrl = '$newsurl/comentarios';
   static final String reportesUrl = '$newsurl/reportes';
+  static final String loginUrl = '$newsurl/login';
 
   static const int timeoutSeconds = 10; 
   static const String errorTimeout = 'Tiempo de espera agotado'; 
