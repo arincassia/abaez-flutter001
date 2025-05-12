@@ -1,5 +1,6 @@
 import 'package:abaez/bloc/comentarios/comentario_bloc.dart';
 import 'package:abaez/bloc/reportes/reportes_bloc.dart';
+import 'package:abaez/data/auth_repository.dart';
 import 'package:abaez/data/categorias_repository.dart';
 import 'package:abaez/data/noticia_repository.dart';
 import 'package:abaez/data/preferencia_repository.dart';
@@ -20,4 +21,5 @@ Future<void> initLocator() async {
   di.registerSingleton<ReporteRepository>(ReporteRepository());  GetIt.instance.registerSingleton(ComentarioBloc());
   // Cambiamos a registerFactory para generar una nueva instancia cada vez que sea solicitada
   GetIt.instance.registerFactory(() => ReporteBloc());
+  di.registerSingleton<AuthRepository>(AuthRepository());
 }
