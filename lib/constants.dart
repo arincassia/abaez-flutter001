@@ -1,5 +1,4 @@
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-
+import 'package:abaez/core/api_config.dart';
 
 class AppConstants {
   //Constantes para la aplicación de tareas
@@ -58,7 +57,7 @@ class AppConstants {
 
 
 class ApiConstantes {
-   static final String newsurl = dotenv.env['NEWS_URL'] ?? 'URL_NO_DEFINIDA';
+   static final String newsurl = ApiConfig.beeceptorBaseUrl;
   static final String noticiasUrl = '$newsurl/noticias';
   static final String categoriasUrl = '$newsurl/categorias';
   static final String preferenciasUrl = '$newsurl/preferencias';
