@@ -33,11 +33,10 @@ class AuthRepository {
     await _secureStorage.clearJwt();
     await _secureStorage.clearUserEmail();
   }
-  
-  // Check if user is authenticated
+    // Check if user is authenticated
   Future<bool> isAuthenticated() async {
-    final token = await _secureStorage.getJwt();
-    return token != null && token.isNotEmpty;
+    // Siempre retorna false para forzar la pantalla de login
+    return false;
   }
   
   // Get current auth token

@@ -52,7 +52,7 @@ class PreferenciaService {
       // Si no hay ID almacenado, devolver preferencias vacías sin consultar API
       if (_preferenciaId != null && _preferenciaId!.isNotEmpty) {
         final response = await _dio.get(
-          '${ApiConstantes.preferenciasUrl}/$_preferenciaId',
+          '/preferencias/$_preferenciaId',
         );
         // Si la respuesta es exitosa, convertir a objeto Preferencia
         return Preferencia.fromJson(response.data);
@@ -77,7 +77,7 @@ class PreferenciaService {
   Future<void> guardarPreferencias(Preferencia preferencia) async {
     try {
       await _dio.put(
-        '${ApiConstantes.preferenciasUrl}/$_preferenciaId',
+        '/preferencias/$_preferenciaId',
         data: preferencia.toJson(),
       );
     } on DioException catch (e) {
@@ -97,12 +97,12 @@ class PreferenciaService {
 
       // Crear un nuevo registro en la API
       final Response response = await _dio.post(
-        ApiConstantes.preferenciasUrl,
+        '/preferencias',
         data: preferenciasVacias.toJson(),
       );
 
       // Guardar el nuevo ID
-      await _guardarId(response.data['_id']);
+      await _guardarId(response.data['id']);
 
       return preferenciasVacias;
     } on DioException catch (e) {
