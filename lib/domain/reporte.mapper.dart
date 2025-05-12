@@ -1,3 +1,8 @@
+// coverage:ignore-file
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint
+// ignore_for_file: unused_element, unnecessary_cast, override_on_non_overriding_member
+// ignore_for_file: strict_raw_type, inference_failure_on_untyped_parameter
 
 part of 'reporte.dart';
 
@@ -20,11 +25,11 @@ class MotivoReporteMapper extends EnumMapper<MotivoReporte> {
   @override
   MotivoReporte decode(dynamic value) {
     switch (value) {
-      case r'NoticiaInapropiada':
+      case r'noticiaInapropiada':
         return MotivoReporte.noticiaInapropiada;
-      case r'InformacionFalsa':
+      case r'informacionFalsa':
         return MotivoReporte.informacionFalsa;
-      case r'Otro':
+      case r'otro':
         return MotivoReporte.otro;
       default:
         throw MapperException.unknownEnumValue(value);
@@ -35,11 +40,11 @@ class MotivoReporteMapper extends EnumMapper<MotivoReporte> {
   dynamic encode(MotivoReporte self) {
     switch (self) {
       case MotivoReporte.noticiaInapropiada:
-        return r'NoticiaInapropiada';
+        return r'noticiaInapropiada';
       case MotivoReporte.informacionFalsa:
-        return r'InformacionFalsa';
+        return r'informacionFalsa';
       case MotivoReporte.otro:
-        return r'Otro';
+        return r'otro';
     }
   }
 }

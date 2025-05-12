@@ -7,7 +7,7 @@ part of 'noticia.dart';
 // **************************************************************************
 
 Noticia _$NoticiaFromJson(Map<String, dynamic> json) => Noticia(
-  id: json['_id'] as String?,
+  id: json['id'] as String?,
   titulo: json['titulo'] as String,
   descripcion: json['descripcion'] as String,
   fuente: json['fuente'] as String,
@@ -17,7 +17,7 @@ Noticia _$NoticiaFromJson(Map<String, dynamic> json) => Noticia(
 );
 
 Map<String, dynamic> _$NoticiaToJson(Noticia instance) => <String, dynamic>{
-  if (instance.id case final value?) '_id': value,
+  if (instance.id case final value?) 'id': value,
   'titulo': instance.titulo,
   'descripcion': instance.descripcion,
   'fuente': instance.fuente,
