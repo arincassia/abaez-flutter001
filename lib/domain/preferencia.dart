@@ -1,7 +1,8 @@
 class Preferencia {
   final List<String> categoriasSeleccionadas;
+  String? id;
 
-  Preferencia({required this.categoriasSeleccionadas});
+  Preferencia({required this.categoriasSeleccionadas, this.id});
 
   factory Preferencia.empty() {
     return Preferencia(categoriasSeleccionadas: []);
@@ -26,6 +27,7 @@ class Preferencia {
       categoriasSeleccionadas: json['categoriasSeleccionadas'] != null
           ? List<String>.from(json['categoriasSeleccionadas'])
           : [],
+      id: json['id'] as String?,
     );
   }
 }
