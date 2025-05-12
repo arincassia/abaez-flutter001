@@ -5,6 +5,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:abaez/bloc/preferencia/preferencia_bloc.dart';
 import 'package:abaez/bloc/preferencia/preferencia_event.dart';
 import 'package:abaez/di/locator.dart';
+import 'package:abaez/bloc/auth/auth_bloc.dart'; // Importa el AuthBloc
+import 'package:abaez/bloc/auth/auth_event.dart'; // Importa los eventos de Auth
 
 import 'package:abaez/views/login_screen.dart';
 import 'package:abaez/bloc/contador/contador_bloc.dart'; // Importa el BLoC del contador
@@ -25,7 +27,8 @@ class MyApp extends StatelessWidget {
       providers: [
         BlocProvider(create: (context) => ContadorBloc()),
         BlocProvider(create: (context) => PreferenciaBloc()..add(const CargarPreferencias())),
-        BlocProvider(create: (context) => ComentarioBloc()),      
+        BlocProvider(create: (context) => ComentarioBloc()),
+        BlocProvider(create: (context) => AuthBloc()..add(AuthCheckRequested())), // Añade el AuthBloc e inicialmente verifica el estado de autenticación
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
