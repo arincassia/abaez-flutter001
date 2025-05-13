@@ -4,11 +4,10 @@ import 'package:abaez/data/noticia_repository.dart';
 import 'package:abaez/constants.dart';
 import 'package:abaez/domain/categoria.dart';
 import 'package:abaez/api/service/categoria_service.dart';
-class NoticiaModal {
-  static Future<void> mostrarModal({
+class NoticiaModal {  static Future<void> mostrarModal({
     required BuildContext context,
     Map<String, dynamic>? noticia, // Datos de la noticia para editar
-    required VoidCallback onSave, // Callback para guardar
+    required Function(Map<String, dynamic>? noticia, Map<String, dynamic> noticiaActualizada) onSave, // Callback para guardar con noticia actualizada
   }) async {
     final formKey = GlobalKey<FormState>();
     final NoticiaRepository noticiaService = NoticiaRepository();
@@ -76,7 +75,7 @@ class NoticiaModal {
           } else {
             // Editar noticia existente
             await noticiaService.actualizarNoticia(
-              id: noticia['_id'],
+              id: noticia['id'],
               titulo: tituloController.text,
               descripcion: descripcionController.text,
               fuente: fuenteController.text,
@@ -87,10 +86,19 @@ class NoticiaModal {
           }
 
           // Muestra un mensaje de éxito
-         
-
+             // Crea un map con los datos actualizados de la noticia
+          final noticiaActualizada = {
+            'id': noticia?['id'],
+            'titulo': tituloController.text,
+            'descripcion': descripcionController.text,
+            'fuente': fuenteController.text,
+            'publicadaEl': (fechaSeleccionada ?? DateTime.now()).toIso8601String(),
+            'urlImagen': imagenUrlController.text,
+            'categoriaId': categoriaSeleccionada ?? CategoriaConstantes.defaultCategoriaId,
+          };
+          
           // Llama al callback para actualizar la lista de noticias
-          onSave();
+          onSave(noticia, noticiaActualizada);
 
           // Cierra el modal
           if (!context.mounted) return;
