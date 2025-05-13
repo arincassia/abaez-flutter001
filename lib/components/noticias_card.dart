@@ -56,15 +56,15 @@ class _NoticiaCardState extends State<NoticiaCard> {
     try {
       // Cargar el número de comentarios solo la primera vez
       if (_isLoading) {
-        if(widget.id != null) {
+        if (widget.id != null) {
           // Solo cargar si el ID no es nulo
           context.read<ComentarioBloc>().add(
-                GetNumeroComentarios(noticiaId: widget.id!),
-              );
+            GetNumeroComentarios(noticiaId: widget.id!),
+          );
         }
         _isLoading = false;
       }
-      
+
       // Observar cambios en el estado y actualizar si es necesario
       final state = context.watch<ComentarioBloc>().state;
       if (state is NumeroComentariosLoaded && state.noticiaId == widget.id) {
@@ -144,7 +144,8 @@ class _NoticiaCardState extends State<NoticiaCard> {
                     FutureBuilder<String>(
                       future: _obtenerNombreCategoria(widget.categoriaId),
                       builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
                           return const Text(
                             'Cargando...',
                             style: TextStyle(fontSize: 10, color: Colors.grey),
@@ -156,7 +157,8 @@ class _NoticiaCardState extends State<NoticiaCard> {
                             style: TextStyle(fontSize: 10, color: Colors.red),
                           );
                         }
-                        final categoriaNombre = snapshot.data ?? 'Sin categoría';
+                        final categoriaNombre =
+                            snapshot.data ?? 'Sin categoría';
                         return Text(
                           'Cat: $categoriaNombre',
                           style: const TextStyle(
@@ -169,14 +171,17 @@ class _NoticiaCardState extends State<NoticiaCard> {
                   ],
                 ),
               ),
-                // Espacio adecuado entre contenido y botones
+              // Espacio adecuado entre contenido y botones
               const SizedBox(width: 4),
               // Columna de imagen y botones con ancho suficiente para iconos de tamaño normal
               SizedBox(
-                width: 100, // Espacio suficiente para los iconos de tamaño normal
+                width:
+                    100, // Espacio suficiente para los iconos de tamaño normal
                 child: Column(
-                  mainAxisSize: MainAxisSize.min, // Importante para minimizar altura
-                  children: [                    // Imagen con tamaño estándar
+                  mainAxisSize:
+                      MainAxisSize.min, // Importante para minimizar altura
+                  children: [
+                    // Imagen con tamaño estándar
                     if (widget.imageUrl.isNotEmpty)
                       ClipRRect(
                         borderRadius: BorderRadius.circular(4),
@@ -185,7 +190,8 @@ class _NoticiaCardState extends State<NoticiaCard> {
                           fit: BoxFit.cover,
                           width: 60, // Tamaño estándar para la imagen
                           height: 60, // Tamaño estándar para la imagen
-                          errorBuilder: (context, error, stackTrace) {                            return Container(
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
                               width: 60, // Tamaño estándar
                               height: 60, // Tamaño estándar
                               color: Colors.grey[300],
@@ -193,46 +199,58 @@ class _NoticiaCardState extends State<NoticiaCard> {
                             );
                           },
                         ),
-                      ),                    
+                      ),
                     const SizedBox(height: 8), // Espaciado vertical normal
                     // Fila horizontal de botones con espacio normal
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      mainAxisSize: MainAxisSize.max,
+                    Wrap(
+                      spacing: -80,
+                      runSpacing: 1,
+                      alignment: WrapAlignment.start,
+                      
                       children: [
+                        
+                       
                         _buildIconButton(
-                          icon: Icons.edit, 
-                          color: Colors.blue,
-                          onPressed: widget.onEdit,
-                          tooltip: 'Editar',
-                        ),
-                        _buildIconButton(
-                          icon: Icons.delete, 
+                          icon: Icons.delete,
                           color: Colors.red,
                           onPressed: widget.onDelete,
                           tooltip: 'Eliminar',
                         ),
-                        _buildIconButton(
-                          icon: Icons.comment,
-                          onPressed: widget.onComment,
-                          tooltip: 'Ver',
+                         _buildIconButton(
+                          icon: Icons.edit,
+                          color: Colors.blue,
+                          onPressed: widget.onEdit,
+                          tooltip: 'Editar',
                         ),
+                        // Ícono de comentario + número en una fila
+                        
                         _buildIconButton(
                           icon: Icons.report,
                           color: Colors.amber,
                           onPressed: widget.onReport,
                           tooltip: 'Reportar',
                         ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '$_numeroComentarios',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            _buildIconButton(
+                              icon: Icons.comment,
+                              onPressed: widget.onComment,
+                              tooltip: 'Ver',
+                            ),
+                          ],
+                        ),
                       ],
                     ),
-                      // Contador de comentarios
-                    Text(
-                      '$_numeroComentarios',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey,
-                      ),
-                    ),
+
+                    // Contador de comentarios
                   ],
                 ),
               ),
@@ -241,7 +259,8 @@ class _NoticiaCardState extends State<NoticiaCard> {
         ),
       ),
     );
-  }  // Widget helper para crear botones de iconos de tamaño normal
+  } // Widget helper para crear botones de iconos de tamaño normal
+
   Widget _buildIconButton({
     required IconData icon,
     Color? color,
@@ -249,15 +268,15 @@ class _NoticiaCardState extends State<NoticiaCard> {
     required String tooltip,
   }) {
     return IconButton(
-      icon: Icon(icon, size: 20, color: color), // Tamaño normal de iconos
+      icon: Icon(icon, size: 21, color: color),
       tooltip: tooltip,
       onPressed: onPressed,
       padding: EdgeInsets.zero,
       constraints: const BoxConstraints(
-        minWidth: 24, // Tamaño estándar para botones
-        minHeight: 24,
-        maxWidth: 24, // Tamaño estándar para botones
-        maxHeight: 24,
+        minWidth: 22, // Tamaño estándar para botones
+        minHeight: 22,
+        maxWidth: 22, // Tamaño estándar para botones
+        maxHeight: 22,
       ),
     );
   }
