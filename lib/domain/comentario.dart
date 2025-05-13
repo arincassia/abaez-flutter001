@@ -4,7 +4,7 @@ part 'comentario.g.dart';
 
 @JsonSerializable()
 class Comentario {
-  @JsonKey(name: '_id', includeToJson: false)
+  @JsonKey(includeToJson: false)
   final String? id; // Cambiado a nullable
   final String noticiaId;
   final String texto;

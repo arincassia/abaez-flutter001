@@ -22,12 +22,12 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Login'),
-      ),
-      body: BlocConsumer<AuthBloc, AuthState>(
+      ),      body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthAuthenticated) {
+            print('cambiando a la pantalla de bienvenida');
             // Navegar a la pantalla de bienvenida cuando el usuario está autenticado
-            Navigator.push(
+            Navigator.pushReplacement(
               context,
               MaterialPageRoute(
                 builder: (context) => WelcomeScreen(

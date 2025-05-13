@@ -1,11 +1,17 @@
 import 'package:abaez/constants.dart';
+import 'package:abaez/core/api_config.dart';
 import 'package:dio/dio.dart';
 import 'package:abaez/domain/categoria.dart';
 
 class CategoriaService {
   final Dio _dio = Dio(BaseOptions(
+    baseUrl: ApiConfig.beeceptorBaseUrl, // URL base para los endpoints
     connectTimeout: const Duration(seconds: CategoriaConstantes.timeoutSeconds), // Tiempo de conexión
-    receiveTimeout: const Duration(seconds: CategoriaConstantes.timeoutSeconds), // Tiempo de recepción
+    receiveTimeout: const Duration(seconds:CategoriaConstantes.timeoutSeconds), // Tiempo de recepción
+    headers: {
+            'Authorization': 'Bearer ${ApiConfig.beeceptorApiKey}', // Añadir API Key
+            'Content-Type': 'application/json',
+          },
   ));
 
   /// Manejo centralizado de errores
