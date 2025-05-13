@@ -3,17 +3,45 @@ import 'package:dio/dio.dart';
 import 'package:abaez/domain/comentario.dart';
 import 'package:abaez/constants.dart';
 import 'package:abaez/exceptions/api_exception.dart';
+import 'package:abaez/helpers/secure_storage_service.dart';
 
 class ComentariosService {
-  final Dio dio = Dio(BaseOptions(
-    baseUrl: ApiConfig.beeceptorBaseUrl, // URL base para los endpoints
-    connectTimeout: const Duration(seconds: CategoriaConstantes.timeoutSeconds), // Tiempo de conexión
-    receiveTimeout: const Duration(seconds:CategoriaConstantes.timeoutSeconds), // Tiempo de recepción
-    headers: {
-            'Authorization': 'Bearer ${ApiConfig.beeceptorApiKey}', // Añadir API Key
-            'Content-Type': 'application/json',
-          },
-  ));
+  final SecureStorageService _secureStorage = SecureStorageService();
+  late final Dio dio;
+  
+  ComentariosService() {
+    dio = Dio(BaseOptions(
+      baseUrl: ApiConfig.beeceptorBaseUrl, // URL base para los endpoints
+      connectTimeout: const Duration(seconds: CategoriaConstantes.timeoutSeconds), // Tiempo de conexión
+      receiveTimeout: const Duration(seconds:CategoriaConstantes.timeoutSeconds), // Tiempo de recepción
+      headers: {
+              'Authorization': 'Bearer ${ApiConfig.beeceptorApiKey}', // Añadir API Key
+              'Content-Type': 'application/json',
+            },
+    ));
+    
+    // Interceptor para añadir el token JWT a cada solicitud
+    dio.interceptors.add(InterceptorsWrapper(
+      onRequest: (options, handler) async {
+        // Obtener el JWT del almacenamiento seguro
+        final jwt = await _secureStorage.getJwt();
+        if (jwt != null && jwt.isNotEmpty) {
+          // Añadir el JWT como header X-Auth-Token
+          options.headers['X-Auth-Token'] = jwt;
+        } else {
+          // Si no hay JWT, lanzar un error
+          return handler.reject(
+            DioException(
+              requestOptions: options,
+              error: 'No se encontró el token de autenticación',
+              type: DioExceptionType.unknown,
+            ),
+          );
+        }
+        return handler.next(options);
+      },
+    ));
+  }
 
   Future<void> _verificarNoticiaExiste(String noticiaId) async {
     try {
