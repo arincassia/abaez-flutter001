@@ -1,10 +1,10 @@
-import 'package:json_annotation/json_annotation.dart';
+import 'package:dart_mappable/dart_mappable.dart';
 
-part 'comentario.g.dart';
+part 'comentario.mapper.dart';
 
-@JsonSerializable()
-class Comentario {
-  @JsonKey(name: '_id', includeToJson: false)
+@MappableClass()
+class Comentario with ComentarioMappable {
+  @MappableField(key: '_id')
   final String? id; // Cambiado a nullable
   final String noticiaId;
   final String texto;
@@ -13,11 +13,10 @@ class Comentario {
   final int likes;
   final int dislikes;
   final List<Comentario>? subcomentarios;
-  @JsonKey(defaultValue: false)
-  final bool isSubComentario; // Ahora es required con valor por defecto
+  final bool isSubComentario;
   final String? idSubComentario; // idNoticia es opcional
 
-  Comentario({
+  const Comentario({
     this.id, // id ahora es opcional
     required this.noticiaId,
     required this.texto,
@@ -30,8 +29,10 @@ class Comentario {
     this.idSubComentario, // idSubComentario es opcional
   });
 
-  factory Comentario.fromJson(Map<String, dynamic> json) =>
-      _$ComentarioFromJson(json);
+  // // Método de fábrica para crear a partir de un Map (JSON)
+  // factory Comentario.fromMap(Map<String, dynamic> map) =>
+  //     ComentarioMapper.fromMap(map);
 
-  Map<String, dynamic> toJson() => _$ComentarioToJson(this);
+  // // Método para convertir a Map (JSON)
+  // Map<String, dynamic> toMap() => ComentarioMapper.toMap(this);
 }
