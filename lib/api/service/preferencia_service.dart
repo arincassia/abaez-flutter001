@@ -1,59 +1,20 @@
 
 import 'dart:async';
-import 'package:abaez/core/api_config.dart';
 import 'package:dio/dio.dart';
-import 'package:abaez/constants.dart';
 import 'package:abaez/domain/preferencia.dart';
 import 'package:abaez/exceptions/api_exception.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:abaez/helpers/secure_storage_service.dart';
+import 'package:flutter/foundation.dart';
+import 'package:abaez/api/service/base_service.dart';
 
-class PreferenciaService {
-  final SecureStorageService _secureStorage = SecureStorageService();
-  late final Dio _dio;
-
+class PreferenciaService extends BaseService {
   // Clave para almacenar el ID en SharedPreferences
   static const String _preferenciaIdKey = 'preferencia_id';
 
   // ID para preferencias, inicialmente nulo
   String? _preferenciaId;
-
-  // Constructor que inicializa el ID desde SharedPreferences
-  PreferenciaService() {
-    _dio = Dio(
-      BaseOptions(
-        baseUrl: ApiConfig.beeceptorBaseUrl, // URL base para los endpoints
-        connectTimeout: const Duration(seconds: CategoriaConstantes.timeoutSeconds), // Tiempo de conexión
-        receiveTimeout: const Duration(seconds:CategoriaConstantes.timeoutSeconds), // Tiempo de recepción
-        headers: {
-          'Authorization': 'Bearer ${ApiConfig.beeceptorApiKey}', // Añadir API Key
-          'Content-Type': 'application/json',
-        },
-      ),
-    );
-    
-    // Interceptor para añadir el token JWT a cada solicitud
-    _dio.interceptors.add(InterceptorsWrapper(
-      onRequest: (options, handler) async {
-        // Obtener el JWT del almacenamiento seguro
-        final jwt = await _secureStorage.getJwt();
-        if (jwt != null && jwt.isNotEmpty) {
-          // Añadir el JWT como header X-Auth-Token
-          options.headers['X-Auth-Token'] = jwt;
-        } else {
-          // Si no hay JWT, lanzar un error
-          return handler.reject(
-            DioException(
-              requestOptions: options,
-              error: 'No se encontró el token de autenticación',
-              type: DioExceptionType.unknown,
-            ),
-          );
-        }
-        return handler.next(options);
-      },
-    ));
-    
+  // Constructor que inicializa el ID desde SharedPreferences y hereda de BaseService
+  PreferenciaService() : super() {
     _cargarIdGuardado();
   }
 
@@ -71,73 +32,83 @@ class PreferenciaService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_preferenciaIdKey, id);
   }
-
   /// Obtiene las preferencias del usuario
   Future<Preferencia> getPreferencias() async {
     try {
       // Si no hay ID almacenado, devolver preferencias vacías sin consultar API
       if (_preferenciaId != null && _preferenciaId!.isNotEmpty) {
-        final response = await _dio.get(
+        final data = await get(
           '/preferencias/$_preferenciaId',
         );
         // Si la respuesta es exitosa, convertir a objeto Preferencia
-        return Preferencia.fromJson(response.data);
+        if (data != null && data is Map<String, dynamic>) {
+          return Preferencia.fromJson(data);
+        }
       }
       return await _crearPreferenciasVacias();
     } on DioException catch (e) {
-      if (e.response?.statusCode == 404) {
+      debugPrint('❌ DioException en getPreferencias: ${e.toString()}');      if (e.response?.statusCode == 404) {
         // Si no existe, devolver preferencias vacías
         return await _crearPreferenciasVacias();
       } else {
-        throw ApiException(
-          'Error al conectar con la API de preferencias: $e',
-          statusCode: e.response?.statusCode,
-        );
+        handleError(e);
+        return await _crearPreferenciasVacias();
       }
     } catch (e) {
-      throw ApiException('Error desconocido: $e');
+      debugPrint('❌ Error inesperado en getPreferencias: ${e.toString()}');
+      if (e is ApiException) {
+        rethrow;
+      }
+      throw ApiException('Error inesperado: $e');
     }
   }
-
   /// Guarda las preferencias del usuario (Actualiza)
   Future<void> guardarPreferencias(Preferencia preferencia) async {
     try {
-      await _dio.put(
+      await put(
         '/preferencias/$_preferenciaId',
         data: preferencia.toJson(),
       );
+      
+      debugPrint('✅ Preferencias guardadas correctamente');
     } on DioException catch (e) {
-      throw ApiException(
-        'Error al conectar con la API de preferencias: $e',
-        statusCode: e.response?.statusCode,
-      );
+      debugPrint('❌ DioException en guardarPreferencias: ${e.toString()}');
+      handleError(e);
     } catch (e) {
-      throw ApiException('Error desconocido: $e');
+      if (e is ApiException) {
+        rethrow;
+      }
+      debugPrint('❌ Error inesperado: ${e.toString()}');
+      throw ApiException('Error inesperado: $e');
     }
   }
-
   /// Método auxiliar para crear un nuevo registro de preferencias vacías
   Future<Preferencia> _crearPreferenciasVacias() async {
     try {
       final preferenciasVacias = Preferencia.empty();
 
       // Crear un nuevo registro en la API
-      final Response response = await _dio.post(
+      final data = await post(
         '/preferencias',
         data: preferenciasVacias.toJson(),
       );
 
-      // Guardar el nuevo ID
-      await _guardarId(response.data['id']);
+      // Guardar el nuevo ID si existe
+      if (data != null && data['id'] != null) {
+        await _guardarId(data['id']);
+      }
 
-      return preferenciasVacias;
-    } on DioException catch (e) {
-      throw ApiException(
-        'Error al conectar con la API de preferencias: $e',
-        statusCode: e.response?.statusCode,
-      );
+      return preferenciasVacias;    } on DioException catch (e) {
+      debugPrint('❌ DioException en _crearPreferenciasVacias: ${e.toString()}');
+      handleError(e);
+      // En caso de error, retornamos preferencias vacías sin ID
+      return Preferencia.empty();
     } catch (e) {
-      throw ApiException('Error desconocido: $e');
+      debugPrint('❌ Error inesperado en _crearPreferenciasVacias: ${e.toString()}');
+      if (e is ApiException) {
+        rethrow;
+      }
+      throw ApiException('Error inesperado: $e');
     }
   }
 }
