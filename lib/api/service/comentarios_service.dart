@@ -181,7 +181,7 @@ class ComentariosService {
 
     // Primero, buscamos si es un comentario principal
     final comentarioIndex = comentarios.indexWhere(
-      (c) => c['_id'] == comentarioId,
+      (c) => c['id'] == comentarioId,
     );
 
     // Si lo encontramos como comentario principal
@@ -225,7 +225,7 @@ class ComentariosService {
           final subcomentario = subcomentarios[j];
           
           // Si encontramos el ID en el subcomentario (puede estar en _id o en idSubComentario)
-          if (subcomentario['_id'] == comentarioId || 
+          if (subcomentario['id'] == comentarioId || 
               subcomentario['idSubComentario'] == comentarioId) {
                       
             // Crear una copia del subcomentario para actualizarlo
@@ -243,7 +243,7 @@ class ComentariosService {
             
             // Actualizar el comentario principal con la nueva lista de subcomentarios
             await dio.put(
-              '/comentarios/${comentarioPrincipal['_id']}',
+              '/comentarios/${comentarioPrincipal['id']}',
               data: {
                 'noticiaId': comentarioPrincipal['noticiaId'],
                 'texto': comentarioPrincipal['texto'],

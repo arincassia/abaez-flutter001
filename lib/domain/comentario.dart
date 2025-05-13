@@ -6,12 +6,12 @@ part 'comentario.g.dart';
 class Comentario {
   @JsonKey(includeToJson: false)
   final String? id; // Cambiado a nullable
-  final String noticiaId;
-  final String texto;
-  final String fecha;
-  final String autor;
-  final int likes;
-  final int dislikes;
+  final String noticiaId;//
+  final String texto;//
+  final String fecha;//
+  final String autor;//
+  final int likes;//
+  final int dislikes;//
   final List<Comentario>? subcomentarios;
   @JsonKey(defaultValue: false)
   final bool isSubComentario; // Ahora es required con valor por defecto
