@@ -2,35 +2,24 @@ import 'package:dio/dio.dart';
 import 'package:abaez/domain/comentario.dart';
 import 'package:abaez/constants.dart';
 import 'package:abaez/exceptions/api_exception.dart';
+import 'package:abaez/api/service/base_service.dart';
+import 'package:flutter/foundation.dart';
 
-class ComentariosService {
-  final Dio dio = Dio();
-
+class ComentariosService extends BaseService {
+  ComentariosService() : super();
   Future<void> _verificarNoticiaExiste(String noticiaId) async {
     try {
-      //final response = await dio.get('$baseUrl$noticiasEndpoint/$noticiaId');
-      final response = await dio.get('${ApiConstantes.newsurl}/$noticiaId');
-      if (response.statusCode != 200) {
-        throw ApiException(
-          ApiConstantes.errorNotFound,
-          statusCode: response.statusCode,
-        );
-      }
+      await get('/noticias/$noticiaId');
+      // Si la petición es exitosa, la noticia existe
     } on DioException catch (e) {
-      if (e.type == DioExceptionType.connectionTimeout ||
-          e.type == DioExceptionType.receiveTimeout) {
-        throw ApiException(ApiConstantes.errorTimeout);
-      } else if (e.response?.statusCode == 404) {
-        throw ApiException(ApiConstantes.errorNotFound, statusCode: 404);
-      } else {
-        throw ApiException(
-          ApiConstantes.errorServer,
-          statusCode: e.response?.statusCode,
-        );
+      handleError(e);
+    } catch (e) {
+      if (e is ApiException) {
+        rethrow;
       }
+      throw ApiException('Error verificando la existencia de noticia: $e');
     }
   }
-
   /// Obtener comentarios por ID de noticia
   Future<List<Comentario>> obtenerComentariosPorNoticia(
     String noticiaId,
@@ -38,8 +27,7 @@ class ComentariosService {
     await _verificarNoticiaExiste(noticiaId);
 
     try {
-      final response = await dio.get(ApiConstantes.comentariosUrl);
-      final data = response.data as List<dynamic>;
+      final data = await get('/comentarios');
 
       final comentarios =
           data
@@ -47,20 +35,23 @@ class ComentariosService {
               .map((json) => ComentarioMapper.fromMap(json))
               .toList();
 
-      return comentarios;
-    } on DioException catch (e) {
-      if (e.type == DioExceptionType.connectionTimeout ||
-          e.type == DioExceptionType.receiveTimeout) {
-        throw ApiException(ApiConstantes.errorTimeout);
+        return comentarios;
       } else {
-        throw ApiException(
-          ApiConstantes.errorServer,
-          statusCode: e.response?.statusCode,
-        );
+        debugPrint('❌ La respuesta no es una lista: $data');
+        throw ApiException('Formato de respuesta inválido');
       }
+    } on DioException catch (e) {
+      debugPrint('❌ DioException en obtenerComentariosPorNoticia: ${e.toString()}');
+      handleError(e);
+      return []; // Retornar lista vacía en caso de error
+    } catch (e) {
+      if (e is ApiException) {
+        rethrow;
+      }
+      debugPrint('❌ Error inesperado: ${e.toString()}');
+      throw ApiException('Error inesperado: $e');
     }
   }
-
   /// Agrega un comentario nuevo a una noticia existente
   Future<void> agregarComentario(
     String noticiaId,
@@ -75,53 +66,50 @@ class ComentariosService {
       noticiaId: noticiaId,
       texto: texto,
       fecha: DateTime.now().toIso8601String(),
-      autor: 'Usuario Anónimo',
+      autor: autor.isNotEmpty ? autor : 'Usuario Anónimo',
       likes: 0,
       dislikes: 0,
       subcomentarios: [],
-      isSubComentario: false, // Inicializar como lista vacía
+      isSubComentario: false,
     );
 
     try {
-      await dio.post(
-        ApiConstantes.comentariosUrl,
+      await post(
+        '/comentarios',
         data: nuevoComentario.toJson(),
-        options: Options(headers: {'Content-Type': 'application/json'}),
       );
+      
+      debugPrint('✅ Comentario agregado correctamente');
     } on DioException catch (e) {
-      if (e.type == DioExceptionType.connectionTimeout ||
-          e.type == DioExceptionType.receiveTimeout) {
-        throw ApiException(ApiConstantes.errorTimeout);
-      } else {
-        throw ApiException(
-          ApiConstantes.errorServer,
-          statusCode: e.response?.statusCode,
-        );
+      debugPrint('❌ DioException en agregarComentario: ${e.toString()}');
+      handleError(e);
+    } catch (e) {
+      if (e is ApiException) {
+        rethrow;
       }
+      debugPrint('❌ Error inesperado: ${e.toString()}');
+      throw ApiException('Error inesperado: $e');
     }
   }
-
   Future<int> obtenerNumeroComentarios(String noticiaId) async {
     try {
-      final response = await dio.get(ApiConstantes.comentariosUrl);
-      final data = response.data as List<dynamic>;
+      final data = await get('/comentarios');
 
-      final comentariosCount =
+      if (data is List) {
+        final comentariosCount =
           data.where((json) => json['noticiaId'] == noticiaId).length;
 
-      return comentariosCount;
-    } on DioException catch (e) {
-      if (e.type == DioExceptionType.connectionTimeout ||
-          e.type == DioExceptionType.receiveTimeout) {
-        throw ApiException(ApiConstantes.errorTimeout);
+        return comentariosCount;
       } else {
-        throw ApiException(
-          ApiConstantes.errorServer,
-          statusCode: e.response?.statusCode,
-        );
+        debugPrint('❌ La respuesta no es una lista: $data');
+        return 0;
       }
+    } on DioException catch (e) {
+      debugPrint('❌ DioException en obtenerNumeroComentarios: ${e.toString()}');
+      // En caso de error simplemente devolvemos 0 para no romper la UI
+      return 0;
     } catch (e) {
-      print('Error al obtener número de comentarios: ${e.toString()}');
+      debugPrint('❌ Error al obtener número de comentarios: ${e.toString()}');
       return 0;
     }
   }
@@ -337,7 +325,6 @@ class ComentariosService {
           'isSubComentario':
               false, // Asegurarse de que el comentario principal no sea un subcomentario
         },
-        options: Options(headers: {'Content-Type': 'application/json'}),
       );
 
       return {

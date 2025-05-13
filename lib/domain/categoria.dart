@@ -4,14 +4,14 @@ part 'categoria.g.dart';
 @JsonSerializable()
 // category.dart
 class Categoria {
-  @JsonKey(name: '_id', includeToJson: false)
-  final String id;
+  @JsonKey(includeToJson: false)
+  final String? id;
   final String nombre; 
   final String descripcion; 
   final String? imagenUrl; 
 
   Categoria({
-    required this.id,
+    this.id,
     required this.nombre,
     required this.descripcion,
     this.imagenUrl,
