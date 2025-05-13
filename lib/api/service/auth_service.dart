@@ -1,27 +1,36 @@
 import 'dart:async';
+import 'package:abaez/domain/login_request.dart';
+import 'package:dio/dio.dart';
+import 'package:abaez/constants.dart';
+import 'package:abaez/domain/login_response.dart';
 
-class MockAuthService {
-  Future<void> login(String username, String password) async {
-    // Validar que las credenciales no sean nulas ni vacías
-    if (username.isEmpty || password.isEmpty) {
-      throw ArgumentError('Error: El nombre de usuario y la contraseña no pueden estar vacíos.');
-     
+class AuthService {
+  final Dio _dio = Dio(BaseOptions(
+    connectTimeout: const Duration(seconds: 10),
+    receiveTimeout: const Duration(seconds: 10),
+  ));
+  
+  Future<LoginResponse> login(LoginRequest request) async {
+    try {
+      final response = await _dio.post(
+        ApiConstantes.loginUrl,
+        data: request.toJson(),   
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        return LoginResponseMapper.fromMap(response.data);
+      } else {
+        throw DioException(
+          requestOptions: response.requestOptions,
+          response: response,
+          message: 'Authentication error',
+        );
+      }
+    } on DioException catch (e) {
+      if (e.response != null) {
+        throw Exception('Error: ${e.response?.data['message'] ?? 'Authentication error'}');
+      } else {
+        throw Exception('Connection error: ${e.message}');
+      }
     }
-
-    // Simula un retraso para imitar una llamada a un servicio real
-    await Future.delayed(const Duration(seconds: 1));
-
-    // Imprime las credenciales en la consola
-    //print('Mock Login:');
-    //print('Username: $username');
-    //print('Password: $password');
-    return;
   }
-}
-
-void main() {
-  final authService = MockAuthService();
-
-  // Simula un login
-  authService.login('test_user', 'password123');
 }
