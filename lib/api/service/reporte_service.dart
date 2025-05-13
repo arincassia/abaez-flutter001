@@ -1,36 +1,69 @@
 import 'dart:async';
+import 'package:abaez/core/api_config.dart';
 import 'package:abaez/exceptions/api_exception.dart';
 import 'package:abaez/domain/reporte.dart';
 import 'package:dio/dio.dart';
 import 'package:abaez/constants.dart';
+import 'package:abaez/helpers/secure_storage_service.dart';
 
 class ReporteService {
-  final Dio _dio = Dio(BaseOptions(
-    connectTimeout: const Duration(seconds: CategoriaConstantes.timeoutSeconds),
-    receiveTimeout: const Duration(seconds: CategoriaConstantes.timeoutSeconds),
-  ));
+  final SecureStorageService _secureStorage = SecureStorageService();
+  late final Dio _dio;
+  
+  ReporteService() {
+    _dio = Dio(BaseOptions(
+      baseUrl: ApiConfig.beeceptorBaseUrl, // URL base para los endpoints
+      connectTimeout: const Duration(seconds: CategoriaConstantes.timeoutSeconds), // Tiempo de conexión
+      receiveTimeout: const Duration(seconds:CategoriaConstantes.timeoutSeconds), // Tiempo de recepción
+      headers: {
+              'Authorization': 'Bearer ${ApiConfig.beeceptorApiKey}', // Añadir API Key
+              'Content-Type': 'application/json',
+            },
+    ));
+    
+    // Interceptor para añadir el token JWT a cada solicitud
+    _dio.interceptors.add(InterceptorsWrapper(
+      onRequest: (options, handler) async {
+        // Obtener el JWT del almacenamiento seguro
+        final jwt = await _secureStorage.getJwt();
+        if (jwt != null && jwt.isNotEmpty) {
+          // Añadir el JWT como header X-Auth-Token
+          options.headers['X-Auth-Token'] = jwt;
+        } else {
+          // Si no hay JWT, lanzar un error
+          return handler.reject(
+            DioException(
+              requestOptions: options,
+              error: 'No se encontró el token de autenticación',
+              type: DioExceptionType.unknown,
+            ),
+          );
+        }
+        return handler.next(options);
+      },
+    ));
+  }
 
   // URL base para los endpoints de reportes
-  final String _baseUrl = ApiConstantes.reportesUrl;
-
+  final String _baseUrl = '/reportes';
   /// Manejo centralizado de errores
   void _handleError(DioException e) {
     if (e.type == DioExceptionType.connectionTimeout || e.type == DioExceptionType.receiveTimeout) {
-      throw Exception(CategoriaConstantes.errorTimeout);
+      throw ApiException(CategoriaConstantes.errorTimeout);
     }
 
     final statusCode = e.response?.statusCode;
     switch (statusCode) {
       case 400:
-        throw Exception(CategoriaConstantes.mensajeError);
+        throw ApiException(CategoriaConstantes.mensajeError, statusCode: 400);
       case 401:
-        throw Exception(ErrorConstantes.errorUnauthorized);
+        throw ApiException(ErrorConstantes.errorUnauthorized, statusCode: 401);
       case 404:
-        throw Exception(ErrorConstantes.errorNotFound);
+        throw ApiException(ErrorConstantes.errorNotFound, statusCode: 404);
       case 500:
-        throw Exception(ErrorConstantes.errorServer);
+        throw ApiException(ErrorConstantes.errorServer, statusCode: 500);
       default:
-        throw Exception('Error desconocido: ${statusCode ?? 'Sin código'}');
+        throw ApiException('Error desconocido: ${statusCode ?? 'Sin código'}', statusCode: statusCode);
     }
   }
   /// Obtiene todos los reportes

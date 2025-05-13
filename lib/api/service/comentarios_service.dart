@@ -1,15 +1,52 @@
+import 'package:abaez/core/api_config.dart';
 import 'package:dio/dio.dart';
 import 'package:abaez/domain/comentario.dart';
 import 'package:abaez/constants.dart';
 import 'package:abaez/exceptions/api_exception.dart';
+import 'package:abaez/helpers/secure_storage_service.dart';
 
 class ComentariosService {
-  final Dio dio = Dio();
+  final SecureStorageService _secureStorage = SecureStorageService();
+  late final Dio dio;
+  
+  ComentariosService() {
+    dio = Dio(BaseOptions(
+      baseUrl: ApiConfig.beeceptorBaseUrl, // URL base para los endpoints
+      connectTimeout: const Duration(seconds: CategoriaConstantes.timeoutSeconds), // Tiempo de conexión
+      receiveTimeout: const Duration(seconds:CategoriaConstantes.timeoutSeconds), // Tiempo de recepción
+      headers: {
+              'Authorization': 'Bearer ${ApiConfig.beeceptorApiKey}', // Añadir API Key
+              'Content-Type': 'application/json',
+            },
+    ));
+    
+    // Interceptor para añadir el token JWT a cada solicitud
+    dio.interceptors.add(InterceptorsWrapper(
+      onRequest: (options, handler) async {
+        // Obtener el JWT del almacenamiento seguro
+        final jwt = await _secureStorage.getJwt();
+        if (jwt != null && jwt.isNotEmpty) {
+          // Añadir el JWT como header X-Auth-Token
+          options.headers['X-Auth-Token'] = jwt;
+        } else {
+          // Si no hay JWT, lanzar un error
+          return handler.reject(
+            DioException(
+              requestOptions: options,
+              error: 'No se encontró el token de autenticación',
+              type: DioExceptionType.unknown,
+            ),
+          );
+        }
+        return handler.next(options);
+      },
+    ));
+  }
 
   Future<void> _verificarNoticiaExiste(String noticiaId) async {
     try {
       //final response = await dio.get('$baseUrl$noticiasEndpoint/$noticiaId');
-      final response = await dio.get('${ApiConstantes.newsurl}/$noticiaId');
+      final response = await dio.get('/noticias/$noticiaId');
       if (response.statusCode != 200) {
         throw ApiException(
           ApiConstantes.errorNotFound,
@@ -38,7 +75,7 @@ class ComentariosService {
     await _verificarNoticiaExiste(noticiaId);
 
     try {
-      final response = await dio.get(ApiConstantes.comentariosUrl);
+      final response = await dio.get('/comentarios');
       final data = response.data as List<dynamic>;
 
       final comentarios =
@@ -84,7 +121,7 @@ class ComentariosService {
 
     try {
       await dio.post(
-        ApiConstantes.comentariosUrl,
+        '/comentarios',
         data: nuevoComentario.toJson(),
         options: Options(headers: {'Content-Type': 'application/json'}),
       );
@@ -103,7 +140,7 @@ class ComentariosService {
 
   Future<int> obtenerNumeroComentarios(String noticiaId) async {
     try {
-      final response = await dio.get(ApiConstantes.comentariosUrl);
+      final response = await dio.get('/comentarios');
       final data = response.data as List<dynamic>;
 
       final comentariosCount =
@@ -132,7 +169,7 @@ class ComentariosService {
 }) async {
   try {
     // Obtenemos todos los comentarios
-    final response = await dio.get(ApiConstantes.comentariosUrl);
+    final response = await dio.get('/comentarios');
     if (response.statusCode != 200) {
       throw ApiException(
         ApiConstantes.errorServer,
@@ -144,7 +181,7 @@ class ComentariosService {
 
     // Primero, buscamos si es un comentario principal
     final comentarioIndex = comentarios.indexWhere(
-      (c) => c['_id'] == comentarioId,
+      (c) => c['id'] == comentarioId,
     );
 
     // Si lo encontramos como comentario principal
@@ -157,7 +194,7 @@ class ComentariosService {
       int currentDislikes = comentarioActualizado['dislikes'] ?? 0;
       
       await dio.put(
-        '${ApiConstantes.comentariosUrl}/$comentarioId',
+        '/comentarios/$comentarioId',
         data: {
           'noticiaId': comentarioActualizado['noticiaId'],
           'texto': comentarioActualizado['texto'],
@@ -188,7 +225,7 @@ class ComentariosService {
           final subcomentario = subcomentarios[j];
           
           // Si encontramos el ID en el subcomentario (puede estar en _id o en idSubComentario)
-          if (subcomentario['_id'] == comentarioId || 
+          if (subcomentario['id'] == comentarioId || 
               subcomentario['idSubComentario'] == comentarioId) {
                       
             // Crear una copia del subcomentario para actualizarlo
@@ -206,7 +243,7 @@ class ComentariosService {
             
             // Actualizar el comentario principal con la nueva lista de subcomentarios
             await dio.put(
-              '${ApiConstantes.comentariosUrl}/${comentarioPrincipal['_id']}',
+              '/comentarios/${comentarioPrincipal['id']}',
               data: {
                 'noticiaId': comentarioPrincipal['noticiaId'],
                 'texto': comentarioPrincipal['texto'],
@@ -260,7 +297,7 @@ class ComentariosService {
     try {
       final subcomentarioId = 'sub_${DateTime.now().millisecondsSinceEpoch}_${texto.hashCode}';
       // Primero, obtener el comentario al que queremos añadir un subcomentario
-      final response = await dio.get('${ApiConstantes.comentariosUrl}/$comentarioId');
+      final response = await dio.get('/comentarios/$comentarioId');
       if (response.statusCode != 200) {
         return {
           'success': false,
@@ -315,7 +352,7 @@ class ComentariosService {
       
       // Actualizar el comentario con todos sus subcomentarios
       await dio.put(
-        '${ApiConstantes.comentariosUrl}/$comentarioId',
+        '/comentarios/$comentarioId',
         data: {
           'noticiaId': comentarioData['noticiaId'],
           'texto': comentarioData['texto'],
