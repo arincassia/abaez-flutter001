@@ -6,19 +6,11 @@ import 'package:abaez/constants.dart';
 import 'package:abaez/domain/preferencia.dart';
 import 'package:abaez/exceptions/api_exception.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:abaez/helpers/secure_storage_service.dart';
 
 class PreferenciaService {
-  final Dio _dio = Dio(
-    BaseOptions(
-      baseUrl: ApiConfig.beeceptorBaseUrl, // URL base para los endpoints
-    connectTimeout: const Duration(seconds: CategoriaConstantes.timeoutSeconds), // Tiempo de conexión
-    receiveTimeout: const Duration(seconds:CategoriaConstantes.timeoutSeconds), // Tiempo de recepción
-    headers: {
-            'Authorization': 'Bearer ${ApiConfig.beeceptorApiKey}', // Añadir API Key
-            'Content-Type': 'application/json',
-          },
-    ),
-  );
+  final SecureStorageService _secureStorage = SecureStorageService();
+  late final Dio _dio;
 
   // Clave para almacenar el ID en SharedPreferences
   static const String _preferenciaIdKey = 'preferencia_id';
@@ -28,6 +20,40 @@ class PreferenciaService {
 
   // Constructor que inicializa el ID desde SharedPreferences
   PreferenciaService() {
+    _dio = Dio(
+      BaseOptions(
+        baseUrl: ApiConfig.beeceptorBaseUrl, // URL base para los endpoints
+        connectTimeout: const Duration(seconds: CategoriaConstantes.timeoutSeconds), // Tiempo de conexión
+        receiveTimeout: const Duration(seconds:CategoriaConstantes.timeoutSeconds), // Tiempo de recepción
+        headers: {
+          'Authorization': 'Bearer ${ApiConfig.beeceptorApiKey}', // Añadir API Key
+          'Content-Type': 'application/json',
+        },
+      ),
+    );
+    
+    // Interceptor para añadir el token JWT a cada solicitud
+    _dio.interceptors.add(InterceptorsWrapper(
+      onRequest: (options, handler) async {
+        // Obtener el JWT del almacenamiento seguro
+        final jwt = await _secureStorage.getJwt();
+        if (jwt != null && jwt.isNotEmpty) {
+          // Añadir el JWT como header X-Auth-Token
+          options.headers['X-Auth-Token'] = jwt;
+        } else {
+          // Si no hay JWT, lanzar un error
+          return handler.reject(
+            DioException(
+              requestOptions: options,
+              error: 'No se encontró el token de autenticación',
+              type: DioExceptionType.unknown,
+            ),
+          );
+        }
+        return handler.next(options);
+      },
+    ));
+    
     _cargarIdGuardado();
   }
 
