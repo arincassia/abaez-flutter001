@@ -1,8 +1,3 @@
-// coverage:ignore-file
-// GENERATED CODE - DO NOT MODIFY BY HAND
-// ignore_for_file: type=lint
-// ignore_for_file: unused_element, unnecessary_cast, override_on_non_overriding_member
-// ignore_for_file: strict_raw_type, inference_failure_on_untyped_parameter
 
 part of 'reporte.dart';
 
@@ -25,11 +20,11 @@ class MotivoReporteMapper extends EnumMapper<MotivoReporte> {
   @override
   MotivoReporte decode(dynamic value) {
     switch (value) {
-      case r'noticiaInapropiada':
+      case r'NoticiaInapropiada':
         return MotivoReporte.noticiaInapropiada;
-      case r'informacionFalsa':
+      case r'InformacionFalsa':
         return MotivoReporte.informacionFalsa;
-      case r'otro':
+      case r'Otro':
         return MotivoReporte.otro;
       default:
         throw MapperException.unknownEnumValue(value);
@@ -40,11 +35,11 @@ class MotivoReporteMapper extends EnumMapper<MotivoReporte> {
   dynamic encode(MotivoReporte self) {
     switch (self) {
       case MotivoReporte.noticiaInapropiada:
-        return r'noticiaInapropiada';
+        return r'NoticiaInapropiada';
       case MotivoReporte.informacionFalsa:
-        return r'informacionFalsa';
+        return r'InformacionFalsa';
       case MotivoReporte.otro:
-        return r'otro';
+        return r'Otro';
     }
   }
 }
@@ -72,7 +67,8 @@ class ReporteMapper extends ClassMapperBase<Reporte> {
   final String id = 'Reporte';
 
   static String? _$id(Reporte v) => v.id;
-  static const Field<Reporte, String> _f$id = Field('id', _$id, opt: true);
+  static const Field<Reporte, String> _f$id =
+      Field('id', _$id, key: r'_id', opt: true);
   static String _$noticiaId(Reporte v) => v.noticiaId;
   static const Field<Reporte, String> _f$noticiaId =
       Field('noticiaId', _$noticiaId);

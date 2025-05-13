@@ -7,10 +7,6 @@ class ErrorHelper {
     Color color;
 
     switch (statusCode) {
-      case 200:
-        message = 'Operación exitosa';
-        color = Colors.green;
-        break;
       case 400:
         message = NoticiaConstantes.mensajeError;
         color = Colors.orange;

@@ -327,7 +327,7 @@ class _CategoryScreenContent extends StatelessWidget {
                 
                   categoriaBloc.add(
                     CategoriaUpdateEvent(
-                      id: categoria.id!,
+                      id: categoria.id,
                       nombre: nombreController.text,
                       descripcion: descripcionController.text,
                       imagenUrl: imagenUrlController.text,
@@ -365,7 +365,7 @@ class _CategoryScreenContent extends StatelessWidget {
               onPressed: () {
                 // Enviar evento para eliminar categoría
                
-                  categoriaBloc.add(CategoriaDeleteEvent(id: categoria.id!));
+                  categoriaBloc.add(CategoriaDeleteEvent(id: categoria.id));
                 
 
                 Navigator.pop(dialogContext);

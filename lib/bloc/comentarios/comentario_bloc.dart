@@ -169,7 +169,6 @@ class ComentarioBloc extends Bloc<ComentarioEvent, ComentarioState> {
   }
 
   Future<void> _onAddReaccion(
-
     AddReaccion event,
     Emitter<ComentarioState> emit,
   ) async {
@@ -199,9 +198,6 @@ class ComentarioBloc extends Bloc<ComentarioEvent, ComentarioState> {
               fecha: comentario.fecha,
               likes: comentario.likes,
               dislikes: comentario.dislikes,
-              subcomentarios: comentario.subcomentarios,
-              isSubComentario: comentario.isSubComentario,
-              idSubComentario: comentario.idSubComentario,
             );
           } else {
             comentarioActualizado = Comentario(
@@ -212,9 +208,6 @@ class ComentarioBloc extends Bloc<ComentarioEvent, ComentarioState> {
               fecha: comentario.fecha,
               likes: comentario.likes,
               dislikes: comentario.dislikes,
-              subcomentarios: comentario.subcomentarios,
-              isSubComentario: comentario.isSubComentario,
-              idSubComentario: comentario.idSubComentario,
             );
           }
 

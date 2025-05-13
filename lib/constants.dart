@@ -1,4 +1,5 @@
-import 'package:abaez/core/api_config.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 
 class AppConstants {
   //Constantes para la aplicación de tareas
@@ -57,13 +58,12 @@ class AppConstants {
 
 
 class ApiConstantes {
-   static final String newsurl = ApiConfig.beeceptorBaseUrl;
+   static final String newsurl = dotenv.env['NEWS_URL'] ?? 'URL_NO_DEFINIDA';
   static final String noticiasUrl = '$newsurl/noticias';
   static final String categoriasUrl = '$newsurl/categorias';
   static final String preferenciasUrl = '$newsurl/preferencias';
   static final String comentariosUrl = '$newsurl/comentarios';
   static final String reportesUrl = '$newsurl/reportes';
-  static final String loginUrl = '$newsurl/login';
 
   static const int timeoutSeconds = 10; 
   static const String errorTimeout = 'Tiempo de espera agotado'; 

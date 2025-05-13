@@ -13,6 +13,7 @@ enum MotivoReporte {
 /// Clase que representa un reporte de noticia
 @MappableClass()
 class Reporte with ReporteMappable {
+  @MappableField(key: '_id')
   final String? id;
   final String noticiaId;
   final String fecha;

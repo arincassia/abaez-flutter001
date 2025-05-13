@@ -1,20 +1,27 @@
 
 import 'dart:async';
 import 'package:dio/dio.dart';
+import 'package:abaez/constants.dart';
 import 'package:abaez/domain/preferencia.dart';
 import 'package:abaez/exceptions/api_exception.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter/foundation.dart';
-import 'package:abaez/api/service/base_service.dart';
 
-class PreferenciaService extends BaseService {
+class PreferenciaService {
+  final Dio _dio = Dio(
+    BaseOptions(
+      connectTimeout: const Duration(seconds: CategoriaConstantes.timeoutSeconds),
+      receiveTimeout: const Duration(seconds: CategoriaConstantes.timeoutSeconds),
+    ),
+  );
+
   // Clave para almacenar el ID en SharedPreferences
   static const String _preferenciaIdKey = 'preferencia_id';
 
   // ID para preferencias, inicialmente nulo
   String? _preferenciaId;
-  // Constructor que inicializa el ID desde SharedPreferences y hereda de BaseService
-  PreferenciaService() : super() {
+
+  // Constructor que inicializa el ID desde SharedPreferences
+  PreferenciaService() {
     _cargarIdGuardado();
   }
 
@@ -32,83 +39,73 @@ class PreferenciaService extends BaseService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_preferenciaIdKey, id);
   }
+
   /// Obtiene las preferencias del usuario
   Future<Preferencia> getPreferencias() async {
     try {
       // Si no hay ID almacenado, devolver preferencias vacías sin consultar API
       if (_preferenciaId != null && _preferenciaId!.isNotEmpty) {
-        final data = await get(
-          '/preferencias/$_preferenciaId',
+        final response = await _dio.get(
+          '${ApiConstantes.preferenciasUrl}/$_preferenciaId',
         );
         // Si la respuesta es exitosa, convertir a objeto Preferencia
-        if (data != null && data is Map<String, dynamic>) {
-          return Preferencia.fromJson(data);
-        }
+        return Preferencia.fromJson(response.data);
       }
       return await _crearPreferenciasVacias();
     } on DioException catch (e) {
-      debugPrint('❌ DioException en getPreferencias: ${e.toString()}');      if (e.response?.statusCode == 404) {
+      if (e.response?.statusCode == 404) {
         // Si no existe, devolver preferencias vacías
         return await _crearPreferenciasVacias();
       } else {
-        handleError(e);
-        return await _crearPreferenciasVacias();
+        throw ApiException(
+          'Error al conectar con la API de preferencias: $e',
+          statusCode: e.response?.statusCode,
+        );
       }
     } catch (e) {
-      debugPrint('❌ Error inesperado en getPreferencias: ${e.toString()}');
-      if (e is ApiException) {
-        rethrow;
-      }
-      throw ApiException('Error inesperado: $e');
+      throw ApiException('Error desconocido: $e');
     }
   }
+
   /// Guarda las preferencias del usuario (Actualiza)
   Future<void> guardarPreferencias(Preferencia preferencia) async {
     try {
-      await put(
-        '/preferencias/$_preferenciaId',
+      await _dio.put(
+        '${ApiConstantes.preferenciasUrl}/$_preferenciaId',
         data: preferencia.toJson(),
       );
-      
-      debugPrint('✅ Preferencias guardadas correctamente');
     } on DioException catch (e) {
-      debugPrint('❌ DioException en guardarPreferencias: ${e.toString()}');
-      handleError(e);
+      throw ApiException(
+        'Error al conectar con la API de preferencias: $e',
+        statusCode: e.response?.statusCode,
+      );
     } catch (e) {
-      if (e is ApiException) {
-        rethrow;
-      }
-      debugPrint('❌ Error inesperado: ${e.toString()}');
-      throw ApiException('Error inesperado: $e');
+      throw ApiException('Error desconocido: $e');
     }
   }
+
   /// Método auxiliar para crear un nuevo registro de preferencias vacías
   Future<Preferencia> _crearPreferenciasVacias() async {
     try {
       final preferenciasVacias = Preferencia.empty();
 
       // Crear un nuevo registro en la API
-      final data = await post(
-        '/preferencias',
+      final Response response = await _dio.post(
+        ApiConstantes.preferenciasUrl,
         data: preferenciasVacias.toJson(),
       );
 
-      // Guardar el nuevo ID si existe
-      if (data != null && data['id'] != null) {
-        await _guardarId(data['id']);
-      }
+      // Guardar el nuevo ID
+      await _guardarId(response.data['_id']);
 
-      return preferenciasVacias;    } on DioException catch (e) {
-      debugPrint('❌ DioException en _crearPreferenciasVacias: ${e.toString()}');
-      handleError(e);
-      // En caso de error, retornamos preferencias vacías sin ID
-      return Preferencia.empty();
+      return preferenciasVacias;
+    } on DioException catch (e) {
+      throw ApiException(
+        'Error al conectar con la API de preferencias: $e',
+        statusCode: e.response?.statusCode,
+      );
     } catch (e) {
-      debugPrint('❌ Error inesperado en _crearPreferenciasVacias: ${e.toString()}');
-      if (e is ApiException) {
-        rethrow;
-      }
-      throw ApiException('Error inesperado: $e');
+      throw ApiException('Error desconocido: $e');
     }
   }
 }

@@ -9,15 +9,19 @@ class Comentario with ComentarioMappable {
 =======
 @JsonSerializable()
 class Comentario {
+<<<<<<< HEAD
   @JsonKey(includeToJson: false)
 >>>>>>> 7984797d4ded942d2f345d900c7ce49d4b0760a8
+=======
+  @JsonKey(name: '_id', includeToJson: false)
+>>>>>>> parent of 7984797 (Merge pull request #105 from arincassia/main)
   final String? id; // Cambiado a nullable
-  final String noticiaId;//
-  final String texto;//
-  final String fecha;//
-  final String autor;//
-  final int likes;//
-  final int dislikes;//
+  final String noticiaId;
+  final String texto;
+  final String fecha;
+  final String autor;
+  final int likes;
+  final int dislikes;
   final List<Comentario>? subcomentarios;
   final bool isSubComentario;
   final String? idSubComentario; // idNoticia es opcional

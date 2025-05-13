@@ -25,14 +25,13 @@ class CommentSearchBar extends StatelessWidget {
             decoration: InputDecoration(
               hintText: 'Buscar en comentarios...',
               contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              prefixIcon: const Icon(Icons.search),              suffixIcon: ValueListenableBuilder<TextEditingValue>(
+              prefixIcon: const Icon(Icons.search),
+              suffixIcon: ValueListenableBuilder<TextEditingValue>(
                 valueListenable: busquedaController,
                 builder: (context, value, child) {
                   return value.text.isNotEmpty
                       ? IconButton(
                           icon: const Icon(Icons.clear),
-                          color: Colors.grey, // Añadir color para visibilidad
-                          tooltip: 'Limpiar búsqueda', // Añadir tooltip
                           onPressed: () {
                             busquedaController.clear();
                             context.read<ComentarioBloc>()
