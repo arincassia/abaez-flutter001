@@ -1,4 +1,3 @@
-import 'package:abaez/constants.dart';
 import 'package:abaez/domain/categoria.dart';
 import 'package:abaez/exceptions/api_exception.dart';
 import 'package:flutter/foundation.dart';
@@ -7,11 +6,10 @@ import 'package:abaez/api/service/base_service.dart';
 
 class CategoriaService extends BaseService {
   CategoriaService() : super();
-  
-  /// Obtiene todas las categorías desde la API
+    /// Obtiene todas las categorías desde la API
   Future<List<Categoria>> getCategorias() async {
     try {
-      final data = await get('/categorias');
+      final data = await get('/categorias', requireAuthToken: false);
       
       if (data is List) {
         final List<dynamic> categoriasJson = data;
@@ -65,10 +63,9 @@ class CategoriaService extends BaseService {
       if (id.isEmpty) {
         throw ApiException('ID de categoría inválido', statusCode: 400);
       }
+        debugPrint('🔍 Buscando categoría con ID: $id');
       
-      debugPrint('🔍 Buscando categoría con ID: $id');
-      
-      final data = await get('/categorias/$id');
+      final data = await get('/categorias/$id', requireAuthToken: false);
       
       if (data != null && data is Map<String, dynamic>) {
         try {
@@ -105,11 +102,10 @@ class CategoriaService extends BaseService {
 
   /// Crea una nueva categoría en la API
   Future<void> crearCategoria(Map<String, dynamic> categoria) async {
-    try {
-      debugPrint('➕ Creando nueva categoría');
+    try {      debugPrint('➕ Creando nueva categoría');
       debugPrint('📤 Datos a enviar: $categoria');
       
-      await post('/categorias', data: categoria);
+      await post('/categorias', data: categoria, requireAuthToken: true);
       
       debugPrint('✅ Categoría creada con éxito');
     } on DioException catch (e) {
@@ -130,10 +126,8 @@ class CategoriaService extends BaseService {
       // Validar que el ID no sea nulo o vacío
       if (id.isEmpty) {
         throw ApiException('ID de categoría inválido', statusCode: 400);
-      }
-
-      debugPrint('🔄 Editando categoría con ID: $id');
-      await put('/categorias/$id', data: categoria);
+      }      debugPrint('🔄 Editando categoría con ID: $id');
+      await put('/categorias/$id', data: categoria, requireAuthToken: true);
       
       debugPrint('✅ Categoría editada correctamente');
     } on DioException catch (e) {
@@ -154,10 +148,8 @@ class CategoriaService extends BaseService {
       // Validar que el ID no sea nulo o vacío
       if (id.isEmpty) {
         throw ApiException('ID de categoría inválido', statusCode: 400);
-      }
-
-      debugPrint('🗑️ Eliminando categoría con ID: $id');
-      await delete('/categorias/$id');
+      }      debugPrint('🗑️ Eliminando categoría con ID: $id');
+      await delete('/categorias/$id', requireAuthToken: true);
 
       debugPrint('✅ Categoría eliminada correctamente');
     } on DioException catch (e) {
