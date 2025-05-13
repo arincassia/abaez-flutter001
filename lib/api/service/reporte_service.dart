@@ -17,7 +17,7 @@ class ReporteService {
   ));
 
   // URL base para los endpoints de reportes
-  final String _baseUrl = ApiConstantes.reportesUrl;
+  final String _baseUrl = '/reportes';
 
   /// Manejo centralizado de errores
   void _handleError(DioException e) {

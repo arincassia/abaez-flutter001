@@ -5,13 +5,13 @@ part 'categoria.g.dart';
 // category.dart
 class Categoria {
   @JsonKey(includeToJson: false)
-  final String id;
+  final String? id;
   final String nombre; 
   final String descripcion; 
   final String? imagenUrl; 
 
   Categoria({
-    required this.id,
+    this.id,
     required this.nombre,
     required this.descripcion,
     this.imagenUrl,

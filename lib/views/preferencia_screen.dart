@@ -125,7 +125,7 @@ class PreferenciasScreen extends StatelessWidget {
             style: Theme.of(context).textTheme.bodySmall,
           ),
           value: isSelected,
-          onChanged: (_) => _toggleCategoria(context, categoria.id, isSelected),
+          onChanged: (_) => _toggleCategoria(context, categoria.id!, isSelected),
           controlAffinity: ListTileControlAffinity.leading,
           activeColor: Theme.of(context).colorScheme.primary,
         );
