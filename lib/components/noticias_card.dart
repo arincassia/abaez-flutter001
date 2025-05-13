@@ -47,17 +47,14 @@ class _NoticiaCardState extends State<NoticiaCard> {
   @override
   void initState() {
     super.initState();
-    // No cargamos aquí para evitar errores de contexto
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     try {
-      // Cargar el número de comentarios solo la primera vez
       if (_isLoading) {
         if (widget.id != null) {
-          // Solo cargar si el ID no es nulo
           context.read<ComentarioBloc>().add(
             GetNumeroComentarios(noticiaId: widget.id!),
           );
@@ -65,10 +62,8 @@ class _NoticiaCardState extends State<NoticiaCard> {
         _isLoading = false;
       }
 
-      // Observar cambios en el estado y actualizar si es necesario
       final state = context.watch<ComentarioBloc>().state;
       if (state is NumeroComentariosLoaded && state.noticiaId == widget.id) {
-        // Solo actualizar si cambió el número para evitar rebuilds innecesarios
         if (_numeroComentarios != state.numeroComentarios) {
           setState(() {
             _numeroComentarios = state.numeroComentarios;
@@ -105,9 +100,7 @@ class _NoticiaCardState extends State<NoticiaCard> {
           padding: const EdgeInsets.all(12.0),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
             children: [
-              // Columna de texto - Esta se expande para ocupar el espacio disponible
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -116,7 +109,7 @@ class _NoticiaCardState extends State<NoticiaCard> {
                       widget.titulo,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 16, // Reducido para dar más espacio
+                        fontSize: 16,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -125,7 +118,7 @@ class _NoticiaCardState extends State<NoticiaCard> {
                       style: const TextStyle(
                         fontStyle: FontStyle.italic,
                         fontWeight: FontWeight.w300,
-                        fontSize: 12, // Reducido para dar más espacio
+                        fontSize: 12,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -135,12 +128,12 @@ class _NoticiaCardState extends State<NoticiaCard> {
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(fontSize: 14),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 1),
                     Text(
                       '${AppConstants.publicadaEl} ${widget.publicadaEl}',
                       style: const TextStyle(fontSize: 10, color: Colors.grey),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 1),
                     FutureBuilder<String>(
                       future: _obtenerNombreCategoria(widget.categoriaId),
                       builder: (context, snapshot) {
@@ -171,112 +164,140 @@ class _NoticiaCardState extends State<NoticiaCard> {
                   ],
                 ),
               ),
-              // Espacio adecuado entre contenido y botones
-              const SizedBox(width: 4),
-              // Columna de imagen y botones con ancho suficiente para iconos de tamaño normal
+              const SizedBox(width: 2),
               SizedBox(
                 width:
-                    100, // Espacio suficiente para los iconos de tamaño normal
+                    120, // Mantenemos el ancho para la columna de imagen y botones
                 child: Column(
-                  mainAxisSize:
-                      MainAxisSize.min, // Importante para minimizar altura
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Imagen con tamaño estándar
                     if (widget.imageUrl.isNotEmpty)
                       ClipRRect(
                         borderRadius: BorderRadius.circular(4),
                         child: Image.network(
                           widget.imageUrl,
                           fit: BoxFit.cover,
-                          width: 60, // Tamaño estándar para la imagen
-                          height: 60, // Tamaño estándar para la imagen
+                          width: 60,
+                          height: 60,
                           errorBuilder: (context, error, stackTrace) {
                             return Container(
-                              width: 60, // Tamaño estándar
-                              height: 60, // Tamaño estándar
+                              width: 60,
+                              height: 60,
                               color: Colors.grey[300],
                               child: const Icon(Icons.broken_image, size: 24),
                             );
                           },
                         ),
                       ),
-                    const SizedBox(height: 8), // Espaciado vertical normal
-                    // Fila horizontal de botones con espacio normal
-                    Wrap(
-                      spacing: -80,
-                      runSpacing: 1,
-                      alignment: WrapAlignment.start,
-                      
-                      children: [
-                        
-                       
-                        _buildIconButton(
-                          icon: Icons.delete,
-                          color: Colors.red,
-                          onPressed: widget.onDelete,
-                          tooltip: 'Eliminar',
-                        ),
-                         _buildIconButton(
-                          icon: Icons.edit,
-                          color: Colors.blue,
-                          onPressed: widget.onEdit,
-                          tooltip: 'Editar',
-                        ),
-                        // Ícono de comentario + número en una fila
-                        
-                        _buildIconButton(
-                          icon: Icons.report,
-                          color: Colors.amber,
-                          onPressed: widget.onReport,
-                          tooltip: 'Reportar',
-                        ),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              '$_numeroComentarios',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey,
-                              ),
-                            ),
-                            _buildIconButton(
-                              icon: Icons.comment,
-                              onPressed: widget.onComment,
-                              tooltip: 'Ver',
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                    const SizedBox(height: 8),
+                    // Ajustamos la fila de íconos para evitar overflow
+                    Container(
+                      width: 120,
+                      child: Row(
+                        mainAxisAlignment:
+                            MainAxisAlignment
+                                .spaceEvenly, // Distribuye el espacio uniformemente
+                        mainAxisSize:
+                            MainAxisSize.max, // Ocupa todo el ancho disponible
+                        children: [
+                          // Botón de comentarios - más compacto
+                          InkWell(
+                            onTap: widget.onComment,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  '$_numeroComentarios',
+                                  style: const TextStyle(
+                                    fontSize: 15, // Reducimos tamaño de fuente
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
 
-                    // Contador de comentarios
+                                Icon(
+                                  Icons.comment,
+                                  size: 24, // Reducimos más el tamaño del ícono
+                                  color: Theme.of(context).primaryColor,
+                                ),
+                                const SizedBox(width: 8),
+                              ],
+                            ),
+                          ),
+
+                          // Botón de reporte - más compacto
+                          GestureDetector(
+                            onTap: widget.onReport,
+                            child: const Icon(
+                              Icons.report,
+                              size: 24, // Tamaño reducido
+                              color: Colors.amber,
+                            ),
+                          ),
+
+                          // Menú de tres puntos - más compacto
+                          PopupMenuButton<String>(
+                            icon: const Icon(
+                              Icons.more_vert,
+                              size: 24, // Tamaño reducido
+                            ),
+                            padding: EdgeInsets.zero,
+                            iconSize:
+                                18, // Establecemos el tamaño explícitamente
+                            itemBuilder:
+                                (BuildContext context) => [
+                                  const PopupMenuItem<String>(
+                                    value: 'edit',
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.edit,
+                                          color: Colors.blue,
+                                          size: 18,
+                                        ),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          'Editar',
+                                          style: TextStyle(fontSize: 14),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const PopupMenuItem<String>(
+                                    value: 'delete',
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.delete,
+                                          color: Colors.red,
+                                          size: 18,
+                                        ),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          'Eliminar',
+                                          style: TextStyle(fontSize: 14),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                            onSelected: (String value) {
+                              if (value == 'edit') {
+                                widget.onEdit();
+                              } else if (value == 'delete') {
+                                widget.onDelete();
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
             ],
           ),
         ),
-      ),
-    );
-  } // Widget helper para crear botones de iconos de tamaño normal
-
-  Widget _buildIconButton({
-    required IconData icon,
-    Color? color,
-    required VoidCallback onPressed,
-    required String tooltip,
-  }) {
-    return IconButton(
-      icon: Icon(icon, size: 21, color: color),
-      tooltip: tooltip,
-      onPressed: onPressed,
-      padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(
-        minWidth: 22, // Tamaño estándar para botones
-        minHeight: 22,
-        maxWidth: 22, // Tamaño estándar para botones
-        maxHeight: 22,
       ),
     );
   }
