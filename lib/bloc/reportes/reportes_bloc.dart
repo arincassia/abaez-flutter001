@@ -33,7 +33,7 @@ class ReporteBloc extends Bloc<ReporteEvent, ReporteState> {
         noticiaId: event.noticiaId,
         motivo: event.motivo,
       );
-      emit(ReporteCreated(reporte));
+      emit(ReporteCreated(reporte!));
 
       // Recargar la lista después de crear
       final reportes = await reporteRepository.obtenerReportes();

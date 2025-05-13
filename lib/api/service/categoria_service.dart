@@ -1,118 +1,173 @@
-import 'package:abaez/constants.dart';
-import 'package:dio/dio.dart';
 import 'package:abaez/domain/categoria.dart';
+import 'package:abaez/exceptions/api_exception.dart';
+import 'package:flutter/foundation.dart';
+import 'package:dio/dio.dart';
+import 'package:abaez/api/service/base_service.dart';
 
-class CategoriaService {
-  final Dio _dio = Dio(BaseOptions(
-    connectTimeout: const Duration(seconds: CategoriaConstantes.timeoutSeconds), // Tiempo de conexión
-    receiveTimeout: const Duration(seconds: CategoriaConstantes.timeoutSeconds), // Tiempo de recepción
-  ));
-
-  /// Manejo centralizado de errores
-  void _handleError(DioException e) {
-    if (e.type == DioExceptionType.connectionTimeout || e.type == DioExceptionType.receiveTimeout) {
-      throw Exception(CategoriaConstantes.errorTimeout);
-    }
-
-    final statusCode = e.response?.statusCode;
-    switch (statusCode) {
-      case 400:
-        throw Exception(CategoriaConstantes.mensajeError);
-      case 401:
-        throw Exception(ErrorConstantes.errorUnauthorized);
-      case 404:
-        throw Exception(ErrorConstantes.errorNotFound);
-      case 500:
-        throw Exception(ErrorConstantes.errorServer);
-      default:
-        throw Exception('Error desconocido: ${statusCode ?? 'Sin código'}');
-    }
-  }
-
+class CategoriaService extends BaseService {
+  CategoriaService() : super();
+  
   /// Obtiene todas las categorías desde la API
   Future<List<Categoria>> getCategorias() async {
     try {
-      final response = await _dio.get(ApiConstantes.categoriasUrl);
+      final data = await get('/categorias');
+      
+      if (data is List) {
+        final List<dynamic> categoriasJson = data;
+        debugPrint('📊 Procesando ${categoriasJson.length} categorías');
+        debugPrint('📄 Primer elemento de muestra: ${categoriasJson.isNotEmpty ? categoriasJson.first : "ninguno"}');
 
-      if (response.statusCode == 200) {
-        final List<dynamic> categoriasJson = response.data;
-        return categoriasJson.map((json) => Categoria.fromJson(json)).toList();
+        // Filtrar cualquier categoría que no se pueda deserializar correctamente
+        List<Categoria> categorias = [];
+        for (var json in categoriasJson) {
+          try {
+            if (json != null && json is Map<String, dynamic>) {
+              // CAMBIO IMPORTANTE: Verificar tanto 'id' como '_id' para manejar diferentes formatos de API
+              if (json['id'] != null || json['_id'] != null) {
+                // Asegurarse de que siempre haya un 'id' para deserializar correctamente
+                if (json['_id'] != null && json['id'] == null) {
+                  json['id'] = json['_id']; // Copiar '_id' a 'id' si solo existe '_id'
+                }
+                categorias.add(Categoria.fromJson(json));
+              } else {
+                debugPrint('⚠️ Categoría sin ID ni _id, ignorando: $json');
+              }
+            }
+          } catch (e) {
+            debugPrint('❌ Error al deserializar categoría: $e');
+            debugPrint('Datos problemáticos: $json');
+            // Ignoramos esta categoría y continuamos con la siguiente
+          }
+        }
+        return categorias;
       } else {
-        throw Exception('Error desconocido: ${response.statusCode}');
+        debugPrint('❌ La respuesta no es una lista: $data');
+        throw ApiException('Formato de respuesta inválido');
       }
     } on DioException catch (e) {
-      _handleError(e); // Llama al método centralizado para manejar el error
+      debugPrint('❌ DioException en getCategorias: ${e.toString()}');
+      handleError(e);
+      return []; // En caso de error, devolvemos una lista vacía
     } catch (e) {
-      throw Exception('Error inesperado: $e');
+      if (e is ApiException) {
+        rethrow;
+      }
+      debugPrint('❌ Error inesperado en getCategorias: ${e.toString()}');
+      throw ApiException('Error al obtener categorías: $e');
     }
-    throw Exception('Error desconocido: No se pudo obtener las categorías');
+  }
+
+  /// Obtiene una categoría por su ID desde la API
+  Future<Categoria> obtenerCategoriaPorId(String id) async {
+    try {
+      // Validar que el ID no sea nulo o vacío
+      if (id.isEmpty) {
+        throw ApiException('ID de categoría inválido', statusCode: 400);
+      }
+      
+      debugPrint('🔍 Buscando categoría con ID: $id');
+      
+      final data = await get('/categorias/$id');
+      
+      if (data != null && data is Map<String, dynamic>) {
+        try {
+          // CAMBIO IMPORTANTE: Verificar tanto 'id' como '_id' para manejar diferentes formatos de API
+          if (data['id'] != null || data['_id'] != null) {
+            // Asegurarse de que siempre haya un 'id' para deserializar correctamente
+            if (data['_id'] != null && data['id'] == null) {
+              data['id'] = data['_id']; // Copiar '_id' a 'id' si solo existe '_id'
+            }
+            return Categoria.fromJson(data);
+          } else {
+            throw ApiException('Categoría sin identificador válido');
+          }
+        } catch (e) {
+          debugPrint('❌ Error al deserializar categoría: $e');
+          throw ApiException('Error al procesar los datos de la categoría');
+        }
+      } else {
+        debugPrint('❌ Respuesta no es un objeto: $data');
+        throw ApiException('Formato de respuesta inválido');
+      }
+    } on DioException catch (e) {
+      debugPrint('❌ DioException en obtenerCategoriaPorId: ${e.toString()}');
+      handleError(e);
+      throw ApiException('Error al obtener la categoría');
+    } catch (e) {
+      if (e is ApiException) {
+        rethrow;
+      }
+      debugPrint('❌ Error inesperado en obtenerCategoriaPorId: ${e.toString()}');
+      throw ApiException('Error inesperado: $e');
+    }
   }
 
   /// Crea una nueva categoría en la API
   Future<void> crearCategoria(Map<String, dynamic> categoria) async {
     try {
-      final response = await _dio.post(
-        ApiConstantes.categoriasUrl,
-        data: categoria,
-      );
-
-      if (response.statusCode != 201) {
-        throw Exception('Error desconocido: ${response.statusCode}');
-      }
+      debugPrint('➕ Creando nueva categoría');
+      debugPrint('📤 Datos a enviar: $categoria');
+      
+      await post('/categorias', data: categoria);
+      
+      debugPrint('✅ Categoría creada con éxito');
     } on DioException catch (e) {
-      _handleError(e); // Llama al método centralizado para manejar el error
+      debugPrint('❌ DioException en crearCategoria: ${e.toString()}');
+      handleError(e);
     } catch (e) {
-      throw Exception('Error inesperado: $e');
+      if (e is ApiException) {
+        rethrow;
+      }
+      debugPrint('❌ Error inesperado en crearCategoria: ${e.toString()}');
+      throw ApiException('Error inesperado: $e');
     }
   }
 
   /// Edita una categoría existente en la API
   Future<void> editarCategoria(String id, Map<String, dynamic> categoria) async {
     try {
-      final url = '${ApiConstantes.categoriasUrl}/$id';
-      final response = await _dio.put(url, data: categoria);
-
-      if (response.statusCode != 200) {
-        throw Exception('Error desconocido: ${response.statusCode}');
+      // Validar que el ID no sea nulo o vacío
+      if (id.isEmpty) {
+        throw ApiException('ID de categoría inválido', statusCode: 400);
       }
+
+      debugPrint('🔄 Editando categoría con ID: $id');
+      await put('/categorias/$id', data: categoria);
+      
+      debugPrint('✅ Categoría editada correctamente');
     } on DioException catch (e) {
-      _handleError(e); // Llama al método centralizado para manejar el error
+      debugPrint('❌ DioException en editarCategoria: ${e.toString()}');
+      handleError(e);
     } catch (e) {
-      throw Exception('Error inesperado: $e');
+      if (e is ApiException) {
+        rethrow;
+      }
+      debugPrint('❌ Error inesperado en editarCategoria: ${e.toString()}');
+      throw ApiException('Error inesperado: $e');
     }
   }
 
   /// Elimina una categoría de la API
   Future<void> eliminarCategoria(String id) async {
     try {
-      final url = '${ApiConstantes.categoriasUrl}/$id';
-      final response = await _dio.delete(url);
-
-      if (response.statusCode != 200 && response.statusCode != 204) {
-        throw Exception('Error desconocido: ${response.statusCode}');
+      // Validar que el ID no sea nulo o vacío
+      if (id.isEmpty) {
+        throw ApiException('ID de categoría inválido', statusCode: 400);
       }
+
+      debugPrint('🗑️ Eliminando categoría con ID: $id');
+      await delete('/categorias/$id');
+
+      debugPrint('✅ Categoría eliminada correctamente');
     } on DioException catch (e) {
-      _handleError(e); // Llama al método centralizado para manejar el error
+      debugPrint('❌ DioException en eliminarCategoria: ${e.toString()}');
+      handleError(e);
     } catch (e) {
-      throw Exception('Error inesperado: $e');
-    }
-  }
-
-  Future<Categoria> obtenerCategoriaPorId(String id) async {
-    try {
-      final url = '${ApiConstantes.categoriasUrl}/$id';
-      final response = await _dio.get(url);
-
-      if (response.statusCode == 200) {
-        return Categoria.fromJson(response.data);
-      } else {
-        throw Exception('Error desconocido: ${response.statusCode}');
+      if (e is ApiException) {
+        rethrow;
       }
-    } on DioException catch (e) {
-      _handleError(e); // Llama al método centralizado para manejar el error
-      throw Exception('Error al obtener la categoría'); // Esta línea nunca se ejecutará, pero es necesaria para el compilador
-    } catch (e) {
-      throw Exception('Error inesperado: $e');
+      debugPrint('❌ Error inesperado en eliminarCategoria: ${e.toString()}');
+      throw ApiException('Error inesperado: $e');
     }
   }
 }

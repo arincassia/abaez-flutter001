@@ -90,6 +90,7 @@ class NoticiasBloc extends Bloc<NoticiasEvent, NoticiasState> {
       emit(NoticiasError('Error al eliminar noticia: ${e.toString()}'));
     }
   }
+  
   Future<void> _onFilterNoticiasByPreferencias(
     FilterNoticiasByPreferencias event,
     Emitter<NoticiasState> emit,

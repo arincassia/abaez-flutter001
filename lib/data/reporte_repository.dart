@@ -17,7 +17,7 @@ class ReporteRepository {
   }
 
   // Crear un nuevo reporte
-  Future<Reporte> crearReporte({
+  Future<Reporte?> crearReporte({
     required String noticiaId,
     required MotivoReporte motivo,
   }) async {

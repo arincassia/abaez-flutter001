@@ -1,27 +1,30 @@
 import 'dart:async';
+import 'package:abaez/domain/login_request.dart';
+import 'package:abaez/domain/login_response.dart';
+import 'package:abaez/api/service/base_service.dart';
+import 'package:abaez/exceptions/api_exception.dart';
 
-class MockAuthService {
-  Future<void> login(String username, String password) async {
-    // Validar que las credenciales no sean nulas ni vacías
-    if (username.isEmpty || password.isEmpty) {
-      throw ArgumentError('Error: El nombre de usuario y la contraseña no pueden estar vacíos.');
-     
+class AuthService extends BaseService {
+  AuthService() : super();
+  
+  Future<LoginResponse> login(LoginRequest request) async {
+    try {
+      final data = await post(
+        '/login',
+        data: request.toJson(),   
+      );
+      
+      if (data != null) {
+        return LoginResponseMapper.fromMap(data);
+      } else {
+        throw ApiException('Error de autenticación: respuesta vacía');
+      }
+    } catch (e) {
+      if (e is ApiException) {
+        rethrow;
+      } else {
+        throw ApiException('Error de conexión: ${e.toString()}');
+      }
     }
-
-    // Simula un retraso para imitar una llamada a un servicio real
-    await Future.delayed(const Duration(seconds: 1));
-
-    // Imprime las credenciales en la consola
-    //print('Mock Login:');
-    //print('Username: $username');
-    //print('Password: $password');
-    return;
   }
-}
-
-void main() {
-  final authService = MockAuthService();
-
-  // Simula un login
-  authService.login('test_user', 'password123');
 }
