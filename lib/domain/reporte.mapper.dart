@@ -72,8 +72,7 @@ class ReporteMapper extends ClassMapperBase<Reporte> {
   final String id = 'Reporte';
 
   static String? _$id(Reporte v) => v.id;
-  static const Field<Reporte, String> _f$id =
-      Field('id', _$id, key: r'_id', opt: true);
+  static const Field<Reporte, String> _f$id = Field('id', _$id, opt: true);
   static String _$noticiaId(Reporte v) => v.noticiaId;
   static const Field<Reporte, String> _f$noticiaId =
       Field('noticiaId', _$noticiaId);
