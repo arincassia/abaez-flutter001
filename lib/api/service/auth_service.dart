@@ -1,35 +1,29 @@
 import 'dart:async';
 import 'package:abaez/domain/login_request.dart';
-import 'package:dio/dio.dart';
-import 'package:abaez/constants.dart';
 import 'package:abaez/domain/login_response.dart';
+import 'package:abaez/api/service/base_service.dart';
+import 'package:abaez/exceptions/api_exception.dart';
 
-class AuthService {
-  final Dio _dio = Dio(BaseOptions(
-    connectTimeout: const Duration(seconds: 10),
-    receiveTimeout: const Duration(seconds: 10),
-  ));
+class AuthService extends BaseService {
+  AuthService() : super();
   
   Future<LoginResponse> login(LoginRequest request) async {
     try {
-      final response = await _dio.post(
-        ApiConstantes.loginUrl,
+      final data = await post(
+        '/login',
         data: request.toJson(),   
       );
-      if (response.statusCode == 200 && response.data != null) {
-        return LoginResponseMapper.fromMap(response.data);
+      
+      if (data != null) {
+        return LoginResponseMapper.fromMap(data);
       } else {
-        throw DioException(
-          requestOptions: response.requestOptions,
-          response: response,
-          message: 'Authentication error',
-        );
+        throw ApiException('Error de autenticación: respuesta vacía');
       }
-    } on DioException catch (e) {
-      if (e.response != null) {
-        throw Exception('Error: ${e.response?.data['message'] ?? 'Authentication error'}');
+    } catch (e) {
+      if (e is ApiException) {
+        rethrow;
       } else {
-        throw Exception('Connection error: ${e.message}');
+        throw ApiException('Error de conexión: ${e.toString()}');
       }
     }
   }
