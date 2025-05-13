@@ -76,12 +76,12 @@ class NoticiaScreen extends StatelessWidget {
                 IconButton(
                   icon: const Icon(Icons.add),
                   tooltip: 'Agregar Noticia',
-                  onPressed: () async {
-                    try {
+                  onPressed: () async {                    try {
                       await NoticiaModal.mostrarModal(
                         context: context,
                         noticia: null,
-                        onSave: () {
+                        onSave: (_, noticiaActualizada) {
+                          // Para el caso de crear, simplemente recargamos las noticias
                           context.read<NoticiasBloc>().add(
                             const FetchNoticias(),
                           );
@@ -333,20 +333,40 @@ class NoticiaScreen extends StatelessWidget {
       }
     }
     // Estado predeterminado o error
-    return const Center(child: Text('Algo salió mal al cargar las noticias.'));
-  }
-
+    return const Center(child: Text('Algo salió mal al cargar las noticias.'));  }  
+  
   Future<void> _editarNoticia(BuildContext context, Noticia noticia) async {
     await NoticiaModal.mostrarModal(
       context: context,
       noticia: noticia.toJson(),
-      onSave: () {
-        context.read<NoticiasBloc>().add(const FetchNoticias());
+      onSave: (oldNoticia, noticiaActualizada) {
+        // Crear una nueva instancia de Noticia con los datos actualizados
+        final noticiaModel = Noticia(
+          id: noticia.id,
+          titulo: noticiaActualizada['titulo'],
+          descripcion: noticiaActualizada['descripcion'],
+          fuente: noticiaActualizada['fuente'],
+          publicadaEl: DateTime.parse(noticiaActualizada['publicadaEl']),
+          urlImagen: noticiaActualizada['urlImagen'],
+          categoriaId: noticiaActualizada['categoriaId'],
+        );
+
+        // Llamar al evento UpdateNoticia del bloc
+        context.read<NoticiasBloc>().add(UpdateNoticia(noticia.id!, noticiaModel));
+        
+        // Mostrar mensaje de éxito
         SnackBarHelper.showSnackBar(
           context,
           ApiConstantes.newssuccessUpdated,
           statusCode: 200,
         );
+
+        // También recargamos las noticias para asegurar que se muestren actualizadas
+        Future.delayed(const Duration(milliseconds: 300), () {
+          if (context.mounted) {
+            context.read<NoticiasBloc>().add(const FetchNoticias());
+          }
+        });
       },
     );
   }
