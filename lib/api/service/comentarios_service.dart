@@ -18,7 +18,7 @@ class ComentariosService {
   Future<void> _verificarNoticiaExiste(String noticiaId) async {
     try {
       //final response = await dio.get('$baseUrl$noticiasEndpoint/$noticiaId');
-      final response = await dio.get('${ApiConstantes.newsurl}/$noticiaId');
+      final response = await dio.get('/noticias/$noticiaId');
       if (response.statusCode != 200) {
         throw ApiException(
           ApiConstantes.errorNotFound,
@@ -47,7 +47,7 @@ class ComentariosService {
     await _verificarNoticiaExiste(noticiaId);
 
     try {
-      final response = await dio.get(ApiConstantes.comentariosUrl);
+      final response = await dio.get('/comentarios');
       final data = response.data as List<dynamic>;
 
       final comentarios =
@@ -93,7 +93,7 @@ class ComentariosService {
 
     try {
       await dio.post(
-        ApiConstantes.comentariosUrl,
+        '/comentarios',
         data: nuevoComentario.toJson(),
         options: Options(headers: {'Content-Type': 'application/json'}),
       );
@@ -112,7 +112,7 @@ class ComentariosService {
 
   Future<int> obtenerNumeroComentarios(String noticiaId) async {
     try {
-      final response = await dio.get(ApiConstantes.comentariosUrl);
+      final response = await dio.get('/comentarios');
       final data = response.data as List<dynamic>;
 
       final comentariosCount =
@@ -141,7 +141,7 @@ class ComentariosService {
 }) async {
   try {
     // Obtenemos todos los comentarios
-    final response = await dio.get(ApiConstantes.comentariosUrl);
+    final response = await dio.get('/comentarios');
     if (response.statusCode != 200) {
       throw ApiException(
         ApiConstantes.errorServer,
@@ -166,7 +166,7 @@ class ComentariosService {
       int currentDislikes = comentarioActualizado['dislikes'] ?? 0;
       
       await dio.put(
-        '${ApiConstantes.comentariosUrl}/$comentarioId',
+        '/comentarios/$comentarioId',
         data: {
           'noticiaId': comentarioActualizado['noticiaId'],
           'texto': comentarioActualizado['texto'],
@@ -215,7 +215,7 @@ class ComentariosService {
             
             // Actualizar el comentario principal con la nueva lista de subcomentarios
             await dio.put(
-              '${ApiConstantes.comentariosUrl}/${comentarioPrincipal['_id']}',
+              '/comentarios/${comentarioPrincipal['_id']}',
               data: {
                 'noticiaId': comentarioPrincipal['noticiaId'],
                 'texto': comentarioPrincipal['texto'],
@@ -269,7 +269,7 @@ class ComentariosService {
     try {
       final subcomentarioId = 'sub_${DateTime.now().millisecondsSinceEpoch}_${texto.hashCode}';
       // Primero, obtener el comentario al que queremos añadir un subcomentario
-      final response = await dio.get('${ApiConstantes.comentariosUrl}/$comentarioId');
+      final response = await dio.get('/comentarios/$comentarioId');
       if (response.statusCode != 200) {
         return {
           'success': false,
@@ -324,7 +324,7 @@ class ComentariosService {
       
       // Actualizar el comentario con todos sus subcomentarios
       await dio.put(
-        '${ApiConstantes.comentariosUrl}/$comentarioId',
+        '/comentarios/$comentarioId',
         data: {
           'noticiaId': comentarioData['noticiaId'],
           'texto': comentarioData['texto'],

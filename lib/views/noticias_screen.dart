@@ -235,7 +235,8 @@ class NoticiaScreen extends StatelessWidget {
         return ListView.separated(
           itemCount: noticias.length,
           itemBuilder: (context, index) {
-            final noticia = noticias[index];            return NoticiaCardHelper.buildNoticiaCard(
+            final noticia = noticias[index];
+            return NoticiaCardHelper.buildNoticiaCard(
               noticia: noticia,
               onEdit: () async {
                 try {
@@ -349,6 +350,7 @@ class NoticiaScreen extends StatelessWidget {
       },
     );
   }
+
   void _mostrarError(BuildContext context, int? statusCode) {
     final errorData = ErrorHelper.getErrorMessageAndColor(statusCode);
     final message = errorData['message'];
@@ -360,13 +362,17 @@ class NoticiaScreen extends StatelessWidget {
           statusCode, // Pasar el código de estado para el color adecuado
     );
   }
+
   /// Muestra un diálogo para reportar una noticia
-  Future<void> _mostrarDialogoReporte(BuildContext context, String noticiaId) async {
+  Future<void> _mostrarDialogoReporte(
+    BuildContext context,
+    String noticiaId,
+  ) async {
     MotivoReporte motivoSeleccionado = MotivoReporte.otro;
-    
+
     // Obtener una instancia fresca del ReporteBloc
     final reporteBloc = di<ReporteBloc>();
-    
+
     await showDialog(
       context: context,
       barrierDismissible: false, // Evitar cierre al tocar fuera del diálogo
@@ -376,10 +382,18 @@ class NoticiaScreen extends StatelessWidget {
           child: BlocConsumer<ReporteBloc, ReporteState>(
             listener: (context, state) {
               if (state is ReporteCreated) {
-                SnackBarHelper.showSuccess(context, 'Reporte enviado correctamente');
-                Navigator.of(context).pop(); // Cerrar el diálogo cuando el reporte se ha creado
+                SnackBarHelper.showSuccess(
+                  context,
+                  'Reporte enviado correctamente',
+                );
+                Navigator.of(
+                  context,
+                ).pop(); // Cerrar el diálogo cuando el reporte se ha creado
               } else if (state is ReporteError) {
-                SnackBarHelper.showClientError(context, 'Error al enviar el reporte: ${state.message}');
+                SnackBarHelper.showClientError(
+                  context,
+                  'Error al enviar el reporte: ${state.message}',
+                );
               }
             },
             builder: (context, state) {
@@ -395,24 +409,25 @@ class NoticiaScreen extends StatelessWidget {
                         return DropdownButton<MotivoReporte>(
                           value: motivoSeleccionado,
                           isExpanded: true,
-                          items: MotivoReporte.values.map((MotivoReporte motivo) {
-                            String motivoText;
-                            switch (motivo) {
-                              case MotivoReporte.noticiaInapropiada:
-                                motivoText = 'Noticia Inapropiada';
-                                break;
-                              case MotivoReporte.informacionFalsa:
-                                motivoText = 'Información Falsa';
-                                break;
-                              case MotivoReporte.otro:
-                                motivoText = 'Otro';
-                                break;
-                            }
-                            return DropdownMenuItem<MotivoReporte>(
-                              value: motivo,
-                              child: Text(motivoText),
-                            );
-                          }).toList(),
+                          items:
+                              MotivoReporte.values.map((MotivoReporte motivo) {
+                                String motivoText;
+                                switch (motivo) {
+                                  case MotivoReporte.noticiaInapropiada:
+                                    motivoText = 'Noticia Inapropiada';
+                                    break;
+                                  case MotivoReporte.informacionFalsa:
+                                    motivoText = 'Información Falsa';
+                                    break;
+                                  case MotivoReporte.otro:
+                                    motivoText = 'Otro';
+                                    break;
+                                }
+                                return DropdownMenuItem<MotivoReporte>(
+                                  value: motivo,
+                                  child: Text(motivoText),
+                                );
+                              }).toList(),
                           onChanged: (MotivoReporte? valor) {
                             if (valor != null) {
                               setState(() {
@@ -435,25 +450,32 @@ class NoticiaScreen extends StatelessWidget {
                     onPressed: () => Navigator.of(context).pop(),
                     child: const Text('Cancelar'),
                   ),
-                  ElevatedButton(                    onPressed: state is ReporteLoading
-                        ? null // Deshabilitar el botón si está cargando
-                        : () {
-                            // Reiniciar el estado del bloc si hubo un error previo
-                            if (state is ReporteError) {
-                              context.read<ReporteBloc>().add(ReporteInitEvent());
-                            }
-                            
-                            // Enviar el reporte utilizando el bloc con un delay 
-                            // para asegurar que la UI se actualice
-                            Future.delayed(const Duration(milliseconds: 100), () {
-                              context.read<ReporteBloc>().add(
+                  ElevatedButton(
+                    onPressed:
+                        state is ReporteLoading
+                            ? null // Deshabilitar el botón si está cargando
+                            : () {
+                              // Reiniciar el estado del bloc si hubo un error previo
+                              if (state is ReporteError) {
+                                context.read<ReporteBloc>().add(
+                                  ReporteInitEvent(),
+                                );
+                              }
+
+                              // Enviar el reporte utilizando el bloc con un delay
+                              // para asegurar que la UI se actualice
+                              Future.delayed(
+                                const Duration(milliseconds: 100),
+                                () {
+                                  context.read<ReporteBloc>().add(
                                     ReporteCreateEvent(
                                       noticiaId: noticiaId,
                                       motivo: motivoSeleccionado,
                                     ),
                                   );
-                            });
-                          },
+                                },
+                              );
+                            },
                     child: const Text('Enviar Reporte'),
                   ),
                 ],
