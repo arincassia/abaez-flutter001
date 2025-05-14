@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 
-class SnackBarHelper {
-  static void showSnackBar(BuildContext context, String message, {int? statusCode}) {
+class SnackBarHelper {  static void showSnackBar(BuildContext context, String message, {
+    int? statusCode, 
+    Duration? duration,
+  }) {
     final color = _getSnackBarColor(statusCode);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
         backgroundColor: color,
-        duration: const Duration(seconds: 3),
+        duration: duration ?? const Duration(seconds: 3),
       ),
     );
   }
@@ -20,9 +22,9 @@ class SnackBarHelper {
     showSnackBar(context, message, statusCode: 400);
   }
   
-  // Nuevo método para errores del servidor (500+)
-  static void showServerError(BuildContext context, String message) {
-    showSnackBar(context, message, statusCode: 500);
+ // Nuevo método para errores del servidor (500+)
+  static void showServerError(BuildContext context, String message, {Duration? duration}) {
+    showSnackBar(context, message, statusCode: 500, duration: duration);
   }
 
   static Color _getSnackBarColor(int? statusCode) {

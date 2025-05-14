@@ -1,4 +1,3 @@
-import 'package:abaez/constants.dart';
 import 'package:abaez/domain/categoria.dart';
 import 'package:abaez/exceptions/api_exception.dart';
 import 'package:flutter/foundation.dart';
