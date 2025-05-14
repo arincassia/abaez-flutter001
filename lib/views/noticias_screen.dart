@@ -24,8 +24,6 @@ import 'package:abaez/views/preferencia_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:abaez/helpers/snackbar_helper.dart';
 import 'package:watch_it/watch_it.dart';
-import 'package:abaez/bloc/categorias/categorias_bloc.dart';
-import 'package:abaez/bloc/categorias/categorias_event.dart';
 class NoticiaScreen extends StatelessWidget {
   const NoticiaScreen({super.key});
 
