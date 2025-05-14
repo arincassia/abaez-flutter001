@@ -191,7 +191,7 @@ class _NoticiaCardState extends State<NoticiaCard> {
                       ),
                     const SizedBox(height: 8),
                     // Ajustamos la fila de íconos para evitar overflow
-                    Container(
+                    SizedBox(
                       width: 120,
                       child: Row(
                         mainAxisAlignment:
