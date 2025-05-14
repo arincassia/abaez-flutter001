@@ -7,6 +7,7 @@ import 'package:abaez/data/preferencia_repository.dart';
 import 'package:abaez/data/reporte_repository.dart';
 import 'package:abaez/helpers/secure_storage_service.dart';
 import 'package:abaez/helpers/connectivity_service.dart';
+import 'package:abaez/api/service/category_cache_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:watch_it/watch_it.dart';
 import 'package:abaez/data/comentario_repository.dart';
@@ -28,6 +29,8 @@ Future<void> initLocator() async {
   );
   GetIt.instance.registerSingleton(ComentarioBloc());
   // Cambiamos a registerFactory para generar una nueva instancia cada vez que sea solicitada
-  GetIt.instance.registerFactory(() => ReporteBloc());
-  di.registerSingleton<AuthRepository>(AuthRepository());
+  GetIt.instance.registerFactory(() => ReporteBloc());  di.registerSingleton<AuthRepository>(AuthRepository());
+  
+  // Registramos el servicio de caché de categorías como singleton
+  di.registerLazySingleton<CategoryCacheService>(() => CategoryCacheService());
 }
