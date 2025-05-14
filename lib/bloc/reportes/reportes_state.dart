@@ -13,7 +13,7 @@ class ReporteInitial extends ReporteState {}
 class ReporteError extends ReporteState {
   final String message;
 
-  ReporteError(this.message);
+  ReporteError(this.message, {int? statusCode});
 
   @override
   List<Object> get props => [message];

@@ -10,7 +10,7 @@ class NoticiaService extends BaseService {
    /// Obtiene todas las noticias de la API
   Future<List<Noticia>> getNoticias() async {
     try {
-      final data = await get('/noticias');
+      final data = await get('/noticias/hola');
       
       // Verificamos que la respuesta sea una lista
       if (data is List) {

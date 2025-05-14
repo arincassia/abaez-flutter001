@@ -56,7 +56,7 @@ import 'package:equatable/equatable.dart';
  class PreferenciaError extends PreferenciaState {
   final String mensaje;
 
-  const PreferenciaError(this.mensaje);
+  const PreferenciaError(this.mensaje, {int? statusCode});
 
   @override
   List<Object?> get props => [mensaje, ...super.props];

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:abaez/helpers/error_helper.dart';
 
 class SnackBarHelper {  static void showSnackBar(BuildContext context, String message, {
     int? statusCode, 
@@ -26,17 +27,9 @@ class SnackBarHelper {  static void showSnackBar(BuildContext context, String me
   static void showServerError(BuildContext context, String message, {Duration? duration}) {
     showSnackBar(context, message, statusCode: 500, duration: duration);
   }
-
   static Color _getSnackBarColor(int? statusCode) {
-    if (statusCode == null) {
-      return Colors.grey; // Color por defecto
-    } else if (statusCode >= 200 && statusCode < 300) {
-      return Colors.green; // Éxito
-    } else if (statusCode >= 400 && statusCode < 500) {
-      return Colors.orange; // Error del cliente
-    } else if (statusCode >= 500) {
-      return Colors.red; // Error del servidor
-    }
-    return Colors.grey; // Color por defecto
+    // Utilizamos ErrorHelper para obtener el color según el código de estado
+    final errorData = ErrorHelper.getErrorMessageAndColor(statusCode);
+    return errorData['color'] as Color;
   }
 }

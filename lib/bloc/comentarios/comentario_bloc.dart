@@ -34,11 +34,12 @@ class ComentarioBloc extends Bloc<ComentarioEvent, ComentarioState> {
     } on ApiException catch (e) {
       emit(ComentarioError(errorMessage: e.message));
     } catch (e) {
+      final int? statusCode = e is ApiException ? e.statusCode : null;
       emit(
         ComentarioError(
           errorMessage:
               'Error al cargar comentarios'
-              '${e.toString()}',
+              '${e.toString()}',statusCode: statusCode
         ),
       );
     }
@@ -81,8 +82,9 @@ class ComentarioBloc extends Bloc<ComentarioEvent, ComentarioState> {
         emit(ComentarioLoaded(comentariosList: comentarios));
       }
     } catch (e) {
+      final int? statusCode = e is ApiException ? e.statusCode : null;
       emit(
-        const ComentarioError(errorMessage: 'Error al agregar el comentario'),
+        ComentarioError(errorMessage: 'Error al agregar el comentario',statusCode: statusCode),
       );
     }
   }
@@ -106,10 +108,11 @@ class ComentarioBloc extends Bloc<ComentarioEvent, ComentarioState> {
     } on ApiException catch (e) {
       emit(ComentarioError(errorMessage: e.message));
     } catch (e) {
+      final int? statusCode = e is ApiException ? e.statusCode : null;
       emit(
         ComentarioError(
           errorMessage:
-              'Error al obtener número de comentarios: ${e.toString()}',
+              'Error al obtener número de comentarios: ${e.toString()}',statusCode: statusCode,
         ),
       );
     }
@@ -140,9 +143,10 @@ class ComentarioBloc extends Bloc<ComentarioEvent, ComentarioState> {
       // Emitir el estado con comentarios filtrados
       emit(ComentarioLoaded(comentariosList: comentariosFiltrados));
     } catch (e) {
+      final int? statusCode = e is ApiException ? e.statusCode : null;
       emit(
         ComentarioError(
-          errorMessage: 'Error al buscar comentarios: ${e.toString()}',
+          errorMessage: 'Error al buscar comentarios: ${e.toString()}',statusCode: statusCode
         ),
       );
     }
@@ -243,10 +247,11 @@ class ComentarioBloc extends Bloc<ComentarioEvent, ComentarioState> {
             .obtenerComentariosPorNoticia(event.noticiaId);
         emit(ComentarioLoaded(comentariosList: comentarios));
       } catch (_) {
+        final int? statusCode = e is ApiException ? e.statusCode : null;
         // Si incluso la recarga falla, mostramos el error
         emit(
-          const ComentarioError(
-            errorMessage: 'Error al agregar reacción. Intenta de nuevo.',
+          ComentarioError(
+            errorMessage: 'Error al agregar reacción. Intenta de nuevo.',statusCode: statusCode
           ),
         );
       }
@@ -279,9 +284,10 @@ class ComentarioBloc extends Bloc<ComentarioEvent, ComentarioState> {
         emit(ComentarioError(errorMessage: resultado['message']));
       }
     } catch (e) {
+      final int? statusCode = e is ApiException ? e.statusCode : null;
       emit(
         ComentarioError(
-          errorMessage: 'Error al agregar subcomentario: ${e.toString()}',
+          errorMessage: 'Error al agregar subcomentario: ${e.toString()}', statusCode: statusCode,
         ),
       );
     }
