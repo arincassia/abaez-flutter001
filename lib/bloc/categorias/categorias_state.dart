@@ -14,7 +14,7 @@ class CategoriaInitial extends CategoriaState {
 class CategoriaError extends CategoriaState {
   final String message;
  
-  CategoriaError(this.message);
+  CategoriaError(this.message, {int? statusCode});
  
   @override
   List<Object> get props => [message];
