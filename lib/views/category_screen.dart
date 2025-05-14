@@ -48,17 +48,10 @@ class _CategoryScreenContent extends StatelessWidget {
               }
               return const SizedBox.shrink();
             },
-          ),          // Botón para recargar desde la cache
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Refrescar',
-            onPressed: () {
-              context.read<CategoriaBloc>().add(CategoriaInitEvent());
-            },
-          ),
+          ), 
           // Botón para forzar recarga desde API
           IconButton(
-            icon: const Icon(Icons.cloud_download),
+            icon: const Icon(Icons.refresh),
             tooltip: 'Forzar actualización desde API',
             onPressed: () async {
               try {
