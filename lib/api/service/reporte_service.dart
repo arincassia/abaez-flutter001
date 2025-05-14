@@ -11,8 +11,7 @@ class ReporteService extends BaseService {
 
   /// Obtiene todos los reportes
   Future<List<Reporte>> getReportes() async {
-    try {
-      final data = await get('/reportes');
+    try {      final data = await get('/reportes', requireAuthToken: false);
       
       if (data is List) {
         debugPrint('📊 Procesando ${data.length} reportes');
@@ -53,14 +52,14 @@ class ReporteService extends BaseService {
     required MotivoReporte motivo,
   }) async {
     try {
-      final fecha = DateTime.now().toIso8601String();
-      final data = await post(
+      final fecha = DateTime.now().toIso8601String();      final data = await post(
         '/reportes',
         data: {
           'noticiaId': noticiaId,
           'fecha': fecha,
           'motivo': motivo.toValue(), // Método para serializar el enum correctamente
         },
+        requireAuthToken: true, // Operación de escritura
       );
       
       debugPrint('✅ Reporte creado correctamente');
@@ -100,8 +99,7 @@ class ReporteService extends BaseService {
 
   /// Elimina un reporte
   Future<void> eliminarReporte(String reporteId) async {
-    try {
-      await delete('/reportes/$reporteId');
+    try {      await delete('/reportes/$reporteId', requireAuthToken: true);
       debugPrint('✅ Reporte eliminado correctamente');
     } on DioException catch (e) {
       debugPrint('❌ DioException en eliminarReporte: ${e.toString()}');
@@ -117,10 +115,10 @@ class ReporteService extends BaseService {
 
   /// Actualiza un reporte existente
   Future<Reporte?> actualizarReporte(String reporteId, Map<String, dynamic> datosActualizados) async {
-    try {
-      final data = await put(
+    try {      final data = await put(
         '/reportes/$reporteId',
         data: datosActualizados,
+        requireAuthToken: true, // Operación de escritura
       );
       
       debugPrint('✅ Reporte actualizado correctamente');

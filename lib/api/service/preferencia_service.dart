@@ -36,9 +36,9 @@ class PreferenciaService extends BaseService {
   Future<Preferencia> getPreferencias() async {
     try {
       // Si no hay ID almacenado, devolver preferencias vacías sin consultar API
-      if (_preferenciaId != null && _preferenciaId!.isNotEmpty) {
-        final data = await get(
+      if (_preferenciaId != null && _preferenciaId!.isNotEmpty) {      final data = await get(
           '/preferencias/$_preferenciaId',
+          requireAuthToken: false, // Operación de lectura
         );
         // Si la respuesta es exitosa, convertir a objeto Preferencia
         if (data != null && data is Map<String, dynamic>) {
@@ -64,10 +64,10 @@ class PreferenciaService extends BaseService {
   }
   /// Guarda las preferencias del usuario (Actualiza)
   Future<void> guardarPreferencias(Preferencia preferencia) async {
-    try {
-      await put(
+    try {      await put(
         '/preferencias/$_preferenciaId',
         data: preferencia.toJson(),
+        requireAuthToken: true, // Operación de escritura
       );
       
       debugPrint('✅ Preferencias guardadas correctamente');
@@ -85,12 +85,11 @@ class PreferenciaService extends BaseService {
   /// Método auxiliar para crear un nuevo registro de preferencias vacías
   Future<Preferencia> _crearPreferenciasVacias() async {
     try {
-      final preferenciasVacias = Preferencia.empty();
-
-      // Crear un nuevo registro en la API
+      final preferenciasVacias = Preferencia.empty();      // Crear un nuevo registro en la API
       final data = await post(
         '/preferencias',
         data: preferenciasVacias.toJson(),
+        requireAuthToken: true, // Operación de escritura
       );
 
       // Guardar el nuevo ID si existe
