@@ -1,3 +1,5 @@
+import 'package:abaez/exceptions/api_exception.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:abaez/bloc/bloc noticias/noticias_event.dart';
 import 'package:abaez/bloc/bloc noticias/noticias_state.dart';
@@ -24,7 +26,9 @@ class NoticiasBloc extends Bloc<NoticiasEvent, NoticiasState> {
       final noticias = await _noticiaRepository.obtenerNoticias();
       emit(NoticiasLoaded(noticias, DateTime.now()));
     } catch (e) {
-      emit(NoticiasError('Error al cargar noticias: ${e.toString()}'));
+      final int? statusCode = e is ApiException ? e.statusCode : null;
+      debugPrint('parada1${e.toString()}');
+      emit(NoticiasError('Error al cargar noticias: ${e.toString()}', statusCode: statusCode));
     }
   }
 
@@ -47,7 +51,8 @@ class NoticiasBloc extends Bloc<NoticiasEvent, NoticiasState> {
       final noticias = await _noticiaRepository.obtenerNoticias();
       emit(NoticiasLoaded(noticias, DateTime.now()));
     } catch (e) {
-      emit(NoticiasError('Error al agregar noticia: ${e.toString()}'));
+      final int? statusCode = e is ApiException ? e.statusCode : null;
+      emit(NoticiasError('Error al agregar noticia: ${e.toString()}',statusCode: statusCode));
     }
   }
 
@@ -71,7 +76,8 @@ class NoticiasBloc extends Bloc<NoticiasEvent, NoticiasState> {
       final noticias = await _noticiaRepository.obtenerNoticias();
       emit(NoticiasLoaded(noticias, DateTime.now()));
     } catch (e) {
-      emit(NoticiasError('Error al actualizar noticia: ${e.toString()}'));
+      final int? statusCode = e is ApiException ? e.statusCode : null;
+      emit(NoticiasError('Error al actualizar noticia: ${e.toString()}',statusCode: statusCode));
     }
   }
 
@@ -87,7 +93,8 @@ class NoticiasBloc extends Bloc<NoticiasEvent, NoticiasState> {
       final noticias = await _noticiaRepository.obtenerNoticias();
       emit(NoticiasLoaded(noticias, DateTime.now()));
     } catch (e) {
-      emit(NoticiasError('Error al eliminar noticia: ${e.toString()}'));
+      final int? statusCode = e is ApiException ? e.statusCode : null;
+      emit(NoticiasError('Error al eliminar noticia: ${e.toString()}',statusCode: statusCode));
     }
   }
   
@@ -108,7 +115,8 @@ class NoticiasBloc extends Bloc<NoticiasEvent, NoticiasState> {
 
       emit(NoticiasLoaded(filteredNoticias, DateTime.now()));
     } catch (e) {
-      emit(NoticiasError('Error al filtrar noticias: ${e.toString()}'));
+      final int? statusCode = e is ApiException ? e.statusCode : null;
+      emit(NoticiasError('Error al filtrar noticias: ${e.toString()}',statusCode: statusCode));
     }
   }
 }

@@ -26,7 +26,7 @@ class ComentarioLoaded extends ComentarioState {
 class ComentarioError extends ComentarioState {
   final String errorMessage;
   
-  const ComentarioError({required this.errorMessage});
+  const ComentarioError({required this.errorMessage, int? statusCode});
   
   @override
   List<Object> get props => [errorMessage];

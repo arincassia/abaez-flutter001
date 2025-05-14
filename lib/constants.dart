@@ -77,13 +77,10 @@ class ApiConstantes {
   static const String newssuccessCreated = 'Noticia creada con éxito';
   static const String newssuccessUpdated = 'Noticia actualizada con éxito';
   static const String newssuccessDeleted = 'Noticia eliminada con éxito';
-
-
-
   static const String errorUnauthorized = 'No autorizado'; 
   static const String errorNotFound = 'Noticias no encontradas';
   static const String errorServer = 'Error del servidor';
-
+  static const String errorNoInternet = 'Por favor, verifica tu conexión a internet.';
 }
 
 
