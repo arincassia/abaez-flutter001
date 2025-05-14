@@ -114,7 +114,7 @@ class ComentariosService extends BaseService {
     // Obtenemos todos los comentarios
     final data = await get('/comentarios', requireAuthToken: false);
     
-    if (!(data is List)) {
+    if (data is! List) {
       throw ApiException('Formato de respuesta inválido');
     }
 
@@ -225,7 +225,7 @@ class ComentariosService extends BaseService {
       final subcomentarioId = 'sub_${DateTime.now().millisecondsSinceEpoch}_${texto.hashCode}';      // Primero, obtener el comentario al que queremos añadir un subcomentario
       final data = await get('/comentarios/$comentarioId', requireAuthToken: false);
       
-      if (!(data is Map<String, dynamic>)) {
+      if (data is! Map<String, dynamic>) {
         return {
           'success': false,
           'message': 'Formato de respuesta inválido'

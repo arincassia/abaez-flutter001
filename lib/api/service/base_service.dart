@@ -5,6 +5,7 @@ import 'package:abaez/core/api_config.dart';
 import 'package:abaez/exceptions/api_exception.dart';
 import 'package:abaez/helpers/error_helper.dart';
 import 'package:abaez/helpers/secure_storage_service.dart';
+import 'package:abaez/helpers/connectivity_service.dart';
 import 'package:flutter/foundation.dart';
 
 /// Clase base para todos los servicios de la API.
@@ -15,6 +16,9 @@ class BaseService {
   
   /// Servicio para almacenamiento seguro
   final SecureStorageService _secureStorage = SecureStorageService();
+  
+  /// Servicio para verificar la conectividad a Internet
+  final ConnectivityService _connectivityService = ConnectivityService();
   
   /// Constructor
   BaseService() {
@@ -57,6 +61,7 @@ class BaseService {
     }
   }
   
+
   /// Obtiene opciones de solicitud con token de autenticación si es requerido
   Future<Options> _getRequestOptions({bool requireAuthToken = false}) async {
     final options = Options();
@@ -77,6 +82,11 @@ class BaseService {
     }
     
     return options;
+
+  /// Verifica la conectividad antes de realizar una solicitud
+  Future<void> _checkConnectivityBeforeRequest() async {
+    await _connectivityService.checkConnectivity();
+
   }
   
   /// Manejo centralizado de errores para servicios
@@ -110,6 +120,9 @@ class BaseService {
     bool requireAuthToken = false,
   }) async {
     try {
+      // Verificar conectividad antes de realizar la solicitud
+      await _checkConnectivityBeforeRequest();
+      
       debugPrint('🔍 GET: ${ApiConfig.beeceptorBaseUrl}$path');
       final options = await _getRequestOptions(requireAuthToken: requireAuthToken);
       final response = await _dio.get(
@@ -120,6 +133,9 @@ class BaseService {
       
       debugPrint('✅ Respuesta recibida: ${response.statusCode}');
       return response.data;
+    } on ApiException {
+      // Re-lanzar excepciones de API (incluidas las de conectividad)
+      rethrow;
     } on DioException catch (e) {
       debugPrint('❌ DioException en GET $path: ${e.toString()}');
       debugPrint('URL: ${e.requestOptions.uri}');
@@ -135,6 +151,9 @@ class BaseService {
     bool requireAuthToken = false,
   }) async {
     try {
+      // Verificar conectividad antes de realizar la solicitud
+      await _checkConnectivityBeforeRequest();
+      
       debugPrint('📤 POST: ${ApiConfig.beeceptorBaseUrl}$path');
       final options = await _getRequestOptions(requireAuthToken: requireAuthToken);
       final response = await _dio.post(
@@ -145,6 +164,9 @@ class BaseService {
       
       debugPrint('✅ Respuesta recibida: ${response.statusCode}');
       return response.data;
+    } on ApiException {
+      // Re-lanzar excepciones de API (incluidas las de conectividad)
+      rethrow;
     } on DioException catch (e) {
       debugPrint('❌ DioException en POST $path: ${e.toString()}');
       debugPrint('URL: ${e.requestOptions.uri}');
@@ -160,6 +182,9 @@ class BaseService {
     bool requireAuthToken = false,
   }) async {
     try {
+      // Verificar conectividad antes de realizar la solicitud
+      await _checkConnectivityBeforeRequest();
+      
       debugPrint('📝 PUT: ${ApiConfig.beeceptorBaseUrl}$path');
       final options = await _getRequestOptions(requireAuthToken: requireAuthToken);
       final response = await _dio.put(
@@ -170,6 +195,9 @@ class BaseService {
       
       debugPrint('✅ Respuesta recibida: ${response.statusCode}');
       return response.data;
+    } on ApiException {
+      // Re-lanzar excepciones de API (incluidas las de conectividad)
+      rethrow; 
     } on DioException catch (e) {
       debugPrint('❌ DioException en PUT $path: ${e.toString()}');
       debugPrint('URL: ${e.requestOptions.uri}');
@@ -184,6 +212,9 @@ class BaseService {
     bool requireAuthToken = false,
   }) async {
     try {
+      // Verificar conectividad antes de realizar la solicitud
+      await _checkConnectivityBeforeRequest();
+      
       debugPrint('🗑️ DELETE: ${ApiConfig.beeceptorBaseUrl}$path');
       final options = await _getRequestOptions(requireAuthToken: requireAuthToken);
       final response = await _dio.delete(
@@ -193,6 +224,9 @@ class BaseService {
       
       debugPrint('✅ Respuesta recibida: ${response.statusCode}');
       return response.data;
+    } on ApiException {
+      // Re-lanzar excepciones de API (incluidas las de conectividad)
+      rethrow;
     } on DioException catch (e) {
       debugPrint('❌ DioException en DELETE $path: ${e.toString()}');
       debugPrint('URL: ${e.requestOptions.uri}');
@@ -205,4 +239,7 @@ class BaseService {
   
   /// Acceso protegido al cliente Dio para casos especiales
   Dio get dio => _dio;
+  
+  /// Acceso al servicio de conectividad
+  ConnectivityService get connectivityService => _connectivityService;
 }

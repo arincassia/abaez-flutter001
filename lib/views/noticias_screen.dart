@@ -487,6 +487,7 @@ class NoticiaScreen extends StatelessWidget {
                               Future.delayed(
                                 const Duration(milliseconds: 100),
                                 () {
+                                  if(!context.mounted) return;
                                   context.read<ReporteBloc>().add(
                                     ReporteCreateEvent(
                                       noticiaId: noticiaId,

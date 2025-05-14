@@ -6,6 +6,7 @@ import 'package:abaez/data/noticia_repository.dart';
 import 'package:abaez/data/preferencia_repository.dart';
 import 'package:abaez/data/reporte_repository.dart';
 import 'package:abaez/helpers/secure_storage_service.dart';
+import 'package:abaez/helpers/connectivity_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:watch_it/watch_it.dart';
 import 'package:abaez/data/comentario_repository.dart';
@@ -18,9 +19,12 @@ Future<void> initLocator() async {
   di.registerLazySingleton<PreferenciaRepository>(
     () => PreferenciaRepository(),
   );
-  di.registerSingleton<ComentarioRepository>(ComentarioRepository());  di.registerSingleton<ReporteRepository>(ReporteRepository());
-  di.registerLazySingleton<SecureStorageService>(
+  di.registerSingleton<ComentarioRepository>(ComentarioRepository());  di.registerSingleton<ReporteRepository>(ReporteRepository());  di.registerLazySingleton<SecureStorageService>(
     () => SecureStorageService(),
+  );
+  // Registramos el servicio de conectividad
+  di.registerLazySingleton<ConnectivityService>(
+    () => ConnectivityService(),
   );
   GetIt.instance.registerSingleton(ComentarioBloc());
   // Cambiamos a registerFactory para generar una nueva instancia cada vez que sea solicitada

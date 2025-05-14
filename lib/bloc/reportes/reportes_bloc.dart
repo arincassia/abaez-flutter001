@@ -1,3 +1,4 @@
+import 'package:abaez/exceptions/api_exception.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:abaez/bloc/reportes/reportes_event.dart';
 import 'package:abaez/bloc/reportes/reportes_state.dart';
@@ -21,7 +22,8 @@ class ReporteBloc extends Bloc<ReporteEvent, ReporteState> {
       final reportes = await reporteRepository.obtenerReportes();
       emit(ReporteLoaded(reportes, DateTime.now()));
     } catch (e) {
-      emit(ReporteError('Error al cargar reportes: ${e.toString()}'));
+      final int? statusCode = e is ApiException ? e.statusCode : null;
+      emit(ReporteError('Error al cargar reportes: ${e.toString()}', statusCode: statusCode));
     }
   }
 
@@ -39,7 +41,8 @@ class ReporteBloc extends Bloc<ReporteEvent, ReporteState> {
       final reportes = await reporteRepository.obtenerReportes();
       emit(ReporteLoaded(reportes, DateTime.now()));
     } catch (e) {
-      emit(ReporteError('Error al crear reporte: ${e.toString()}'));
+      final int? statusCode = e is ApiException ? e.statusCode : null;
+      emit(ReporteError('Error al crear reporte: ${e.toString()}', statusCode: statusCode));
     }
   }
 
@@ -54,7 +57,8 @@ class ReporteBloc extends Bloc<ReporteEvent, ReporteState> {
       final reportes = await reporteRepository.obtenerReportes();
       emit(ReporteLoaded(reportes, DateTime.now()));
     } catch (e) {
-      emit(ReporteError('Error al eliminar reporte: ${e.toString()}'));
+      final int? statusCode = e is ApiException ? e.statusCode : null;
+      emit(ReporteError('Error al eliminar reporte: ${e.toString()}', statusCode: statusCode));
     }
   }
 
@@ -65,7 +69,8 @@ class ReporteBloc extends Bloc<ReporteEvent, ReporteState> {
       final reportes = await reporteRepository.obtenerReportesPorNoticia(event.noticiaId);
       emit(ReportesPorNoticiaLoaded(reportes, event.noticiaId));
     } catch (e) {
-      emit(ReporteError('Error al obtener reportes por noticia: ${e.toString()}'));
+      final int? statusCode = e is ApiException ? e.statusCode : null;
+      emit(ReporteError('Error al obtener reportes por noticia: ${e.toString()}', statusCode: statusCode));
     }
   }
 }
