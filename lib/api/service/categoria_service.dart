@@ -33,7 +33,7 @@ class CategoriaService extends BaseService {
               }
             }
           } catch (e) {
-            debugPrint('❌ Error al deserializar categoría: $e');
+            debugPrint(' Error al deserializar categoría: $e');
             debugPrint('Datos problemáticos: $json');
             // Ignoramos esta categoría y continuamos con la siguiente
           }
