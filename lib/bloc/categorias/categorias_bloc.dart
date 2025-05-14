@@ -1,3 +1,4 @@
+import 'package:abaez/exceptions/api_exception.dart';
 import  'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/foundation.dart';
 import 'package:abaez/bloc/categorias/categorias_event.dart';
@@ -24,7 +25,8 @@ class CategoriaBloc extends Bloc<CategoriaEvent, CategoriaState> {
        final categorias = await categoriaRepository.obtenerCategorias();
        emit(CategoriaLoaded(categorias, DateTime.now()));
      } catch (e) {
-       emit(CategoriaError('Failed to load categories: ${e.toString()}'));
+        final int? statusCode = e is ApiException ? e.statusCode : null;
+        emit(CategoriaError('Failed to load categories: ${e.toString()}',statusCode: statusCode));
      }
    }
    
@@ -55,8 +57,9 @@ class CategoriaBloc extends Bloc<CategoriaEvent, CategoriaState> {
        // Recargar la lista después de crear
        add(CategoriaInitEvent());
      } catch (e) {
-       debugPrint('Error creando categoría: $e');
-       emit(CategoriaError('Error al crear categoría: ${e.toString()}'));
+        final int? statusCode = e is ApiException ? e.statusCode : null;
+        debugPrint('Error creando categoría: $e');
+        emit(CategoriaError('Error al crear categoría: ${e.toString()}',statusCode: statusCode));
      }
    }
    
@@ -87,8 +90,9 @@ class CategoriaBloc extends Bloc<CategoriaEvent, CategoriaState> {
        // Recargar la lista después de actualizar
        add(CategoriaInitEvent());
      } catch (e) {
-       debugPrint('Error actualizando categoría: $e');
-       emit(CategoriaError('Error al actualizar categoría: ${e.toString()}'));
+        final int? statusCode = e is ApiException ? e.statusCode : null;
+        debugPrint('Error actualizando categoría: $e');
+        emit(CategoriaError('Error al actualizar categoría: ${e.toString()}',statusCode: statusCode));
      }
    }
    
@@ -104,8 +108,9 @@ class CategoriaBloc extends Bloc<CategoriaEvent, CategoriaState> {
        // Recargar la lista después de eliminar
        add(CategoriaInitEvent());
      } catch (e) {
-       debugPrint('Error eliminando categoría: $e');
-       emit(CategoriaError('Error al eliminar categoría: ${e.toString()}'));
+        final int? statusCode = e is ApiException ? e.statusCode : null;
+        debugPrint('Error eliminando categoría: $e');
+        emit(CategoriaError('Error al eliminar categoría: ${e.toString()}',statusCode: statusCode));
      }
    }
 }
