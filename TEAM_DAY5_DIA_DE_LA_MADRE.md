@@ -76,7 +76,6 @@ Future<String> _obtenerNombreCategoria(String categoriaId) async {
 4. **Consistencia**: Asegura que todos los componentes usan la misma fuente de datos
 5. **Robustez**: Manejo adecuado de errores y estados de carga
 
-## Próximos Pasos
-- Considerar la implementación de una expiración de caché basada en tiempo
-- Evaluar la posibilidad de utilizar almacenamiento persistente para el caché
-- Expandir el patrón a otros tipos de datos frecuentemente usados
+## Screenshot
+
+![Servicio de caché de categorías en acción](assets/images/screenshot1.png "Demostración del servicio de caché")
