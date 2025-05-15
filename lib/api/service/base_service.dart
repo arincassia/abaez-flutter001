@@ -44,23 +44,23 @@ class BaseService {
     //   },
     // ));
   }
-    /// Añade el token de autenticación a las solicitudes (método antiguo)
-  Future<void> _addAuthToken(RequestOptions options, RequestInterceptorHandler handler) async {
-    final jwt = await _secureStorage.getJwt();
-    if (jwt != null && jwt.isNotEmpty) {
-      options.headers['X-Auth-Token'] = jwt;
-      handler.next(options);
-    } else {
-      handler.reject(
-        DioException(
-          requestOptions: options,
-          error: 'No se encontró el token de autenticación',
-          type: DioExceptionType.unknown,
-        ),
-      );
-    }
-  }
-  
+
+  //   /// Añade el token de autenticación a las solicitudes (método antiguo)
+  // Future<void> _addAuthToken(RequestOptions options, RequestInterceptorHandler handler) async {
+  //   final jwt = await _secureStorage.getJwt();
+  //   if (jwt != null && jwt.isNotEmpty) {
+  //     options.headers['X-Auth-Token'] = jwt;
+  //     handler.next(options);
+  //   } else {
+  //     handler.reject(
+  //       DioException(
+  //         requestOptions: options,
+  //         error: 'No se encontró el token de autenticación',
+  //         type: DioExceptionType.unknown,
+  //       ),
+  //     );
+  //   }
+  // }
 
   /// Obtiene opciones de solicitud con token de autenticación si es requerido
   Future<Options> _getRequestOptions({bool requireAuthToken = false}) async {
@@ -82,7 +82,7 @@ class BaseService {
     }
     
     return options;
-
+  }
   /// Verifica la conectividad antes de realizar una solicitud
   Future<void> _checkConnectivityBeforeRequest() async {
     await _connectivityService.checkConnectivity();

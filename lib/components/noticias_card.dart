@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:abaez/constants.dart';
-import 'package:abaez/api/service/categoria_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:abaez/bloc/comentarios/comentario_bloc.dart';
 import 'package:abaez/bloc/comentarios/comentario_event.dart';
 import 'package:abaez/bloc/comentarios/comentario_state.dart';
+import 'package:abaez/helpers/category_helper.dart';
 
 class NoticiaCard extends StatefulWidget {
   final String? id;
@@ -42,7 +42,6 @@ class NoticiaCard extends StatefulWidget {
 class _NoticiaCardState extends State<NoticiaCard> {
   int _numeroComentarios = 0;
   bool _isLoading = true;
-  final CategoriaService _categoriaService = CategoriaService();
 
   @override
   void initState() {
@@ -74,16 +73,9 @@ class _NoticiaCardState extends State<NoticiaCard> {
       debugPrint('Error al cargar comentarios: $e');
     }
   }
-
   Future<String> _obtenerNombreCategoria(String categoriaId) async {
-    try {
-      final categoria = await _categoriaService.obtenerCategoriaPorId(
-        categoriaId,
-      );
-      return categoria.nombre;
-    } catch (e) {
-      return 'Sin categoría';
-    }
+    // Usar el nuevo helper que implementa la caché de categorías
+    return await CategoryHelper.getCategoryName(categoriaId);
   }
 
   @override

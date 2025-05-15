@@ -4,6 +4,7 @@ import 'package:abaez/bloc/reportes/reportes_bloc.dart';
 import 'package:abaez/bloc/reportes/reportes_event.dart';
 import 'package:abaez/bloc/reportes/reportes_state.dart';
 import 'package:abaez/domain/reporte.dart';
+import 'package:abaez/helpers/category_helper.dart';
 import 'package:abaez/views/comentarios/comentarios_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -23,7 +24,6 @@ import 'package:abaez/views/preferencia_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:abaez/helpers/snackbar_helper.dart';
 import 'package:watch_it/watch_it.dart';
-
 class NoticiaScreen extends StatelessWidget {
   const NoticiaScreen({super.key});
 
@@ -38,7 +38,7 @@ class NoticiaScreen extends StatelessWidget {
           create:
               (context) => PreferenciaBloc()..add(const CargarPreferencias()),
         ),
-        // Asegurarnos de usar el BLoC global
+        // Asegurarnos de usar el BLoC global    
         BlocProvider.value(value: context.read<ComentarioBloc>()),
       ],
       child: BlocConsumer<NoticiasBloc, NoticiasState>(
@@ -159,8 +159,8 @@ class NoticiaScreen extends StatelessWidget {
                         FilterNoticiasByPreferencias(categoriasSeleccionadas),
                       );
                     } else {
-                      // Si no hay filtros, mostrar todas las noticias
                       context.read<NoticiasBloc>().add(const FetchNoticias());
+                      CategoryHelper.refreshCategories();
                     }
                   },
                 ),

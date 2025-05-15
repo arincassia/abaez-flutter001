@@ -6,6 +6,7 @@ import 'package:abaez/bloc/categorias/categorias_event.dart';
 import 'package:abaez/bloc/categorias/categorias_state.dart';
 import 'package:abaez/domain/categoria.dart';
 import 'package:abaez/helpers/snackbar_helper.dart';
+import 'package:abaez/helpers/category_helper.dart';
 import 'package:intl/intl.dart';
 
 class CategoryScreen extends StatelessWidget {
@@ -47,12 +48,38 @@ class _CategoryScreenContent extends StatelessWidget {
               }
               return const SizedBox.shrink();
             },
-          ),
+          ), 
+          // Botón para forzar recarga desde API
           IconButton(
             icon: const Icon(Icons.refresh),
-            tooltip: 'Refrescar',
-            onPressed: () {
-              context.read<CategoriaBloc>().add(CategoriaInitEvent());
+            tooltip: 'Forzar actualización desde API',
+            onPressed: () async {
+              try {
+                // Mostrar indicador de progreso
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Actualizando categorías...'),
+                    duration: Duration(seconds: 1),
+                  ),
+                );
+                
+                // Actualizar categorías usando el helper
+                await CategoryHelper.refreshCategories();
+                
+                // Recargar la UI
+                if (context.mounted) {
+                  context.read<CategoriaBloc>().add(CategoriaInitEvent());
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error al actualizar categorías: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
             },
           ),
         ],
