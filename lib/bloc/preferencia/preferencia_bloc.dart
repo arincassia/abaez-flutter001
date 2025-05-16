@@ -1,3 +1,4 @@
+import 'package:abaez/exceptions/api_exception.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:abaez/bloc/preferencia/preferencia_event.dart';
 import 'package:abaez/bloc/preferencia/preferencia_state.dart';
@@ -38,7 +39,8 @@ class PreferenciaBloc extends Bloc<PreferenciaEvent, PreferenciaState> {
         ascendente: false,
       ));
     } catch (e) {
-      emit(PreferenciaError('Error al cargar preferencias: ${e.toString()}'));
+      final int? statusCode = e is ApiException ? e.statusCode : null;
+      emit(PreferenciaError('Error al cargar preferencias: ${e.toString()}', statusCode: statusCode));
     }
   }
 
@@ -78,8 +80,9 @@ class PreferenciaBloc extends Bloc<PreferenciaEvent, PreferenciaState> {
         // para indicar que los cambios locales no se han guardado aún
       }
     } catch (e) {
+      final int? statusCode = e is ApiException ? e.statusCode : null;
       // Este catch solo atraparía errores graves en la lógica del bloc
-      emit(PreferenciaError('Error al cambiar categoría: ${e.toString()}'));
+      emit(PreferenciaError('Error al cambiar categoría: ${e.toString()}', statusCode: statusCode));
     }
   }
 
@@ -141,7 +144,8 @@ class PreferenciaBloc extends Bloc<PreferenciaEvent, PreferenciaState> {
       const estadoInicial = PreferenciaState();
       emit(estadoInicial);
     } catch (e) {
-      emit(PreferenciaError('Error al reiniciar filtros: ${e.toString()}'));
+      final int? statusCode = e is ApiException ? e.statusCode : null;
+      emit(PreferenciaError('Error al reiniciar filtros: ${e.toString()}', statusCode: statusCode));
     }
   }
 
@@ -156,7 +160,8 @@ class PreferenciaBloc extends Bloc<PreferenciaEvent, PreferenciaState> {
       // Emitir el estado actualizado
       emit(state.copyWith(categoriasSeleccionadas: event.categoriasSeleccionadas));
     } catch (e) {
-      emit(PreferenciaError('Error al guardar preferencias: ${e.toString()}'));
+      final int? statusCode = e is ApiException ? e.statusCode : null;
+      emit(PreferenciaError('Error al guardar preferencias: ${e.toString()}', statusCode: statusCode));
     }
   }
 }

@@ -6,10 +6,9 @@ import 'package:abaez/api/service/base_service.dart';
 import 'package:flutter/foundation.dart';
 
 class ComentariosService extends BaseService {
-  ComentariosService() : super();
-  Future<void> _verificarNoticiaExiste(String noticiaId) async {
+  ComentariosService() : super();  Future<void> _verificarNoticiaExiste(String noticiaId) async {
     try {
-      await get('/noticias/$noticiaId');
+      await get('/noticias/$noticiaId', requireAuthToken: false);
       // Si la petición es exitosa, la noticia existe
     } on DioException catch (e) {
       handleError(e);
@@ -24,10 +23,8 @@ class ComentariosService extends BaseService {
   Future<List<Comentario>> obtenerComentariosPorNoticia(
     String noticiaId,
   ) async {
-    await _verificarNoticiaExiste(noticiaId);
-
-    try {
-      final data = await get('/comentarios');
+    await _verificarNoticiaExiste(noticiaId);    try {
+      final data = await get('/comentarios', requireAuthToken: false);
 
       if (data is List) {
         final comentarios = (data)
@@ -71,12 +68,11 @@ class ComentariosService extends BaseService {
       dislikes: 0,
       subcomentarios: [],
       isSubComentario: false,
-    );
-
-    try {
+    );    try {
       await post(
         '/comentarios',
         data: nuevoComentario.toJson(),
+        requireAuthToken: true, // Crear comentario requiere autenticación
       );
       
       debugPrint('✅ Comentario agregado correctamente');
@@ -90,10 +86,9 @@ class ComentariosService extends BaseService {
       debugPrint('❌ Error inesperado: ${e.toString()}');
       throw ApiException('Error inesperado: $e');
     }
-  }
-  Future<int> obtenerNumeroComentarios(String noticiaId) async {
+  }  Future<int> obtenerNumeroComentarios(String noticiaId) async {
     try {
-      final data = await get('/comentarios');
+      final data = await get('/comentarios', requireAuthToken: false);
 
       if (data is List) {
         final comentariosCount =
@@ -115,12 +110,11 @@ class ComentariosService extends BaseService {
   } Future<void> reaccionarComentario({
   required String comentarioId,
   required String tipoReaccion,
-}) async {
-  try {
+}) async {  try {
     // Obtenemos todos los comentarios
-    final data = await get('/comentarios');
+    final data = await get('/comentarios', requireAuthToken: false);
     
-    if (!(data is List)) {
+    if (data is! List) {
       throw ApiException('Formato de respuesta inválido');
     }
 
@@ -138,8 +132,7 @@ class ComentariosService extends BaseService {
       );
       
       int currentLikes = comentarioActualizado['likes'] ?? 0;
-      int currentDislikes = comentarioActualizado['dislikes'] ?? 0;
-        await put(
+      int currentDislikes = comentarioActualizado['dislikes'] ?? 0;        await put(
         '/comentarios/$comentarioId',
         data: {
           'noticiaId': comentarioActualizado['noticiaId'],
@@ -151,6 +144,7 @@ class ComentariosService extends BaseService {
           'subcomentarios': comentarioActualizado['subcomentarios'] ?? [],
           'isSubComentario': comentarioActualizado['isSubComentario'] ?? false,
         },
+        requireAuthToken: true,
       );
       return;
     }
@@ -185,8 +179,7 @@ class ComentariosService extends BaseService {
             subcomentarioActualizado['dislikes'] = tipoReaccion == 'dislike' ? currentDislikes + 1 : currentDislikes;
               // Actualizar la lista de subcomentarios
             subcomentarios[j] = subcomentarioActualizado;
-            
-            // Actualizar el comentario principal con la nueva lista de subcomentarios
+              // Actualizar el comentario principal con la nueva lista de subcomentarios
             await put(
               '/comentarios/${comentarioPrincipal['id']}',
               data: {
@@ -199,6 +192,7 @@ class ComentariosService extends BaseService {
                 'subcomentarios': subcomentarios,
                 'isSubComentario': comentarioPrincipal['isSubComentario'] ?? false,
               },
+              requireAuthToken: true,
             );
 
             return;
@@ -227,12 +221,11 @@ class ComentariosService extends BaseService {
     required String comentarioId, // ID del comentario principal
     required String texto,
     required String autor,
-  }) async {
-    try {
+  }) async {    try {
       final subcomentarioId = 'sub_${DateTime.now().millisecondsSinceEpoch}_${texto.hashCode}';      // Primero, obtener el comentario al que queremos añadir un subcomentario
-      final data = await get('/comentarios/$comentarioId');
+      final data = await get('/comentarios/$comentarioId', requireAuthToken: false);
       
-      if (!(data is Map<String, dynamic>)) {
+      if (data is! Map<String, dynamic>) {
         return {
           'success': false,
           'message': 'Formato de respuesta inválido'
@@ -282,8 +275,7 @@ class ComentariosService extends BaseService {
       final subcomentariosActualizados = [
         ...subcomentariosActuales,
         nuevoSubcomentario.toJson()
-      ];
-        // Actualizar el comentario con todos sus subcomentarios
+      ];      // Actualizar el comentario con todos sus subcomentarios
       await put(
         '/comentarios/$comentarioId',
         data: {
@@ -296,6 +288,7 @@ class ComentariosService extends BaseService {
           'subcomentarios': subcomentariosActualizados,
           'isSubComentario': false // Asegurarse de que el comentario principal no sea un subcomentario
         },
+        requireAuthToken: true,
       );
       
       return {
