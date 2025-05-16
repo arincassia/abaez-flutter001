@@ -13,6 +13,8 @@ class ReporteBloc extends Bloc<ReporteEvent, ReporteState> {
     on<ReporteCreateEvent>(_onCreateReporte);
     on<ReporteDeleteEvent>(_onDeleteReporte);
     on<ReporteGetByNoticiaEvent>(_onGetByNoticia);
+    on<ReporteGetCountEvent>(_onGetCount);
+    on<ReporteGetCountDetailEvent>(_onGetCountDetail);
   }
 
   Future<void> _onInit(ReporteInitEvent event, Emitter<ReporteState> emit) async {
@@ -73,4 +75,34 @@ class ReporteBloc extends Bloc<ReporteEvent, ReporteState> {
       emit(ReporteError('Error al obtener reportes por noticia: ${e.toString()}', statusCode: statusCode));
     }
   }
+
+  Future<void> _onGetCount(ReporteGetCountEvent event, Emitter<ReporteState> emit) async {
+  emit(ReporteLoading());
+
+  try {
+    final numeroReportes = await reporteRepository.obtenerCantidadReportesPorNoticia(event.noticiaId);
+    emit(ReporteCountLoaded(noticiaId: event.noticiaId, numeroReportes: numeroReportes));
+  } catch (e) {
+    final int? statusCode = e is ApiException ? e.statusCode : null;
+    emit(ReporteError('Error al obtener cantidad de reportes: ${e.toString()}', statusCode: statusCode));
+  }
+}
+
+Future<void> _onGetCountDetail(
+  ReporteGetCountDetailEvent event, 
+  Emitter<ReporteState> emit
+) async {
+  emit(ReporteLoading());
+
+  try {
+    final conteosPorMotivo = await reporteRepository.obtenerConteoReportesPorTipo(event.noticiaId);
+    emit(ReporteCountDetailLoaded(
+      noticiaId: event.noticiaId, 
+      conteosPorMotivo: conteosPorMotivo
+    ));
+  } catch (e) {
+    final int? statusCode = e is ApiException ? e.statusCode : null;
+    emit(ReporteError('Error al obtener conteo por tipo: ${e.toString()}', statusCode: statusCode));
+  }
+}
 }

@@ -5,6 +5,9 @@ import 'package:abaez/bloc/comentarios/comentario_bloc.dart';
 import 'package:abaez/bloc/comentarios/comentario_event.dart';
 import 'package:abaez/bloc/comentarios/comentario_state.dart';
 import 'package:abaez/helpers/category_helper.dart';
+import 'package:abaez/bloc/reportes/reportes_bloc.dart';  // Añadir este import
+import 'package:abaez/bloc/reportes/reportes_event.dart'; // Añadir este import
+import 'package:abaez/bloc/reportes/reportes_state.dart'; // Añadir este import
 
 class NoticiaCard extends StatefulWidget {
   final String? id;
@@ -41,6 +44,7 @@ class NoticiaCard extends StatefulWidget {
 
 class _NoticiaCardState extends State<NoticiaCard> {
   int _numeroComentarios = 0;
+  int _numeroReportes = 0;
   bool _isLoading = true;
 
   @override
@@ -57,15 +61,30 @@ class _NoticiaCardState extends State<NoticiaCard> {
           context.read<ComentarioBloc>().add(
             GetNumeroComentarios(noticiaId: widget.id!),
           );
+          context.read<ReporteBloc>().add(
+          ReporteGetCountEvent(noticiaId: widget.id!),
+        );
+          
         }
         _isLoading = false;
       }
+
 
       final state = context.watch<ComentarioBloc>().state;
       if (state is NumeroComentariosLoaded && state.noticiaId == widget.id) {
         if (_numeroComentarios != state.numeroComentarios) {
           setState(() {
             _numeroComentarios = state.numeroComentarios;
+          });
+        }
+      }
+
+      // Actualizar contador de reportes
+      final reportState = context.watch<ReporteBloc>().state;
+      if (reportState is ReporteCountLoaded && reportState.noticiaId == widget.id) {
+        if (_numeroReportes != reportState.numeroReportes) {
+          setState(() {
+            _numeroReportes = reportState.numeroReportes;
           });
         }
       }
@@ -182,104 +201,123 @@ class _NoticiaCardState extends State<NoticiaCard> {
                         ),
                       ),
                     const SizedBox(height: 8),
-                    // Ajustamos la fila de íconos para evitar overflow
+                    // Fila de botones optimizada para evitar overflow
                     SizedBox(
                       width: 120,
                       child: Row(
-                        mainAxisAlignment:
-                            MainAxisAlignment
-                                .spaceEvenly, // Distribuye el espacio uniformemente
-                        mainAxisSize:
-                            MainAxisSize.max, // Ocupa todo el ancho disponible
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        mainAxisSize: MainAxisSize.max,
                         children: [
-                          // Botón de comentarios - más compacto
+                          // Botón de comentarios - optimizado
                           InkWell(
                             onTap: widget.onComment,
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Text(
-                                  '$_numeroComentarios',
-                                  style: const TextStyle(
-                                    fontSize: 15, // Reducimos tamaño de fuente
-                                    color: Colors.grey,
+                                SizedBox(
+                                  width: 15,
+                                  child: Text(
+                                    '$_numeroComentarios',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                    textAlign: TextAlign.center,
                                   ),
                                 ),
-                                const SizedBox(width: 4),
-
+                                const SizedBox(width: 2),
                                 Icon(
                                   Icons.comment,
-                                  size: 24, // Reducimos más el tamaño del ícono
+                                  size: 18,
                                   color: Theme.of(context).primaryColor,
                                 ),
-                                const SizedBox(width: 8),
                               ],
                             ),
                           ),
 
-                          // Botón de reporte - más compacto
-                          GestureDetector(
+                          // Botón de reporte - optimizado
+                          InkWell(
                             onTap: widget.onReport,
-                            child: const Icon(
-                              Icons.report,
-                              size: 24, // Tamaño reducido
-                              color: Colors.amber,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                SizedBox(
+                                  width: 15,
+                                  child: Text(
+                                    '$_numeroReportes',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.orange,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                                const SizedBox(width: 2),
+                                Icon(
+                                  Icons.flag,
+                                  size: 18,
+                                  color: Theme.of(context).primaryColor,
+                                ),
+                              ],
                             ),
                           ),
-
-                          // Menú de tres puntos - más compacto
-                          PopupMenuButton<String>(
-                            icon: const Icon(
-                              Icons.more_vert,
-                              size: 24, // Tamaño reducido
-                            ),
-                            padding: EdgeInsets.zero,
-                            iconSize:
-                                18, // Establecemos el tamaño explícitamente
-                            itemBuilder:
-                                (BuildContext context) => [
-                                  const PopupMenuItem<String>(
-                                    value: 'edit',
-                                    child: Row(
-                                      children: [
-                                        Icon(
-                                          Icons.edit,
-                                          color: Colors.blue,
-                                          size: 18,
-                                        ),
-                                        SizedBox(width: 4),
-                                        Text(
-                                          'Editar',
-                                          style: TextStyle(fontSize: 14),
-                                        ),
-                                      ],
-                                    ),
+                          
+                          // Menú - optimizado
+                          SizedBox(
+                            width: 24,
+                            child: PopupMenuButton<String>(
+                              icon: const Icon(
+                                Icons.more_vert,
+                                size: 18,
+                              ),
+                              padding: EdgeInsets.zero,
+                              iconSize: 18,
+                              itemBuilder: (BuildContext context) => [
+                                const PopupMenuItem<String>(
+                                  value: 'edit',
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.edit,
+                                        color: Colors.blue,
+                                        size: 18,
+                                      ),
+                                      SizedBox(width: 4),
+                                      Text(
+                                        'Editar',
+                                        style: TextStyle(fontSize: 14),
+                                      ),
+                                    ],
                                   ),
-                                  const PopupMenuItem<String>(
-                                    value: 'delete',
-                                    child: Row(
-                                      children: [
-                                        Icon(
-                                          Icons.delete,
-                                          color: Colors.red,
-                                          size: 18,
-                                        ),
-                                        SizedBox(width: 4),
-                                        Text(
-                                          'Eliminar',
-                                          style: TextStyle(fontSize: 14),
-                                        ),
-                                      ],
-                                    ),
+                                ),
+                                const PopupMenuItem<String>(
+                                  value: 'delete',
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.delete,
+                                        color: Colors.red,
+                                        size: 18,
+                                      ),
+                                      SizedBox(width: 4),
+                                      Text(
+                                        'Eliminar',
+                                        style: TextStyle(fontSize: 14),
+                                      ),
+                                    ],
                                   ),
-                                ],
-                            onSelected: (String value) {
-                              if (value == 'edit') {
-                                widget.onEdit();
-                              } else if (value == 'delete') {
-                                widget.onDelete();
-                              }
-                            },
+                                ),
+                              ],
+                              onSelected: (String value) {
+                                if (value == 'edit') {
+                                  widget.onEdit();
+                                } else if (value == 'delete') {
+                                  widget.onDelete();
+                                }
+                              },
+                           ),
                           ),
                         ],
                       ),

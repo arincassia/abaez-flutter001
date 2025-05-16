@@ -141,4 +141,40 @@ class ReporteService extends BaseService {
       throw ApiException('Error inesperado: $e');
     }
   }
+  /// Obtiene la cantidad de reportes por ID de noticia
+  Future<int> getCantidadReportesPorNoticia(String noticiaId) async {
+    try {
+      final reportes = await getReportes();
+      return reportes.where((reporte) => reporte.noticiaId == noticiaId).length;
+    } catch (e) {
+      debugPrint('❌ Error en getCantidadReportesPorNoticia: ${e.toString()}');
+      if (e is ApiException) {
+        rethrow;
+      }
+      throw ApiException('Error al obtener cantidad de reportes por noticia: $e');
+    }
+  }
+
+  Future<Map<MotivoReporte, int>> getConteoReportesPorTipo(String noticiaId) async {
+  try {
+    final reportes = await getReportesPorNoticia(noticiaId);
+    
+    // Inicializar contador con todos los tipos en 0
+    final Map<MotivoReporte, int> conteos = {
+      MotivoReporte.noticiaInapropiada: 0,
+      MotivoReporte.informacionFalsa: 0,
+      MotivoReporte.otro: 0,
+    };
+    
+    // Contar reportes por tipo
+    for (final reporte in reportes) {
+      conteos[reporte.motivo] = (conteos[reporte.motivo] ?? 0) + 1;
+    }
+    
+    return conteos;
+  } catch (e) {
+    debugPrint('❌ Error en getConteoReportesPorTipo: ${e.toString()}');
+    throw ApiException('Error al obtener conteo de reportes por tipo: $e');
+  }
+}
 }

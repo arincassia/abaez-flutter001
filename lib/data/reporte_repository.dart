@@ -54,4 +54,19 @@ class ReporteRepository {
       throw Exception('Error al eliminar reporte: ${e.toString()}');
     }
   }
+
+  // Obtener cantidad de reportes por id de noticia
+  Future<int> obtenerCantidadReportesPorNoticia(String noticiaId) async {
+    try {
+      return await _reporteService.getCantidadReportesPorNoticia(noticiaId);
+    } on ApiException catch (e) {
+      throw Exception('Error al obtener cantidad de reportes: ${e.message}');
+    } catch (e) {
+      throw Exception('Error al obtener cantidad de reportes: ${e.toString()}');
+    }
+  }
+
+  Future<Map<MotivoReporte, int>> obtenerConteoReportesPorTipo(String noticiaId) async {
+  return await _reporteService.getConteoReportesPorTipo(noticiaId);
+}
 }

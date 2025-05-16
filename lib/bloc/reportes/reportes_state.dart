@@ -63,3 +63,32 @@ class ReportesPorNoticiaLoaded extends ReporteState {
   @override
   List<Object> get props => [reportes, noticiaId];
 }
+
+// Estado para la cantidad de reportes por noticia
+class ReporteCountLoaded extends ReporteState {
+  final String noticiaId;
+  final int numeroReportes;
+  
+  ReporteCountLoaded({
+    required this.noticiaId,
+    required this.numeroReportes,
+  });
+  
+  @override
+  List<Object> get props => [noticiaId, numeroReportes];
+}
+
+class ReporteCountDetailLoaded extends ReporteState {
+  final String noticiaId;
+  final Map<MotivoReporte, int> conteosPorMotivo;
+  
+  ReporteCountDetailLoaded({
+    required this.noticiaId,
+    required this.conteosPorMotivo,
+  });
+  
+  int get total => conteosPorMotivo.values.fold(0, (a, b) => a + b);
+  
+  @override
+  List<Object> get props => [noticiaId, conteosPorMotivo];
+}
