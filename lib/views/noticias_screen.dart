@@ -40,6 +40,9 @@ class NoticiaScreen extends StatelessWidget {
         ),
         // Asegurarnos de usar el BLoC global    
         BlocProvider.value(value: context.read<ComentarioBloc>()),
+        BlocProvider(
+          create: (context) => di<ReporteBloc>()..add(ReporteInitEvent()),
+        ),
       ],
       child: BlocConsumer<NoticiasBloc, NoticiasState>(
         listener: (context, state) {
@@ -382,129 +385,213 @@ class NoticiaScreen extends StatelessWidget {
           statusCode, // Pasar el código de estado para el color adecuado
     );
   }
-
-  /// Muestra un diálogo para reportar una noticia
+  
   Future<void> _mostrarDialogoReporte(
-    BuildContext context,
-    String noticiaId,
-  ) async {
-    MotivoReporte motivoSeleccionado = MotivoReporte.otro;
+  BuildContext context,
+  String noticiaId,
+) async {
+  MotivoReporte motivoSeleccionado = MotivoReporte.otro;
 
-    // Obtener una instancia fresca del ReporteBloc
-    final reporteBloc = di<ReporteBloc>();
+   // Mapas para guardar los conteos
+  Map<MotivoReporte, int> conteoReportes = {
+    MotivoReporte.noticiaInapropiada: 0,
+    MotivoReporte.informacionFalsa: 0,
+    MotivoReporte.otro: 0,
+  };
 
-    await showDialog(
-      context: context,
-      barrierDismissible: false, // Evitar cierre al tocar fuera del diálogo
-      builder: (BuildContext context) {
-        return BlocProvider.value(
-          value: reporteBloc,
-          child: BlocConsumer<ReporteBloc, ReporteState>(
-            listener: (context, state) {
-              if (state is ReporteCreated) {
-                SnackBarHelper.showSuccess(
-                  context,
-                  'Reporte enviado correctamente',
-                );
-                Navigator.of(
-                  context,
-                ).pop(); // Cerrar el diálogo cuando el reporte se ha creado
-              } else if (state is ReporteError) {
-                SnackBarHelper.showClientError(
-                  context,
-                  'Error al enviar el reporte: ${state.message}',
-                );
-              }
-            },
-            builder: (context, state) {
-              return AlertDialog(
-                title: const Text('Reportar Noticia'),
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text('Por favor, seleccione el motivo del reporte:'),
-                    const SizedBox(height: 16),
-                    StatefulBuilder(
-                      builder: (context, setState) {
-                        return DropdownButton<MotivoReporte>(
-                          value: motivoSeleccionado,
-                          isExpanded: true,
-                          items:
-                              MotivoReporte.values.map((MotivoReporte motivo) {
-                                String motivoText;
-                                switch (motivo) {
-                                  case MotivoReporte.noticiaInapropiada:
-                                    motivoText = 'Noticia Inapropiada';
-                                    break;
-                                  case MotivoReporte.informacionFalsa:
-                                    motivoText = 'Información Falsa';
-                                    break;
-                                  case MotivoReporte.otro:
-                                    motivoText = 'Otro';
-                                    break;
-                                }
-                                return DropdownMenuItem<MotivoReporte>(
-                                  value: motivo,
-                                  child: Text(motivoText),
-                                );
-                              }).toList(),
-                          onChanged: (MotivoReporte? valor) {
-                            if (valor != null) {
-                              setState(() {
-                                motivoSeleccionado = valor;
-                              });
-                            }
-                          },
-                        );
-                      },
-                    ),
-                    if (state is ReporteLoading)
-                      const Padding(
-                        padding: EdgeInsets.only(top: 16.0),
-                        child: Center(child: CircularProgressIndicator()),
-                      ),
-                  ],
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Cancelar'),
-                  ),
-                  ElevatedButton(
-                    onPressed:
-                        state is ReporteLoading
-                            ? null // Deshabilitar el botón si está cargando
-                            : () {
-                              // Reiniciar el estado del bloc si hubo un error previo
-                              if (state is ReporteError) {
-                                context.read<ReporteBloc>().add(
-                                  ReporteInitEvent(),
-                                );
-                              }
+  // Obtener una instancia fresca del ReporteBloc
+  final reporteBloc = di<ReporteBloc>();
+  
+  // Solicitar conteo detallado al abrir el diálogo
+  reporteBloc.add(ReporteGetCountDetailEvent(noticiaId: noticiaId));
 
-                              // Enviar el reporte utilizando el bloc con un delay
-                              // para asegurar que la UI se actualice
-                              Future.delayed(
-                                const Duration(milliseconds: 100),
-                                () {
-                                  if(!context.mounted) return;
-                                  context.read<ReporteBloc>().add(
-                                    ReporteCreateEvent(
-                                      noticiaId: noticiaId,
-                                      motivo: motivoSeleccionado,
-                                    ),
-                                  );
-                                },
-                              );
-                            },
-                    child: const Text('Enviar Reporte'),
-                  ),
-                ],
+
+  await showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return BlocProvider.value(
+        value: reporteBloc,
+        child: BlocConsumer<ReporteBloc, ReporteState>(
+          listener: (context, state) {
+            if (state is ReporteCreated) {
+              SnackBarHelper.showSuccess(
+                context,
+                'Reporte enviado correctamente',
               );
-            },
-          ),
-        );
-      },
-    );
-  }
+              Navigator.of(context).pop();
+            } else if (state is ReporteError) {
+              SnackBarHelper.showClientError(
+                context,
+                'Error al enviar el reporte: ${state.message}',
+              );
+            }
+          },
+          builder: (context, state) {
+            if (state is ReporteCountDetailLoaded && state.noticiaId == noticiaId) {
+              conteoReportes = state.conteosPorMotivo;
+            }
+            
+            return AlertDialog(
+              title: const Text('Reportar Noticia'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('Por favor, seleccione el motivo del reporte:'),
+                  const SizedBox(height: 20),
+                  StatefulBuilder(
+                    builder: (context, setState) {
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          // Opción: Noticia Inapropiada
+                          _buildReportOption(
+                            context: context,
+                            icon: Icons.block,
+                            label: 'Inapropiada',
+                            color: Colors.red,
+                            isSelected: motivoSeleccionado == MotivoReporte.noticiaInapropiada,
+                            count: conteoReportes[MotivoReporte.noticiaInapropiada] ?? 0, // Mostrar conteo
+
+                            onTap: () {
+                              setState(() {
+                                motivoSeleccionado = MotivoReporte.noticiaInapropiada;
+                              });
+                            },
+                          ),
+                          
+                          // Opción: Información Falsa
+                          _buildReportOption(
+                            context: context,
+                            icon: Icons.fact_check,
+                            label: 'Falsa',
+                            color: Colors.orange,
+                            isSelected: motivoSeleccionado == MotivoReporte.informacionFalsa,
+                            count: conteoReportes[MotivoReporte.informacionFalsa] ?? 0, // Mostrar conteo
+                            onTap: () {
+                              setState(() {
+                                motivoSeleccionado = MotivoReporte.informacionFalsa;
+                              });
+                            },
+                          ),
+                          
+                          // Opción: Otro
+                          _buildReportOption(
+                            context: context,
+                            icon: Icons.help_outline,
+                            label: 'Otro',
+                            color: Colors.blue,
+                            isSelected: motivoSeleccionado == MotivoReporte.otro,
+                            count: conteoReportes[MotivoReporte.otro] ?? 0, // Mostrar conteo
+                            onTap: () {
+                              setState(() {
+                                motivoSeleccionado = MotivoReporte.otro;
+                              });
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                  if (state is ReporteLoading)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 16.0),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Cancelar'),
+                ),
+                ElevatedButton(
+                  onPressed: state is ReporteLoading
+                      ? null
+                      : () {
+                          if (state is ReporteError) {
+                            context.read<ReporteBloc>().add(ReporteInitEvent());
+                          }
+                          Future.delayed(
+                            const Duration(milliseconds: 100),
+                            () {
+                              if(!context.mounted) return;
+                              context.read<ReporteBloc>().add(
+                                ReporteCreateEvent(
+                                  noticiaId: noticiaId,
+                                  motivo: motivoSeleccionado,
+                                ),
+                              );
+
+                              context.read<ReporteBloc>().add(
+                                ReporteGetCountDetailEvent(noticiaId: noticiaId),
+                              );
+
+                              
+                            },
+                          );
+                        },
+                  child: const Text('Enviar Reporte'),
+                ),
+              ],
+            );
+          },
+        ),
+      );
+    },
+  );
 }
+
+// Helper method to build each report option
+Widget _buildReportOption({
+  required BuildContext context,
+  required IconData icon,
+  required String label,
+  required Color color,
+  required bool isSelected,
+  required VoidCallback onTap,
+  int count = 0, // Añadir contador con valor predeterminado 0
+
+}) {
+  return InkWell(
+    onTap: onTap,
+    child: Container(
+      padding: const EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8.0),
+        border: Border.all(
+          color: isSelected ? color : Colors.grey.shade300,
+          width: 2,
+        ),
+        color: isSelected ? color.withAlpha(26) : Colors.transparent,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            color: isSelected ? color : Colors.grey,
+            size: 32,
+          ),
+          const SizedBox(height: 4),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              color: color.withAlpha(26),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text(
+              '$count',
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+ }

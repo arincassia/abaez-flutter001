@@ -42,3 +42,22 @@ class ReporteGetByNoticiaEvent extends ReporteEvent {
   @override
   List<Object?> get props => [noticiaId];
 }
+
+// Evento para obtener cantidad de reportes por ID de noticia
+class ReporteGetCountEvent extends ReporteEvent {
+  final String noticiaId;
+
+  ReporteGetCountEvent({required this.noticiaId});
+
+  @override
+  List<Object?> get props => [noticiaId];
+}
+
+class ReporteGetCountDetailEvent extends ReporteEvent {
+  final String noticiaId;
+  
+  ReporteGetCountDetailEvent({required this.noticiaId});
+  
+  @override
+  List<Object> get props => [noticiaId];
+}
