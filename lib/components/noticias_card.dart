@@ -43,63 +43,75 @@ class NoticiaCard extends StatefulWidget {
 }
 
 class _NoticiaCardState extends State<NoticiaCard> {
-  int _numeroComentarios = 0;
-  int _numeroReportes = 0;
-  bool _isLoading = true;
+  int numeroComentarios = 0;
+  int numeroReportes = 0;
+  String? _lastLoadedId;
 
   @override
   void initState() {
     super.initState();
+    _cargarContadores();
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    try {
-      if (_isLoading) {
-        if (widget.id != null) {
-          context.read<ComentarioBloc>().add(
-            GetNumeroComentarios(noticiaId: widget.id!),
-          );
-          context.read<ReporteBloc>().add(
-          ReporteGetCountEvent(noticiaId: widget.id!),
-        );
-          
-        }
-        _isLoading = false;
-      }
-
-
-      final state = context.watch<ComentarioBloc>().state;
-      if (state is NumeroComentariosLoaded && state.noticiaId == widget.id) {
-        if (_numeroComentarios != state.numeroComentarios) {
-          setState(() {
-            _numeroComentarios = state.numeroComentarios;
-          });
-        }
-      }
-
-      // Actualizar contador de reportes
-      final reportState = context.watch<ReporteBloc>().state;
-      if (reportState is ReporteCountLoaded && reportState.noticiaId == widget.id) {
-        if (_numeroReportes != reportState.numeroReportes) {
-          setState(() {
-            _numeroReportes = reportState.numeroReportes;
-          });
-        }
-      }
-    } catch (e) {
-      debugPrint('Error al cargar comentarios: $e');
+  void didUpdateWidget(NoticiaCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Recargar solo si cambió el ID de la noticia
+    if (oldWidget.id != widget.id) {
+      _cargarContadores();
     }
   }
+
+  void _cargarContadores() {
+    if (widget.id != null && widget.id != _lastLoadedId) {
+      _lastLoadedId = widget.id;
+      
+      // Usar read en lugar de watch para evitar rebuilds innecesarios
+      context.read<ComentarioBloc>().add(
+        GetNumeroComentarios(noticiaId: widget.id!),
+      );
+      context.read<ReporteBloc>().add(
+        ReporteGetCountEvent(noticiaId: widget.id!),
+      );
+    }
+  }
+
+
+      
   Future<String> _obtenerNombreCategoria(String categoriaId) async {
     // Usar el nuevo helper que implementa la caché de categorías
     return await CategoryHelper.getCategoryName(categoriaId);
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Padding(
+   Widget build(BuildContext context) {
+    // Usar BlocListener para actualizar contadores sin reconstruir todo el widget
+    return  MultiBlocListener(
+      listeners: [
+        BlocListener<ComentarioBloc, ComentarioState>(
+          listenWhen: (previous, current) => 
+            current is NumeroComentariosLoaded && current.noticiaId == widget.id,
+          listener: (context, state) {
+            if (state is NumeroComentariosLoaded && numeroComentarios != state.numeroComentarios) {
+              setState(() {
+                numeroComentarios = state.numeroComentarios;
+              });
+            }
+          },
+        ),
+        BlocListener<ReporteBloc, ReporteState>(
+          listenWhen: (previous, current) => 
+            current is ReporteCountLoaded && current.noticiaId == widget.id,
+          listener: (context, state) {
+            if (state is ReporteCountLoaded && numeroReportes != state.numeroReportes) {
+              setState(() {
+                numeroReportes = state.numeroReportes;
+              });
+            }
+          },
+        ),
+      ],
+      child: Padding(
       padding: const EdgeInsets.symmetric(
         vertical: AppConstants.espaciadoAlto,
         horizontal: 16,
@@ -217,7 +229,7 @@ class _NoticiaCardState extends State<NoticiaCard> {
                                 SizedBox(
                                   width: 15,
                                   child: Text(
-                                    '$_numeroComentarios',
+                                    '$numeroComentarios',
                                     style: const TextStyle(
                                       fontSize: 12,
                                       color: Colors.grey,
@@ -245,7 +257,7 @@ class _NoticiaCardState extends State<NoticiaCard> {
                                 SizedBox(
                                   width: 15,
                                   child: Text(
-                                    '$_numeroReportes',
+                                    '$numeroReportes',
                                     style: const TextStyle(
                                       fontSize: 12,
                                       color: Colors.orange,
@@ -329,6 +341,8 @@ class _NoticiaCardState extends State<NoticiaCard> {
           ),
         ),
       ),
+    ),
     );
+
   }
 }

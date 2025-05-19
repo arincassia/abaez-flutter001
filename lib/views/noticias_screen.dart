@@ -27,6 +27,20 @@ import 'package:watch_it/watch_it.dart';
 class NoticiaScreen extends StatelessWidget {
   const NoticiaScreen({super.key});
 
+  // Método auxiliar para cargar noticias respetando los filtros actuales
+void _cargarNoticiasConFiltro(BuildContext context) {
+  // Verificar si hay categorías seleccionadas como filtro
+  final categoriasSeleccionadas = context.read<PreferenciaBloc>().state.categoriasSeleccionadas;
+  
+  if (categoriasSeleccionadas.isNotEmpty) {
+    // Si hay filtros activos, aplicarlos
+    context.read<NoticiasBloc>().add(FilterNoticiasByPreferencias(categoriasSeleccionadas));
+  } else {
+    // Si no hay filtros, cargar todas
+    context.read<NoticiasBloc>().add(const FetchNoticias());
+  }
+}
+
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
@@ -85,9 +99,8 @@ class NoticiaScreen extends StatelessWidget {
                         noticia: null,
                         onSave: (_, noticiaActualizada) {
                           // Para el caso de crear, simplemente recargamos las noticias
-                          context.read<NoticiasBloc>().add(
-                            const FetchNoticias(),
-                          );
+                          _cargarNoticiasConFiltro(context);
+  
                           SnackBarHelper.showSnackBar(
                             context,
                             ApiConstantes.newssuccessCreated,
@@ -318,7 +331,7 @@ class NoticiaScreen extends StatelessWidget {
                       // Cuando el diálogo se cierra, recargar toda la página de noticias
                       if (context.mounted) {
                         // Recargamos todas las noticias
-                        context.read<NoticiasBloc>().add(const FetchNoticias());
+                       _cargarNoticiasConFiltro(context);
 
                         // También actualizamos el contador específico de comentarios
                         context.read<ComentarioBloc>().add(
@@ -367,7 +380,7 @@ class NoticiaScreen extends StatelessWidget {
         // También recargamos las noticias para asegurar que se muestren actualizadas
         Future.delayed(const Duration(milliseconds: 300), () {
           if (context.mounted) {
-            context.read<NoticiasBloc>().add(const FetchNoticias());
+            _cargarNoticiasConFiltro(context);
           }
         });
       },
@@ -588,10 +601,21 @@ Widget _buildReportOption({
                 fontSize: 12,
               ),
             ),
+            
+          ),
+          const SizedBox(height: 4),
+            Text(
+            label,
+            style: TextStyle(
+              color: isSelected ? color : Colors.grey,
+              fontSize: 12,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
     ),
   );
 }
- }
+}
