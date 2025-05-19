@@ -4,9 +4,13 @@ import 'package:abaez/constants.dart';
 import 'package:abaez/exceptions/api_exception.dart';
 import 'package:abaez/api/service/base_service.dart';
 import 'package:flutter/foundation.dart';
+import 'package:abaez/api/service/comentarios_cache_service.dart';
 
 class ComentariosService extends BaseService {
-  ComentariosService() : super();  Future<void> _verificarNoticiaExiste(String noticiaId) async {
+  final ComentariosCacheService _cacheService = ComentariosCacheService();
+  ComentariosService() : super();
+
+  Future<void> _verificarNoticiaExiste(String noticiaId) async {
     try {
       await get('/noticias/$noticiaId', requireAuthToken: false);
       // Si la petición es exitosa, la noticia existe
@@ -19,11 +23,25 @@ class ComentariosService extends BaseService {
       throw ApiException('Error verificando la existencia de noticia: $e');
     }
   }
+
   /// Obtener comentarios por ID de noticia
   Future<List<Comentario>> obtenerComentariosPorNoticia(
-    String noticiaId,
-  ) async {
-    await _verificarNoticiaExiste(noticiaId);    try {
+    String noticiaId, {
+    bool forceRefresh = false,
+  }) async {
+    // Primero intentamos obtener desde la caché, a menos que se fuerce actualizar
+    if (!forceRefresh) {
+      final cachedComentarios = await _cacheService.obtenerComentariosDesdeCache(noticiaId);
+      if (cachedComentarios != null) {
+        debugPrint('📦 Usando comentarios en caché para noticia $noticiaId');
+        return cachedComentarios;
+      }
+    }
+    
+    // Si no hay caché o forceRefresh es true, consultamos la API
+    try {
+      await _verificarNoticiaExiste(noticiaId);
+      
       final data = await get('/comentarios', requireAuthToken: false);
 
       if (data is List) {
@@ -32,6 +50,9 @@ class ComentariosService extends BaseService {
             .map((json) => Comentario.fromJson(json))
             .toList();
 
+        // Guardar en caché los resultados nuevos
+        await _cacheService.guardarComentariosEnCache(noticiaId, comentarios);
+        
         return comentarios;
       } else {
         debugPrint('❌ La respuesta no es una lista: $data');
@@ -39,6 +60,14 @@ class ComentariosService extends BaseService {
       }
     } on DioException catch (e) {
       debugPrint('❌ DioException en obtenerComentariosPorNoticia: ${e.toString()}');
+      
+      // Si hay un error de red, intentamos obtener de la caché como fallback
+      final cachedComentarios = await _cacheService.obtenerComentariosDesdeCache(noticiaId);
+      if (cachedComentarios != null) {
+        debugPrint('🔄 Usando caché debido a error de red para noticia $noticiaId');
+        return cachedComentarios;
+      }
+      
       handleError(e);
       return []; // Retornar lista vacía en caso de error
     } catch (e) {
@@ -74,6 +103,10 @@ class ComentariosService extends BaseService {
         data: nuevoComentario.toJson(),
         requireAuthToken: true, // Crear comentario requiere autenticación
       );
+
+      // Invalidar la caché para que se actualice en próxima carga
+      await _cacheService.invalidarCache(noticiaId);
+      
       
       debugPrint('✅ Comentario agregado correctamente');
     } on DioException catch (e) {
@@ -198,9 +231,19 @@ class ComentariosService extends BaseService {
             return;
           }
         }
+
+         // Invalidar caché para todas las noticias afectadas
+    try {
+      final data = await get('/comentarios/$comentarioId', requireAuthToken: false);
+      if (data is Map<String, dynamic> && data['noticiaId'] != null) {
+        String noticiaId = data['noticiaId'];
+        await _cacheService.invalidarCache(noticiaId);
       }
+    } catch (e) {
+      debugPrint('⚠️ No se pudo invalidar caché después de reaccionar: $e');
     }
-    
+  }
+}
 
     throw ApiException(ApiConstantes.errorNotFound, statusCode: 404);
       } on DioException catch (e) {
@@ -290,6 +333,21 @@ class ComentariosService extends BaseService {
         },
         requireAuthToken: true,
       );
+
+       // Después de añadir el subcomentario con éxito, invalidar la caché:
+    
+    try {
+      final data = await get('/comentarios/$comentarioId', requireAuthToken: false);
+      if (data is Map<String, dynamic> && data['noticiaId'] != null) {
+        String noticiaId = data['noticiaId'];
+        await _cacheService.invalidarCache(noticiaId);
+      }
+    } catch (e) {
+      debugPrint('⚠️ No se pudo invalidar caché después de agregar subcomentario: $e');
+    }
+    
+
+      
       
       return {
         'success': true,
@@ -316,6 +374,10 @@ class ComentariosService extends BaseService {
         'message': 'Error inesperado: ${e.toString()}'
       };
     }
+
+    
+
+    
   }
 }
 
