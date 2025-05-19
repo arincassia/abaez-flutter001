@@ -124,3 +124,6 @@ app.*.symbols
 
 # Excluye .env.example
 !.env.example
+
+#excluye la carpeta data_copy
+data_copy/

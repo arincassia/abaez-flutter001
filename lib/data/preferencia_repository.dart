@@ -2,10 +2,46 @@ import 'package:flutter/foundation.dart';
 import 'package:abaez/api/service/preferencia_service.dart';
 import 'package:abaez/domain/preferencia.dart';
 import 'package:abaez/exceptions/api_exception.dart';
+import 'package:abaez/data/base_repository.dart';
 
-class PreferenciaRepository {
-  final PreferenciaService _preferenciaService = PreferenciaService(); // o new PreferenciaService()
+// Adaptador para PreferenciaService
+class PreferenciaServiceAdapter extends BaseService<Preferencia> {
+  final PreferenciaService _service = PreferenciaService();
+  
+  @override
+  Future<List<Preferencia>> getAll() async {
+    final pref = await _service.getPreferencias();
+    return [pref]; // Convertimos a lista para compatibilidad con el BaseService
+  }
+  
+  @override
+  Future<void> create(dynamic data) {
+    return _service.guardarPreferencias(data);
+  }
+  
+  @override
+  Future<void> update(String id, dynamic data) {
+    return _service.guardarPreferencias(data);
+  }
+  
+  @override
+  Future<void> delete(String id) {
+    throw UnimplementedError('Eliminación de preferencias no implementada');
+  }
+  
+  // Métodos específicos
+  Future<Preferencia> getPreferencias() {
+    return _service.getPreferencias();
+  }
+  
+  Future<void> guardarPreferencias(Preferencia preferencia) {
+    return _service.guardarPreferencias(preferencia);
+  }
+}
 
+class PreferenciaRepository extends BaseRepository<Preferencia, PreferenciaServiceAdapter> {
+  PreferenciaRepository() : super(PreferenciaServiceAdapter(), 'Preferencia');
+  
   // Caché de preferencias para minimizar llamadas a la API
   Preferencia? _cachedPreferencias;
 
@@ -13,13 +49,12 @@ class PreferenciaRepository {
   Future<List<String>> obtenerCategoriasSeleccionadas() async {
     try {
       // Si no hay caché o es la primera vez, obtener de la API
-      _cachedPreferencias ??= await _preferenciaService.getPreferencias();
+      _cachedPreferencias ??= await (service).getPreferencias();
 
       return _cachedPreferencias!.categoriasSeleccionadas;
     } catch (e) {
       debugPrint('Error al obtener categorías seleccionadas: $e');
       if (e is ApiException) {
-        // Propaga el mensaje contextual de ApiException
         rethrow;
       } else {
         // En caso de error desconocido, devolver lista vacía para no romper la UI
@@ -32,22 +67,15 @@ class PreferenciaRepository {
   Future<void> guardarCategoriasSeleccionadas(List<String> categoriaIds) async {
     try {
       // Si no hay caché o es la primera vez, obtener de la API
-      _cachedPreferencias ??= await _preferenciaService.getPreferencias();
-
+      _cachedPreferencias ??= await (service).getPreferencias();
 
       // Actualizar el objeto en caché
       _cachedPreferencias = Preferencia(categoriasSeleccionadas: categoriaIds);
 
       // Guardar en la API
-      await _preferenciaService.guardarPreferencias(_cachedPreferencias!);
+      await (service).guardarPreferencias(_cachedPreferencias!);
     } catch (e) {
-      debugPrint('Error al guardar categorías seleccionadas: $e');
-      if (e is ApiException) {
-        // Propaga el mensaje contextual de ApiException
-        rethrow;
-      } else {
-        throw ApiException('Error al guardar preferencias: $e');
-      }
+      throw handleError(e, 'guardar categorías seleccionadas');
     }
   }
 
@@ -60,13 +88,7 @@ class PreferenciaRepository {
         await guardarCategoriasSeleccionadas(categorias);
       }
     } catch (e) {
-      debugPrint('Error al agregar categoría: $e');
-      if (e is ApiException) {
-        // Propaga el mensaje contextual de ApiException
-        rethrow;
-      } else {
-        throw ApiException('Error al agregar categoría: $e');
-      }
+      throw handleError(e, 'agregar categoría');
     }
   }
 
@@ -77,13 +99,7 @@ class PreferenciaRepository {
       categorias.remove(categoriaId);
       await guardarCategoriasSeleccionadas(categorias);
     } catch (e) {
-      debugPrint('Error al eliminar categoría: $e');
-      if (e is ApiException) {
-        // Propaga el mensaje contextual de ApiException
-        rethrow;
-      } else {
-        throw ApiException('Error al eliminar categoría: $e');
-      }
+      throw handleError(e, 'eliminar categoría');
     }
   }
 
@@ -97,13 +113,7 @@ class PreferenciaRepository {
         _cachedPreferencias = Preferencia.empty();
       }
     } catch (e) {
-      debugPrint('Error al limpiar filtros: $e');
-      if (e is ApiException) {
-        // Propaga el mensaje contextual de ApiException
-        rethrow;
-      } else {
-        throw ApiException('Error al limpiar filtros: $e');
-      }
+      throw handleError(e, 'limpiar filtros');
     }
   }
 

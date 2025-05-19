@@ -1,20 +1,57 @@
 import 'package:abaez/api/service/reporte_service.dart';
 import 'package:abaez/domain/reporte.dart';
-import 'package:abaez/exceptions/api_exception.dart';
+import 'package:abaez/data/base_repository.dart';
 
-class ReporteRepository {
-  final ReporteService _reporteService = ReporteService();
+// Adaptador para ReporteService
+class ReporteServiceAdapter extends BaseService<Reporte> {
+  final ReporteService _service = ReporteService();
+  
+  @override
+  Future<List<Reporte>> getAll() {
+    return _service.getReportes();
+  }
+  
+  @override
+  Future<void> create(dynamic data) async {
+    await _service.crearReporte(
+      noticiaId: data['noticiaId'],
+      motivo: data['motivo'],
+    );
+  }
+  
+  @override
+  Future<void> update(String id, dynamic data) {
+    throw UnimplementedError('Actualización de reportes no implementada');
+  }
+  
+  @override
+  Future<void> delete(String id) {
+    return _service.eliminarReporte(id);
+  }
+  
+  // Métodos específicos
+  Future<List<Reporte>> getReportesPorNoticia(String noticiaId) {
+    return _service.getReportesPorNoticia(noticiaId);
+  }
+  
+  Future<int> getCantidadReportesPorNoticia(String noticiaId) {
+    return _service.getCantidadReportesPorNoticia(noticiaId);
+  }
+  
+  Future<Map<MotivoReporte, int>> getConteoReportesPorTipo(String noticiaId) {
+    return _service.getConteoReportesPorTipo(noticiaId);
+  }
+  
+  Future<Reporte?> crearReporte({required String noticiaId, required MotivoReporte motivo}) {
+    return _service.crearReporte(noticiaId: noticiaId, motivo: motivo);
+  }
+}
+
+class ReporteRepository extends BaseRepository<Reporte, ReporteServiceAdapter> {
+  ReporteRepository() : super(ReporteServiceAdapter(), 'Reporte');
 
   // Obtener todos los reportes
-  Future<List<Reporte>> obtenerReportes() async {
-    try {
-      return await _reporteService.getReportes();
-    } on ApiException catch (e) {
-      throw Exception('Error al obtener reportes: ${e.message}');
-    } catch (e) {
-      throw Exception('Error al obtener reportes: ${e.toString()}');
-    }
-  }
+  Future<List<Reporte>> obtenerReportes() => getAll();
 
   // Crear un nuevo reporte
   Future<Reporte?> crearReporte({
@@ -22,51 +59,41 @@ class ReporteRepository {
     required MotivoReporte motivo,
   }) async {
     try {
-      return await _reporteService.crearReporte(
+      return await (service).crearReporte(
         noticiaId: noticiaId,
         motivo: motivo,
       );
-    } on ApiException catch (e) {
-      throw Exception('Error al crear reporte: ${e.message}');
     } catch (e) {
-      throw Exception('Error al crear reporte: ${e.toString()}');
+      throw handleError(e, 'crear reporte');
     }
   }
 
   // Obtener reportes por id de noticia
   Future<List<Reporte>> obtenerReportesPorNoticia(String noticiaId) async {
     try {
-      return await _reporteService.getReportesPorNoticia(noticiaId);
-    } on ApiException catch (e) {
-      throw Exception('Error al obtener reportes por noticia: ${e.message}');
+      return await (service).getReportesPorNoticia(noticiaId);
     } catch (e) {
-      throw Exception('Error al obtener reportes por noticia: ${e.toString()}');
+      throw handleError(e, 'obtener reportes por noticia');
     }
   }
 
   // Eliminar un reporte
-  Future<void> eliminarReporte(String reporteId) async {
-    try {
-      await _reporteService.eliminarReporte(reporteId);
-    } on ApiException catch (e) {
-      throw Exception('Error al eliminar reporte: ${e.message}');
-    } catch (e) {
-      throw Exception('Error al eliminar reporte: ${e.toString()}');
-    }
-  }
+  Future<void> eliminarReporte(String reporteId) => delete(reporteId);
 
   // Obtener cantidad de reportes por id de noticia
   Future<int> obtenerCantidadReportesPorNoticia(String noticiaId) async {
     try {
-      return await _reporteService.getCantidadReportesPorNoticia(noticiaId);
-    } on ApiException catch (e) {
-      throw Exception('Error al obtener cantidad de reportes: ${e.message}');
+      return await (service).getCantidadReportesPorNoticia(noticiaId);
     } catch (e) {
-      throw Exception('Error al obtener cantidad de reportes: ${e.toString()}');
+      throw handleError(e, 'obtener cantidad de reportes');
     }
   }
 
   Future<Map<MotivoReporte, int>> obtenerConteoReportesPorTipo(String noticiaId) async {
-  return await _reporteService.getConteoReportesPorTipo(noticiaId);
-}
+    try {
+      return await (service).getConteoReportesPorTipo(noticiaId);
+    } catch (e) {
+      throw handleError(e, 'obtener conteo de reportes por tipo');
+    }
+  }
 }
