@@ -172,89 +172,46 @@ class ComentarioBloc extends Bloc<ComentarioEvent, ComentarioState> {
     }
   }
 
-  Future<void> _onAddReaccion(
+  Future<void> _onAddReaccion(AddReaccion event, Emitter<ComentarioState> emit,) async {
+    final currentState = state;
 
-    AddReaccion event,
-    Emitter<ComentarioState> emit,
-  ) async {
     try {
-      // Guardamos el estado actual
-      final currentState = state;
-
-      // Emitimos un estado de carga optimista mostrando la reacción
-      if (currentState is ComentarioLoaded) {
-        final comentarios = List<Comentario>.from(currentState.comentariosList);
-        final comentarioIndex = comentarios.indexWhere(
-          (c) => c.id == event.comentarioId,
-        );
-        print('\n\nComentario index: $comentarioIndex\n\n\n');
-        // Si no encontramos el comentario, no hacemos nada
-        // Si encontramos el comentario, actualizamos localmente antes de hacer la llamada API
-        if (comentarioIndex != -1) {
-          final comentario = comentarios[comentarioIndex];
-          late Comentario comentarioActualizado;
-
-          if (event.tipoReaccion == 'like') {
-            comentarioActualizado = Comentario(
-              id: comentario.id,
-              noticiaId: comentario.noticiaId,
-              texto: comentario.texto,
-              autor: comentario.autor,
-              fecha: comentario.fecha,
-              likes: comentario.likes,
-              dislikes: comentario.dislikes,
-              subcomentarios: comentario.subcomentarios,
-              isSubComentario: comentario.isSubComentario,
-              idSubComentario: comentario.idSubComentario,
-            );
-          } else {
-            comentarioActualizado = Comentario(
-              id: comentario.id,
-              noticiaId: comentario.noticiaId,
-              texto: comentario.texto,
-              autor: comentario.autor,
-              fecha: comentario.fecha,
-              likes: comentario.likes,
-              dislikes: comentario.dislikes,
-              subcomentarios: comentario.subcomentarios,
-              isSubComentario: comentario.isSubComentario,
-              idSubComentario: comentario.idSubComentario,
-            );
-          }
-
-          comentarios[comentarioIndex] = comentarioActualizado;
-          emit(ComentarioLoaded(comentariosList: comentarios));
-        }
-      }
-
+      emit(ReaccionLoading());
       // Llamamos al repositorio para persistir el cambio
-      await comentarioRepository.reaccionarComentario(
+      final comentarioResponse = await comentarioRepository.reaccionarComentario(
         comentarioId: event.comentarioId,
         tipoReaccion: event.tipoReaccion,
       );
 
       // Recargamos los comentarios para asegurar los datos más recientes
-      final comentariosActualizados = await comentarioRepository
-          .obtenerComentariosPorNoticia(event.noticiaId);
+      //final comentariosActualizados = await comentarioRepository.obtenerComentariosPorNoticia(event.noticiaId);
 
-      emit(ComentarioLoaded(comentariosList: comentariosActualizados));
+      if (currentState is ComentarioLoaded) {
+        final comentarios = List<Comentario>.from(currentState.comentariosList);
+        final comentarioIndex = comentarios.indexWhere(
+              (c) => c.id == event.comentarioId,
+        );
+        print('\n\nComentario index: $comentarioIndex\n\n\n');
+        if (comentarioIndex != -1) {
+            comentarios[comentarioIndex] = comentarioResponse;
+            emit(ComentarioLoaded(comentariosList: comentarios));
+        } else {
+            final comentariosActualizados = comentarios.map((comentario) {
+              final subcomentarios = comentario.subcomentarios ?? [];
+              final subIndex = subcomentarios.indexWhere((sc) => sc.idSubComentario == event.comentarioId);
+              if (subIndex != -1) {
+                final nuevosSubcomentarios = List<Comentario>.from(subcomentarios);
+                nuevosSubcomentarios[subIndex] = comentarioResponse;
+                return nuevosSubcomentarios[subIndex];
+              }
+              return comentario;
+            }).toList();
+            emit(ComentarioLoaded(comentariosList: comentariosActualizados));
+        }
+      }
     } catch (e) {
       print('Error en _onAddReaccion: ${e.toString()}');
-
-      // Si ocurre un error, intentamos recargar los comentarios para restaurar el estado
-      try {
-        final comentarios = await comentarioRepository
-            .obtenerComentariosPorNoticia(event.noticiaId);
-        emit(ComentarioLoaded(comentariosList: comentarios));
-      } catch (_) {
-        final int? statusCode = e is ApiException ? e.statusCode : null;
-        // Si incluso la recarga falla, mostramos el error
-        emit(
-          ComentarioError(
-            errorMessage: 'Error al agregar reacción. Intenta de nuevo.',statusCode: statusCode
-          ),
-        );
-      }
+      emit(const ComentarioError(errorMessage: 'Error al reaccionar comentario'));
     }
   }
 

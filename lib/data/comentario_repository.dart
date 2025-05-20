@@ -62,12 +62,12 @@ class ComentarioRepository {
   }
 
   /// Añade una reacción (like o dislike) a un comentario específico
-  Future<void> reaccionarComentario({
+  Future<Comentario> reaccionarComentario({
     required String comentarioId,
     required String tipoReaccion,
   }) async {
     try {
-      await _service.reaccionarComentario(
+      return await _service.reaccionarComentario(
         comentarioId: comentarioId,
         tipoReaccion: tipoReaccion,
       );

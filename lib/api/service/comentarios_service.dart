@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:abaez/domain/comentario.dart';
-import 'package:abaez/constants.dart';
 import 'package:abaez/exceptions/api_exception.dart';
 import 'package:abaez/api/service/base_service.dart';
 import 'package:flutter/foundation.dart';
@@ -86,7 +85,9 @@ class ComentariosService extends BaseService {
       debugPrint('❌ Error inesperado: ${e.toString()}');
       throw ApiException('Error inesperado: $e');
     }
-  }  Future<int> obtenerNumeroComentarios(String noticiaId) async {
+  }
+
+  Future<int> obtenerNumeroComentarios(String noticiaId) async {
     try {
       final data = await get('/comentarios', requireAuthToken: false);
 
@@ -107,10 +108,13 @@ class ComentariosService extends BaseService {
       debugPrint('❌ Error al obtener número de comentarios: ${e.toString()}');
       return 0;
     }
-  } Future<void> reaccionarComentario({
-  required String comentarioId,
-  required String tipoReaccion,
-}) async {  try {
+  }
+
+  Future<Comentario> reaccionarComentario({
+    required String comentarioId,
+    required String tipoReaccion,
+  }) async {
+    try {
     // Obtenemos todos los comentarios
     final data = await get('/comentarios', requireAuthToken: false);
     
@@ -132,7 +136,9 @@ class ComentariosService extends BaseService {
       );
       
       int currentLikes = comentarioActualizado['likes'] ?? 0;
-      int currentDislikes = comentarioActualizado['dislikes'] ?? 0;        await put(
+      int currentDislikes = comentarioActualizado['dislikes'] ?? 0;
+
+      final response = await put(
         '/comentarios/$comentarioId',
         data: {
           'noticiaId': comentarioActualizado['noticiaId'],
@@ -146,7 +152,7 @@ class ComentariosService extends BaseService {
         },
         requireAuthToken: true,
       );
-      return;
+      return Comentario.fromJson(response);
     }
 
     // Recorrer todos los comentarios principales
@@ -180,7 +186,7 @@ class ComentariosService extends BaseService {
               // Actualizar la lista de subcomentarios
             subcomentarios[j] = subcomentarioActualizado;
               // Actualizar el comentario principal con la nueva lista de subcomentarios
-            await put(
+            final response = await put(
               '/comentarios/${comentarioPrincipal['id']}',
               data: {
                 'noticiaId': comentarioPrincipal['noticiaId'],
@@ -195,17 +201,12 @@ class ComentariosService extends BaseService {
               requireAuthToken: true,
             );
 
-            return;
+            return Comentario.fromJson(response);
           }
         }
       }
     }
-    
-
-    throw ApiException(ApiConstantes.errorNotFound, statusCode: 404);
-      } on DioException catch (e) {
-    debugPrint('❌ DioException en reaccionarComentario: ${e.toString()}');
-    handleError(e);
+    throw ApiException('No se agregó la Reacción al comentario');
   } catch (e) {
     if (e is ApiException) {
       rethrow;

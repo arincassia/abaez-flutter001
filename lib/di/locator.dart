@@ -20,7 +20,9 @@ Future<void> initLocator() async {
   di.registerLazySingleton<PreferenciaRepository>(
     () => PreferenciaRepository(),
   );
-  di.registerSingleton<ComentarioRepository>(ComentarioRepository());  di.registerSingleton<ReporteRepository>(ReporteRepository());  di.registerLazySingleton<SecureStorageService>(
+  di.registerSingleton<ComentarioRepository>(ComentarioRepository());
+  di.registerSingleton<ReporteRepository>(ReporteRepository());
+  di.registerLazySingleton<SecureStorageService>(
     () => SecureStorageService(),
   );
   // Registramos el servicio de conectividad
@@ -29,7 +31,8 @@ Future<void> initLocator() async {
   );
   GetIt.instance.registerSingleton(ComentarioBloc());
   // Cambiamos a registerFactory para generar una nueva instancia cada vez que sea solicitada
-  GetIt.instance.registerFactory(() => ReporteBloc());  di.registerSingleton<AuthRepository>(AuthRepository());
+  GetIt.instance.registerFactory(() => ReporteBloc());
+  di.registerSingleton<AuthRepository>(AuthRepository());
   
   // Registramos el servicio de caché de categorías como singleton
   di.registerLazySingleton<CategoryCacheService>(() => CategoryCacheService());
