@@ -14,6 +14,9 @@ class ComentarioInitial extends ComentarioState {}
 
 class ComentarioLoading extends ComentarioState {}
 
+class ReaccionLoading extends ComentarioState {
+}
+
 class ComentarioLoaded extends ComentarioState {
   final List<Comentario> comentariosList;
   

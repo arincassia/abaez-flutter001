@@ -32,6 +32,20 @@ class CommentList extends StatelessWidget {
       builder: (context, state) {
         if (state is ComentarioLoading) {
           return const Center(child: CircularProgressIndicator());
+        } else if (state is ReaccionLoading) {
+          //final comentarios = (state as ComentarioLoaded).comentariosList;
+            return Stack(
+              children: [
+                Positioned.fill(
+                  child: Container(
+                    color: const Color(0x0D000000), // Negro con 20% opacidad
+                    child: const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
+                ),
+              ],
+            );
         } else if (state is ComentarioLoaded) {
           return _buildList(context, state.comentariosList); // Pasar context aquí
         } else if (state is ComentarioError) {
