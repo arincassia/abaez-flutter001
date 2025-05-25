@@ -1,26 +1,31 @@
-import 'package:flutter/foundation.dart';
 import 'package:abaez/api/service/noticia_sevice.dart';
 import 'package:abaez/domain/noticia.dart';
-import 'package:abaez/constants.dart';
 import 'package:abaez/exceptions/api_exception.dart';
+import 'package:abaez/data/base_repository.dart';
 
-class NoticiaRepository {
+// Adaptador para NoticiaService que implementa BaseService
+class NoticiaServiceAdapter extends BaseService<Noticia> {
   final NoticiaService _service = NoticiaService();
+  
+  @override
+  Future<List<Noticia>> getAll() => _service.getNoticias();
+  
+  @override
+  Future<void> create(dynamic data) => _service.crearNoticia(data);
+  
+  @override
+  Future<void> update(String id, dynamic data) => _service.editarNoticia(id, data);
+  
+  @override
+  Future<void> delete(String id) => _service.eliminarNoticia(id);
+}
 
-  /// Obtiene cotizaciones paginadas con validaciones
-  Future<List<Noticia>> obtenerNoticias() async {
-    try {
-      final noticias = await _service.getNoticias();
-      return noticias;
-    } catch (e) {
-      if (e is ApiException) {
-        rethrow; // Relanza la excepción para que la maneje la capa superior
-      }
-      debugPrint('Error inesperado al obtener noticias: $e');
-      throw ApiException('Error inesperado al obtener noticias.');
-    }
-  }
-
+class NoticiaRepository extends BaseRepository<Noticia, NoticiaServiceAdapter> {
+  NoticiaRepository() : super(NoticiaServiceAdapter(), 'Noticia');
+  
+  // Métodos con nombres específicos y validaciones adicionales
+  Future<List<Noticia>> obtenerNoticias() => getAll();
+  
   Future<void> crearNoticia({
     required String titulo,
     required String descripcion,
@@ -37,34 +42,11 @@ class NoticiaRepository {
       urlImagen: urlImagen,
       categoriaId: categoriaId,
     );
-    try {
-      await _service.crearNoticia(noticia);
-    } catch (e) {
-      if (e is ApiException) {
-        rethrow;
-      }
-      debugPrint('Error inesperado al crear noticia: $e');
-      throw ApiException('Error inesperado al crear noticia.');
-    }
+    await create(noticia);
   }
-
-  Future<void> eliminarNoticia(String id) async {
-    if (id.isEmpty) {
-      throw Exception(
-        '${NoticiaConstantes.mensajeError} El ID de la noticia no puede estar vacío.',
-      );
-    }
-    try {
-      await _service.eliminarNoticia(id);
-    } catch (e) {
-      if (e is ApiException) {
-        rethrow;
-      }
-      debugPrint('Error inesperado al eliminar noticia: $e');
-      throw ApiException('Error inesperado al eliminar noticia.');
-    }
-  }
-
+  
+  Future<void> eliminarNoticia(String id) => delete(id);
+  
   Future<void> actualizarNoticia({
     required String id,
     required String titulo,
@@ -87,14 +69,6 @@ class NoticiaRepository {
       urlImagen: urlImagen,
       categoriaId: categoriaId,
     );
-    try {
-      await _service.editarNoticia(id, noticia);
-    } catch (e) {
-      if (e is ApiException) {
-        rethrow;
-      }
-      debugPrint('Error inesperado al editar noticia: $e');
-      throw ApiException('Error inesperado al editar noticia.');
-    }
+    await update(id, noticia);
   }
 }
