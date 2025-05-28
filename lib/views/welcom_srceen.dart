@@ -8,6 +8,7 @@ import 'package:abaez/views/noticias_screen.dart';
 import 'package:abaez/views/category_screen.dart';
 import 'package:abaez/helpers/secure_storage_service.dart';
 import 'package:watch_it/watch_it.dart';
+import 'package:abaez/views/acerca_de.dart';
 
 class WelcomeScreen extends StatelessWidget {
   final String username;
@@ -102,7 +103,22 @@ class WelcomeScreen extends StatelessWidget {
                   ),
                 );
               },
-            ),            ListTile(
+            ),  
+            ListTile(
+              leading: const Icon(Icons.info_outline),
+              title: const Text('Acerca de'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AcercaDePage(),
+                  ),
+                );
+              },
+            ), 
+            
+             ListTile(
               leading: const Icon(Icons.exit_to_app),
               title: const Text('Cerrar sesión'),
               onTap: () async {                // Obtenemos el servicio de almacenamiento seguro
