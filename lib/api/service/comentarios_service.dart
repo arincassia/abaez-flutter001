@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:abaez/domain/comentario.dart';
-import 'package:abaez/constants.dart';
 import 'package:abaez/exceptions/api_exception.dart';
 import 'package:abaez/api/service/base_service.dart';
 import 'package:flutter/foundation.dart';
@@ -8,6 +7,7 @@ import 'package:abaez/api/service/comentarios_cache_service.dart';
 
 class ComentariosService extends BaseService {
   final ComentariosCacheService _cacheService = ComentariosCacheService();
+
   ComentariosService() : super();
 
   Future<void> _verificarNoticiaExiste(String noticiaId) async {
@@ -23,12 +23,11 @@ class ComentariosService extends BaseService {
       throw ApiException('Error verificando la existencia de noticia: $e');
     }
   }
-
   /// Obtener comentarios por ID de noticia
   Future<List<Comentario>> obtenerComentariosPorNoticia(
-    String noticiaId, {
-    bool forceRefresh = false,
-  }) async {
+    String noticiaId,
+    {bool forceRefresh = false} // Parámetro opcional para forzar actualización
+  ) async {
     // Primero intentamos obtener desde la caché, a menos que se fuerce actualizar
     if (!forceRefresh) {
       final cachedComentarios = await _cacheService.obtenerComentariosDesdeCache(noticiaId);
@@ -37,11 +36,8 @@ class ComentariosService extends BaseService {
         return cachedComentarios;
       }
     }
-    
-    // Si no hay caché o forceRefresh es true, consultamos la API
-    try {
-      await _verificarNoticiaExiste(noticiaId);
-      
+      try {
+      await _verificarNoticiaExiste(noticiaId);  
       final data = await get('/comentarios', requireAuthToken: false);
 
       if (data is List) {
@@ -50,9 +46,7 @@ class ComentariosService extends BaseService {
             .map((json) => Comentario.fromJson(json))
             .toList();
 
-        // Guardar en caché los resultados nuevos
         await _cacheService.guardarComentariosEnCache(noticiaId, comentarios);
-        
         return comentarios;
       } else {
         debugPrint('❌ La respuesta no es una lista: $data');
@@ -61,14 +55,15 @@ class ComentariosService extends BaseService {
     } on DioException catch (e) {
       debugPrint('❌ DioException en obtenerComentariosPorNoticia: ${e.toString()}');
       
-      // Si hay un error de red, intentamos obtener de la caché como fallback
       final cachedComentarios = await _cacheService.obtenerComentariosDesdeCache(noticiaId);
       if (cachedComentarios != null) {
         debugPrint('🔄 Usando caché debido a error de red para noticia $noticiaId');
         return cachedComentarios;
       }
-      
+
       handleError(e);
+        // Si hay un error de red, intentamos obtener de la caché como fallback
+     
       return []; // Retornar lista vacía en caso de error
     } catch (e) {
       if (e is ApiException) {
@@ -103,11 +98,7 @@ class ComentariosService extends BaseService {
         data: nuevoComentario.toJson(),
         requireAuthToken: true, // Crear comentario requiere autenticación
       );
-
-      // Invalidar la caché para que se actualice en próxima carga
       await _cacheService.invalidarCache(noticiaId);
-      
-      
       debugPrint('✅ Comentario agregado correctamente');
     } on DioException catch (e) {
       debugPrint('❌ DioException en agregarComentario: ${e.toString()}');
@@ -119,7 +110,9 @@ class ComentariosService extends BaseService {
       debugPrint('❌ Error inesperado: ${e.toString()}');
       throw ApiException('Error inesperado: $e');
     }
-  }  Future<int> obtenerNumeroComentarios(String noticiaId) async {
+  }
+
+  Future<int> obtenerNumeroComentarios(String noticiaId) async {
     try {
       final data = await get('/comentarios', requireAuthToken: false);
 
@@ -140,10 +133,14 @@ class ComentariosService extends BaseService {
       debugPrint('❌ Error al obtener número de comentarios: ${e.toString()}');
       return 0;
     }
-  } Future<void> reaccionarComentario({
+  }
+
+  /// Añade una reacción (like o dislike) a un comentario específico
+  Future<Comentario> reaccionarComentario({
   required String comentarioId,
   required String tipoReaccion,
-}) async {  try {
+}) async {
+  try {
     // Obtenemos todos los comentarios
     final data = await get('/comentarios', requireAuthToken: false);
     
@@ -152,6 +149,8 @@ class ComentariosService extends BaseService {
     }
 
     final List<dynamic> comentarios = data;
+    String? noticiaId;
+    Comentario? comentarioActualizado;
 
     // Primero, buscamos si es un comentario principal
     final comentarioIndex = comentarios.indexWhere(
@@ -160,95 +159,101 @@ class ComentariosService extends BaseService {
 
     // Si lo encontramos como comentario principal
     if (comentarioIndex != -1) {
-      Map<String, dynamic> comentarioActualizado = Map<String, dynamic>.from(
+      Map<String, dynamic> comentarioData = Map<String, dynamic>.from(
         comentarios[comentarioIndex],
       );
       
-      int currentLikes = comentarioActualizado['likes'] ?? 0;
-      int currentDislikes = comentarioActualizado['dislikes'] ?? 0;        await put(
+      int currentLikes = comentarioData['likes'] ?? 0;
+      int currentDislikes = comentarioData['dislikes'] ?? 0;
+      
+      // Actualizar contadores según el tipo de reacción
+      if (tipoReaccion == 'like') {
+        comentarioData['likes'] = currentLikes + 1;
+      } else if (tipoReaccion == 'dislike') {
+        comentarioData['dislikes'] = currentDislikes + 1;
+      }
+      
+      final response = await put(
         '/comentarios/$comentarioId',
-        data: {
-          'noticiaId': comentarioActualizado['noticiaId'],
-          'texto': comentarioActualizado['texto'],
-          'fecha': comentarioActualizado['fecha'],
-          'autor': comentarioActualizado['autor'],
-          'likes': tipoReaccion == 'like' ? currentLikes + 1 : currentLikes,
-          'dislikes': tipoReaccion == 'dislike' ? currentDislikes + 1 : currentDislikes,
-          'subcomentarios': comentarioActualizado['subcomentarios'] ?? [],
-          'isSubComentario': comentarioActualizado['isSubComentario'] ?? false,
-        },
+        data: comentarioData,
         requireAuthToken: true,
       );
-      return;
-    }
-
-    // Recorrer todos los comentarios principales
-    for (int i = 0; i < comentarios.length; i++) {
-      final comentarioPrincipal = comentarios[i];
       
-      // Verificar si tiene subcomentarios
-      if (comentarioPrincipal['subcomentarios'] != null && 
-          comentarioPrincipal['subcomentarios'] is List &&
-          (comentarioPrincipal['subcomentarios'] as List).isNotEmpty) {
+      // Guardar el ID de noticia para invalidar caché
+      noticiaId = comentarioData['noticiaId'];
+      comentarioActualizado = Comentario.fromJson(response);
+    } else {
+      // Buscar en subcomentarios
+      bool encontrado = false;
+      
+      for (int i = 0; i < comentarios.length && !encontrado; i++) {
+        final comentarioPrincipal = comentarios[i];
         
-        final List<dynamic> subcomentarios = comentarioPrincipal['subcomentarios'];
-        
-        // Buscar en los subcomentarios si alguno coincide con el ID
-        for (int j = 0; j < subcomentarios.length; j++) {
-          final subcomentario = subcomentarios[j];
+        // Verificar si tiene subcomentarios
+        if (comentarioPrincipal['subcomentarios'] != null && 
+            comentarioPrincipal['subcomentarios'] is List &&
+            (comentarioPrincipal['subcomentarios'] as List).isNotEmpty) {
           
-          // Si encontramos el ID en el subcomentario (puede estar en _id o en idSubComentario)
-          if (subcomentario['id'] == comentarioId || 
-              subcomentario['idSubComentario'] == comentarioId) {
-                      
-            // Crear una copia del subcomentario para actualizarlo
-            Map<String, dynamic> subcomentarioActualizado = Map<String, dynamic>.from(subcomentario);
+          final List<dynamic> subcomentarios = List.from(comentarioPrincipal['subcomentarios']);
+          
+          for (int j = 0; j < subcomentarios.length; j++) {
+            final subcomentario = subcomentarios[j];
             
-            // Actualizar el contador correspondiente
-            int currentLikes = subcomentarioActualizado['likes'] ?? 0;
-            int currentDislikes = subcomentarioActualizado['dislikes'] ?? 0;
-            
-            subcomentarioActualizado['likes'] = tipoReaccion == 'like' ? currentLikes + 1 : currentLikes;
-            subcomentarioActualizado['dislikes'] = tipoReaccion == 'dislike' ? currentDislikes + 1 : currentDislikes;
-              // Actualizar la lista de subcomentarios
-            subcomentarios[j] = subcomentarioActualizado;
-              // Actualizar el comentario principal con la nueva lista de subcomentarios
-            await put(
-              '/comentarios/${comentarioPrincipal['id']}',
-              data: {
-                'noticiaId': comentarioPrincipal['noticiaId'],
-                'texto': comentarioPrincipal['texto'],
-                'fecha': comentarioPrincipal['fecha'],
-                'autor': comentarioPrincipal['autor'],
-                'likes': comentarioPrincipal['likes'] ?? 0,
-                'dislikes': comentarioPrincipal['dislikes'] ?? 0,
-                'subcomentarios': subcomentarios,
-                'isSubComentario': comentarioPrincipal['isSubComentario'] ?? false,
-              },
-              requireAuthToken: true,
-            );
-
-            return;
+            // Si encontramos el ID en el subcomentario
+            if (subcomentario['id'] == comentarioId || 
+                subcomentario['idSubComentario'] == comentarioId) {
+              
+              // Actualizar el subcomentario
+              Map<String, dynamic> subcomentarioData = Map<String, dynamic>.from(subcomentario);
+              
+              int currentLikes = subcomentarioData['likes'] ?? 0;
+              int currentDislikes = subcomentarioData['dislikes'] ?? 0;
+              
+              if (tipoReaccion == 'like') {
+                subcomentarioData['likes'] = currentLikes + 1;
+              } else if (tipoReaccion == 'dislike') {
+                subcomentarioData['dislikes'] = currentDislikes + 1;
+              }
+              
+              subcomentarios[j] = subcomentarioData;
+              
+              await put(
+                '/comentarios/${comentarioPrincipal['id']}',
+                data: {
+                  ...comentarioPrincipal,
+                  'subcomentarios': subcomentarios,
+                },
+                requireAuthToken: true,
+              );
+              
+              // Guardar el ID de noticia para invalidar caché
+              noticiaId = comentarioPrincipal['noticiaId'];
+              comentarioActualizado = Comentario.fromJson(subcomentarioData);
+              encontrado = true;
+              break;
+            }
           }
         }
-
-         // Invalidar caché para todas las noticias afectadas
-    try {
-      final data = await get('/comentarios/$comentarioId', requireAuthToken: false);
-      if (data is Map<String, dynamic> && data['noticiaId'] != null) {
-        String noticiaId = data['noticiaId'];
-        await _cacheService.invalidarCache(noticiaId);
       }
-    } catch (e) {
-      debugPrint('⚠️ No se pudo invalidar caché después de reaccionar: $e');
+      
+      // Si no se encontró el comentario en ninguna parte
+      if (comentarioActualizado == null) {
+        throw ApiException('No se encontró el comentario para reaccionar');
+      }
     }
-  }
-}
-
-    throw ApiException(ApiConstantes.errorNotFound, statusCode: 404);
-      } on DioException catch (e) {
-    debugPrint('❌ DioException en reaccionarComentario: ${e.toString()}');
-    handleError(e);
+    
+    // Invalidar la caché después de una actualización exitosa
+    if (noticiaId != null) {
+      try {
+        await _cacheService.invalidarCache(noticiaId);
+        debugPrint('✅ Caché invalidada para noticia $noticiaId');
+      } catch (e) {
+        debugPrint('⚠️ No se pudo invalidar caché: $e');
+        // No lanzamos excepción aquí porque la operación principal ya fue exitosa
+      }
+    }
+    
+    return comentarioActualizado;
   } catch (e) {
     if (e is ApiException) {
       rethrow;
@@ -334,6 +339,7 @@ class ComentariosService extends BaseService {
         requireAuthToken: true,
       );
 
+
        // Después de añadir el subcomentario con éxito, invalidar la caché:
     
     try {
@@ -346,8 +352,6 @@ class ComentariosService extends BaseService {
       debugPrint('⚠️ No se pudo invalidar caché después de agregar subcomentario: $e');
     }
     
-
-      
       
       return {
         'success': true,
@@ -374,10 +378,5 @@ class ComentariosService extends BaseService {
         'message': 'Error inesperado: ${e.toString()}'
       };
     }
-
-    
-
-    
   }
 }
-
