@@ -18,6 +18,7 @@ class TareaBloc extends Bloc<TareaEvent, TareaState> {
     on<DeleteTareaEvent>(_onDeleteTarea);
     on<SaveTareasEvent>(_onSaveTareas);
     on<SyncTareasEvent>(_onSyncTareas);
+    on<CompletarTareaEvent>(_onCompletarTarea);
   }
 
   Future<void> _onLoadTareas(
@@ -228,5 +229,48 @@ Future<void> _onSyncTareas(
     }
   }
 }
+
+Future<void> _onCompletarTarea(
+    CompletarTareaEvent event,
+    Emitter<TareaState> emit,
+  ) async {
+    try {
+      final tareaActualizada = event.tarea.copyWith(
+        completado: event.completada,
+      );
+
+      if (state is TareaLoaded) {
+        final currentState = state as TareaLoaded;
+        final tareas =
+            currentState.tareas.map((tarea) {
+              return tarea.id == event.tarea.id ? tareaActualizada : tarea;
+            }).toList();
+
+        // Emitimos solo el estado de completado una vez
+        emit(
+          TareaCompletada(
+            tarea: tareaActualizada,
+            completada: event.completada,
+            tareas: tareas,
+            mensaje: event.completada ? 'Tarea completada' : 'Tarea pendiente',
+          ),
+        );
+
+        // Actualizamos el estado de la lista
+        emit(
+          TareaLoaded(
+            tareas: tareas,
+            lastUpdated: DateTime.now(),
+            hayMasTareas: currentState.hayMasTareas,
+            paginaActual: currentState.paginaActual,
+          ),
+        );
+      }
+    } catch (e) {
+      if (e is ApiException) {
+        emit(TareaError(e));
+      }
+    }
+  }
   
 }

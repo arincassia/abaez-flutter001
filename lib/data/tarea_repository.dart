@@ -97,6 +97,8 @@ Future<bool> _actualizarCache(
     return tareasUsuario;
   }
 
+  
+
   /// Guarda manualmente una lista de tareas en la caché local
 /// Se usa principalmente cuando la app va a segundo plano
 Future<bool> guardarTareasLocalmente(List<Tarea> tareas) async {
@@ -105,8 +107,7 @@ Future<bool> guardarTareasLocalmente(List<Tarea> tareas) async {
   }, mensajeError: 'Error al guardar tareas localmente');
 }
 
-  /// Obtiene todas las tareas con estrategia cache-first
-  Future<List<Tarea>> obtenerTareas({bool forzarRecarga = false}) async {
+Future<List<Tarea>> obtenerTareas({bool forzarRecarga = false}) async {
     return manejarExcepcion(() async {
       List<Tarea> tareas = [];
       final usuario= await _obtenerUsuarioAutenticado();
@@ -127,7 +128,7 @@ Future<bool> guardarTareasLocalmente(List<Tarea> tareas) async {
 
       // Si se fuerza la recarga, ignoramos la caché
       // Si no esta forzada la recarga y tenemos datos en caché, los usamos
-      if (forzarRecarga != true && tareasCache != null) {
+      if (forzarRecarga != true && tareasCache != null && tareasCache.misTareas.isNotEmpty) {
         tareas = tareasCache.misTareas;
       } else {
         // Si no hay caché, cargamos desde la API

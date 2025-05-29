@@ -9,15 +9,17 @@ class Tarea with TareaMappable{
   final String tipo;
   final String? descripcion;
   final DateTime? fecha;
-  final DateTime? fechaLimite; // Nueva fecha límite
+  final DateTime? fechaLimite; 
+  final bool completado;
 
   Tarea({
     this.id,
     required this.usuario,
     required this.titulo,
-    this.tipo = 'normal', // Valor por defecto
+    this.tipo = 'normal', 
     this.descripcion,
     this.fecha,
     this.fechaLimite,
+    this.completado = false,
   });
 }

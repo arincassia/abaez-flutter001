@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:abaez/bloc/auth/auth_bloc.dart';
 import 'package:abaez/bloc/auth/auth_event.dart';
 import 'package:abaez/bloc/auth/auth_state.dart';
-import 'package:abaez/views/welcom_srceen.dart';
+import 'package:abaez/views/welcome_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});

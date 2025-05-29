@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:abaez/helpers/error_helper.dart';
+import 'package:abaez/exceptions/api_exception.dart';
 
 class SnackBarHelper {  static void showSnackBar(BuildContext context, String message, {
     int? statusCode, 
@@ -17,6 +18,45 @@ class SnackBarHelper {  static void showSnackBar(BuildContext context, String me
   static void showSuccess(BuildContext context, String message) {
     showSnackBar(context, message, statusCode: 200);
   }
+
+    static void mostrarExito(
+    BuildContext context, {
+    required String mensaje,
+    Duration duration = const Duration(seconds: 3),
+  }) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(mensaje),
+        backgroundColor: Colors.green,
+        duration: duration,
+        action: SnackBarAction(
+          label: 'Cerrar',
+          textColor: Colors.white,
+          onPressed: () {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          },
+        ),
+      ),
+    );
+  }
+
+  static void manejarError(BuildContext context, ApiException error) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(error.message),
+        backgroundColor: Colors.red,
+        duration: const Duration(seconds: 3),
+        action: SnackBarAction(
+          label: 'Cerrar',
+          textColor: Colors.white,
+          onPressed: () {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          },
+        ),
+      ),
+    );
+  }
+
 
   static void showError(BuildContext context, String message) {
     showSnackBar(context, message, statusCode: 500);

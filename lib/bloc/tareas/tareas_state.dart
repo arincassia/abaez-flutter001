@@ -61,3 +61,22 @@ class TareaUpdated extends TareaOperationSuccess {
 class TareaDeleted extends TareaOperationSuccess {
   TareaDeleted(super.tareas, super.tipoOperacion, super.mensaje);
 }
+
+class TareaCompletada extends TareaState {
+  final Tarea tarea;
+  final bool completada;
+  final String mensaje;
+  final List<Tarea> tareas; // Agregamos la lista completa de tareas
+
+  TareaCompletada({
+    required this.tarea,
+    required this.completada,
+    required this.tareas,
+    this.mensaje = '',
+  });
+
+
+  int get totalTareas => tareas.length;
+  int get tareasCompletadas => tareas.where((t) => t.completado).length;
+  double get progreso => totalTareas > 0 ? tareasCompletadas / totalTareas : 0.0;
+}
