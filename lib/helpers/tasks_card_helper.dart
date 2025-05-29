@@ -1,160 +1,142 @@
-
 import 'package:abaez/helpers/common_widgets_helper.dart';
 import 'package:flutter/material.dart';
-import 'package:abaez/domain/task.dart';
+import 'package:abaez/domain/tarea.dart';
 import 'package:abaez/constants.dart';
 import 'package:abaez/views/task_detail_screen.dart';
 
 class TaskCardHelper {
-static Widget buildTaskCard(
-  BuildContext context,
-  List<Task> tasks,
-  int indice, {
-  Function(BuildContext, int)? onEdit,
-}) {
-  final task = tasks[indice];
+  static Widget buildTaskCard(
+    BuildContext context,
+    List<Tarea> tasks,
+    int indice, {
+    Function(BuildContext, int)? onEdit,
+  }) {
+    final task = tasks[indice];
 
-  return GestureDetector(
-    onTap: () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => TaskDetailScreen(tasks: tasks, initialIndex: indice),
-        ),
-      );
-    },
-    child: Container(
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          const BoxShadow(
-            color: Colors.black12,
-            blurRadius: 6,
-            offset: Offset(0, 3),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => TaskDetailScreen(tasks: tasks, initialIndex: indice),
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Imagen
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-            child: Image.network(
-              'https://picsum.photos/200/300?random=$indice',
-              fit: BoxFit.cover,
-              width: double.infinity,
-              height: 150,
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            const BoxShadow(
+              color: Colors.black12,
+              blurRadius: 6,
+              offset: Offset(0, 3),
             ),
-          ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Imagen
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              child: Image.network(
+                'https://picsum.photos/200/300?random=$indice',
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: 150,
+              ),
+            ),
 
-          // Título y tipo
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: Text(
-                    task.titulo,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+            // Título y tipo
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Text(
+                      task.titulo,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
+                  Row(
+                    children: [
+                      Text(
+                        '${AppConstants.tipoTarea}: ${task.tipo}',
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                      const SizedBox(width: 8),
+                      Icon(
+                        task.tipo.toLowerCase() == 'urgente' ? Icons.warning : Icons.task,
+                        color: task.tipo.toLowerCase() == 'urgente' ? Colors.red : Colors.blue,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            // Descripción
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Text(
+                'Descripción: ${task.descripcion ?? "Sin descripción"}',
+                style: const TextStyle(fontSize: 16),
+              ),
+            ),
+
+            // Pasos - Removed property access since Tarea doesn't have pasos property
+            
+            // Fecha límite
+            if (task.fechaLimite != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                child: Text(
+                  '${AppConstants.fechaLimite} ${_formatearFecha(task.fechaLimite)}',
+                  style: const TextStyle(fontSize: 16),
                 ),
-                Row(
+              ),
+
+            // Botón de edición
+            if (onEdit != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                child: Row(
                   children: [
-                    Text(
-                      '${AppConstants.tipoTarea}: ${task.tipo}',
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                    const SizedBox(width: 8),
-                    Icon(
-                      task.tipo.toLowerCase() == 'urgente' ? Icons.warning : Icons.task,
-                      color: task.tipo.toLowerCase() == 'urgente' ? Colors.red : Colors.blue,
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.edit),
+                      onPressed: () => onEdit(context, indice),
                     ),
                   ],
                 ),
-              ],
-            ),
-          ),
-
-          // Descripción
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Text(
-              'Descripción: ${task.descripcion}',
-              style: const TextStyle(fontSize: 16),
-            ),
-          ),
-
-          // Pasos
-          if (task.pasos.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    AppConstants.pasosTitulo,
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    task.pasos[0],
-                    style: const TextStyle(fontStyle: FontStyle.italic),
-                  ),
-                ],
               ),
-            ),
-
-          // Fecha límite
-           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-           child: Text(
-             '${AppConstants.fechaLimite} ${task.fechaLimite.day.toString().padLeft(2, '0')}/${task.fechaLimite.month.toString().padLeft(2, '0')}/${task.fechaLimite.year}',
-              style: const TextStyle(fontSize: 16),
-            ),
-           ),
-
-          // Botón de edición
-          if (onEdit != null)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: Row(
-                children: [
-                  const Spacer(),
-                  IconButton(
-                    icon: const Icon(Icons.edit),
-                    onPressed: () => onEdit(context, indice),
-                  ),
-                ],
-              ),
-            ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
+  // Change parameter type from Task to Tarea for consistency
+  static Widget construirTarjetaDeportiva(BuildContext context, Tarea task, int indice) {
+    final helper = CommonWidgetsHelper();
 
-  static Widget construirTarjetaDeportiva(BuildContext context, Task task, int indice) {
-  final helper = CommonWidgetsHelper();
-
-  return Center( // Modificación 3.1
+    return Center(
       child: Card(
-        margin: const EdgeInsets.all(50), // Margen externo
+        margin: const EdgeInsets.all(50),
         color: Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
-        elevation: 8, // Sombra del Card
+        elevation: 8,
         child: Container(
-          padding: const EdgeInsets.all(16), // Padding interno
-          decoration: helper.buildRoundedBorder(), // Borde redondeado
+          padding: const EdgeInsets.all(16),
+          decoration: helper.buildRoundedBorder(),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -168,19 +150,17 @@ static Widget buildTaskCard(
                   fit: BoxFit.cover,
                 ),
               ),
-              helper.buildSpacing(), // Espaciado
+              helper.buildSpacing(),
 
               // Título
               helper.buildBoldTitle(task.titulo),
-              helper.buildSpacing(), // Espaciado
+              helper.buildSpacing(),
 
-              // Pasos
+              // Descripción en lugar de pasos
               helper.buildInfoLines(
-                task.pasos.isNotEmpty ? task.pasos[0] : 'Sin pasos',
-                line2: task.pasos.length > 1 ? task.pasos[1] : null,
-                line3: task.pasos.length > 2 ? task.pasos[2] : null,
+                task.descripcion ?? 'Sin descripción',
               ),
-              helper.buildSpacing(), // Espaciado
+              helper.buildSpacing(),
 
               // Fecha límite
               helper.buildBoldFooter(
@@ -191,13 +171,10 @@ static Widget buildTaskCard(
         ),
       ),
     );
-}
-
+  }
 }
 
 String _formatearFecha(DateTime? fecha) {
-    if (fecha == null) return 'Sin fecha';
-    return '${fecha.day.toString().padLeft(2, '0')}/${fecha.month.toString().padLeft(2, '0')}/${fecha.year}';
-  }
-
-  
+  if (fecha == null) return 'Sin fecha';
+  return '${fecha.day.toString().padLeft(2, '0')}/${fecha.month.toString().padLeft(2, '0')}/${fecha.year}';
+}

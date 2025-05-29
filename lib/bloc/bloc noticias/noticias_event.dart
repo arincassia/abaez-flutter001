@@ -48,3 +48,5 @@ class FilterNoticiasByPreferencias extends NoticiasEvent {
   @override
   List<Object> get props => [categoriasIds];
 }
+
+class ResetNoticiaEvent extends NoticiasEvent {}

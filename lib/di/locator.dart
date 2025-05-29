@@ -11,6 +11,11 @@ import 'package:abaez/api/service/category_cache_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:watch_it/watch_it.dart';
 import 'package:abaez/data/comentario_repository.dart';
+import 'package:abaez/helpers/shared_preferences_service.dart';
+import 'package:abaez/data/tarea_repository.dart';
+import  'package:abaez/api/service/tarea_service.dart';
+
+
 
 Future<void> initLocator() async {
   final sharedPreferences = await SharedPreferences.getInstance();
@@ -20,11 +25,15 @@ Future<void> initLocator() async {
   di.registerLazySingleton<PreferenciaRepository>(
     () => PreferenciaRepository(),
   );
+  di.registerLazySingleton<TareasRepository>(() => TareasRepository());
   di.registerSingleton<ComentarioRepository>(ComentarioRepository());
   di.registerSingleton<ReporteRepository>(ReporteRepository());
   di.registerLazySingleton<SecureStorageService>(
     () => SecureStorageService(),
   );
+  di.registerLazySingleton<SharedPreferencesService>(() => SharedPreferencesService());
+  di.registerLazySingleton<TareaService>(() => TareaService());
+
   // Registramos el servicio de conectividad
   di.registerLazySingleton<ConnectivityService>(
     () => ConnectivityService(),

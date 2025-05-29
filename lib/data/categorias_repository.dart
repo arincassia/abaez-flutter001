@@ -23,9 +23,21 @@ class CategoriaServiceAdapter extends BaseService<Categoria> {
 
 class CategoriaRepository extends BaseRepository<Categoria, CategoriaServiceAdapter> {
   CategoriaRepository() : super(CategoriaServiceAdapter(), 'Categoría');
-  
+
+    @override
+  void validarEntidad(Categoria categoria) {
+    // Implement validation logic for Categoria entities
+    if (categoria.nombre == '' || categoria.nombre.isEmpty) {
+      throw Exception('El nombre de la categoría no puede estar vacío');
+    }
+    if (categoria.descripcion == '' || categoria.descripcion.isEmpty) {
+      throw Exception('La descripción de la categoría no puede estar vacía');
+    }
+    // Add any other validations specific to Categoria entities
+  }
+
   // Métodos específicos para categorías que no están en la clase base irían aquí
-  
+
   // Métodos con nombres más amigables que llaman a los métodos de la clase base
   Future<List<Categoria>> obtenerCategorias() => getAll();
   Future<void> crearCategoria(Map<String, dynamic> data) => create(data);

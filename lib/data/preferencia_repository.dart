@@ -41,7 +41,16 @@ class PreferenciaServiceAdapter extends BaseService<Preferencia> {
 
 class PreferenciaRepository extends BaseRepository<Preferencia, PreferenciaServiceAdapter> {
   PreferenciaRepository() : super(PreferenciaServiceAdapter(), 'Preferencia');
-  
+
+    @override
+  void validarEntidad(Preferencia preferencia) {
+    // Implement validation logic for Preferencia entities
+    if (preferencia.categoriasSeleccionadas.isEmpty) {
+      throw Exception('Las categorías seleccionadas no pueden estar vacías');
+    }
+    // Add any other validations specific to Preferencia entities
+  }
+
   // Caché de preferencias para minimizar llamadas a la API
   Preferencia? _cachedPreferencias;
 
