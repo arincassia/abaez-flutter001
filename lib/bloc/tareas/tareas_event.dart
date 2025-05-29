@@ -53,6 +53,15 @@ class DeleteTareaEvent extends TareaEvent {
   List<Object?> get props => [id];
 }
 
+class CompletarTareaEvent extends TareaEvent {
+  final Tarea tarea;
+  final bool completada;
+
+  CompletarTareaEvent({
+    required this.tarea,
+    required this.completada,
+  });
+}
 // Add this class to your existing events
 class SaveTareasEvent extends TareaEvent {
   final List<Tarea> tareas;
