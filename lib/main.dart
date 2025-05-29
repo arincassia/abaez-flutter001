@@ -12,11 +12,17 @@ import 'package:watch_it/watch_it.dart'; // Importa watch_it para usar di
 import 'package:abaez/components/connectivity_wrapper.dart'; // Importa el wrapper de conectividad
 import 'package:abaez/views/login_screen.dart';
 import 'package:abaez/bloc/contador/contador_bloc.dart'; // Importa el BLoC del contador
+import 'package:abaez/bloc/tareas/tareas_bloc.dart'; // Importa el BLoC de tareas
+import 'package:abaez/helpers/shared_preferences_service.dart';
 
 Future<void> main() async {
   // Carga las variables de entorno
   await dotenv.load(fileName: '.env');
   await initLocator();
+
+  final prefsService = SharedPreferencesService();
+  await prefsService.init();
+  
 
   // Eliminar cualquier token guardado para forzar el inicio de sesión
   final secureStorage = di<SecureStorageService>();
@@ -45,6 +51,9 @@ class MyApp extends StatelessWidget {
         BlocProvider(
           create: (context) => ConnectivityBloc(),
         ), // Bloc para gestionar la conectividad
+        BlocProvider<TareaBloc>(
+          create: (context) => TareaBloc(),
+        ),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

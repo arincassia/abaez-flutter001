@@ -22,7 +22,25 @@ class NoticiaServiceAdapter extends BaseService<Noticia> {
 
 class NoticiaRepository extends BaseRepository<Noticia, NoticiaServiceAdapter> {
   NoticiaRepository() : super(NoticiaServiceAdapter(), 'Noticia');
-  
+    @override
+  void validarEntidad(Noticia noticia) {
+    // Implement validation logic for Noticia entities
+    if (noticia.titulo == '' || noticia.titulo.isEmpty) {
+      throw Exception('El título de la noticia no puede estar vacío');
+    }
+    if (noticia.descripcion == '' || noticia.descripcion.isEmpty) {
+      throw Exception('La descripción de la noticia no puede estar vacía');
+    }
+    if (noticia.fuente == '' || noticia.fuente.isEmpty) {
+      throw Exception('La fuente de la noticia no puede estar vacía');
+    }
+    if (noticia.urlImagen == '' || noticia.urlImagen.isEmpty) {
+      throw Exception('La URL de la imagen de la noticia no puede estar vacía');
+    }
+    
+    // Add any other validations specific to Noticia entities
+  }
+
   // Métodos con nombres específicos y validaciones adicionales
   Future<List<Noticia>> obtenerNoticias() => getAll();
   

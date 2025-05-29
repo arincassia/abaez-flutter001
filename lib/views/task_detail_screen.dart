@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:abaez/domain/task.dart';
+import 'package:abaez/domain/tarea.dart';
 import 'package:abaez/helpers/tasks_card_helper.dart';
 
 class TaskDetailScreen extends StatelessWidget {
-  final List<Task> tasks;
+  final List<Tarea> tasks;
   final int initialIndex;
 
   const TaskDetailScreen({

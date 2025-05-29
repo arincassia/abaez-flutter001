@@ -1,7 +1,7 @@
 import 'package:abaez/views/contador.dart';
 import 'package:abaez/views/login_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:abaez/views/task_screen.dart';
+import 'package:abaez/views/tarea_screen.dart'; // Correct import path
 import 'package:abaez/views/start_screen.dart';
 import 'package:abaez/views/quote_screen.dart';
 import 'package:abaez/views/noticias_screen.dart';
@@ -39,7 +39,7 @@ class WelcomeScreen extends StatelessWidget {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const TaskScreen()),
+                  MaterialPageRoute(builder: (context) => const TareaScreen()),
                 );
               },
             ),

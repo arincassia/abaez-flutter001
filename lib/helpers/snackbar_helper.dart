@@ -18,6 +18,10 @@ class SnackBarHelper {  static void showSnackBar(BuildContext context, String me
     showSnackBar(context, message, statusCode: 200);
   }
 
+  static void showError(BuildContext context, String message) {
+    showSnackBar(context, message, statusCode: 500);
+  }
+
  // Nuevo método para errores del cliente (400-499)
   static void showClientError(BuildContext context, String message) {
     showSnackBar(context, message, statusCode: 400);

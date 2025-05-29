@@ -50,6 +50,15 @@ class ReporteServiceAdapter extends BaseService<Reporte> {
 class ReporteRepository extends BaseRepository<Reporte, ReporteServiceAdapter> {
   ReporteRepository() : super(ReporteServiceAdapter(), 'Reporte');
 
+    @override
+  void validarEntidad(Reporte reporte) {
+    // Implement validation logic for Reporte entities
+    if (reporte.noticiaId == '' || reporte.noticiaId.isEmpty) {
+      throw Exception('El ID de noticia no puede estar vacío');
+    }
+    // Add any other validations specific to Reporte entities
+  }
+
   // Obtener todos los reportes
   Future<List<Reporte>> obtenerReportes() => getAll();
 
