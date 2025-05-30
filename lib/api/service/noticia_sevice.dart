@@ -104,28 +104,104 @@ class NoticiaService extends BaseService {
     }
   }
 
-  /// Elimina una noticia de la API
-  Future<void> eliminarNoticia(String id) async {
+  /// Elimina una noticia de la API junto con todos sus reportes y comentarios asociados
+Future<void> eliminarNoticia(String id) async {
+  try {
+    // Validar que el ID no sea nulo o vacío
+    if (id.isEmpty) {
+      throw ApiException('ID de noticia inválido', statusCode: 400);
+    }
+    
+    debugPrint('🗑️ Iniciando eliminación de noticia con ID: $id y sus datos asociados');
+    
+    // 1. Primero obtenemos y eliminamos los reportes asociados
     try {
-      // Validar que el ID no sea nulo o vacío
-      if (id.isEmpty) {
-        throw ApiException('ID de noticia inválido', statusCode: 400);
+      debugPrint('🔍 Buscando reportes asociados a la noticia $id');
+      final reportes = await get('/reportes', requireAuthToken: true);
+      
+      if (reportes is List) {
+        // Filtrar reportes por noticiaId
+        final reportesDeNoticia = reportes.where((reporte) => 
+          reporte is Map && reporte['noticiaId'] == id).toList();
+          
+        if (reportesDeNoticia.isNotEmpty) {
+          debugPrint('🚨 Encontrados ${reportesDeNoticia.length} reportes para eliminar');
+          
+          for (final reporte in reportesDeNoticia) {
+            final reporteId = reporte['id'];
+            await delete('/reportes/$reporteId', requireAuthToken: true);
+            debugPrint('✅ Reporte $reporteId eliminado');
+          }
+        } else {
+          debugPrint('ℹ️ No se encontraron reportes para esta noticia');
+        }
       }
-      
-      debugPrint('🗑️ Eliminando noticia con ID: $id');
-      
-      await delete('/noticias/$id', requireAuthToken: true);
-
-      debugPrint('✅ Noticia eliminada correctamente');
-    } on DioException catch (e) {
-      debugPrint('❌ DioException en eliminarNoticia: ${e.toString()}');
-      handleError(e);
     } catch (e) {
-      if (e is ApiException) {
-        rethrow;
+      debugPrint('⚠️ Error al eliminar reportes: $e');
+      // Continuamos con el proceso aunque falle la eliminación de reportes
+    }
+
+    // Añadir después de la eliminación de reportes
+
+// 2. Luego obtenemos y eliminamos los comentarios y subcomentarios asociados
+try {
+  debugPrint('🔍 Buscando comentarios asociados a la noticia $id');
+  final comentarios = await get('/comentarios', requireAuthToken: true);
+  
+  if (comentarios is List) {
+    // Paso 1: Identificar todos los comentarios principales de la noticia
+    final comentariosDeNoticia = comentarios.where((comentario) => 
+      comentario is Map && comentario['noticiaId'] == id).toList();
+    
+    // Paso 2: Extraer y eliminar subcomentarios anidados
+    for (final comentario in comentariosDeNoticia) {
+      if (comentario['subcomentarios'] != null && comentario['subcomentarios'] is List) {
+        final subcomentarios = comentario['subcomentarios'] as List;
+        
+        if (subcomentarios.isNotEmpty) {
+          debugPrint('📝 Encontrados ${subcomentarios.length} subcomentarios para el comentario ${comentario['id']}');
+          
+          // Eliminar cada subcomentario
+          for (final subcomentario in subcomentarios) {
+            final subcomentarioId = subcomentario['idSubComentario'];
+            await delete('/comentarios/sub/$subcomentarioId', requireAuthToken: true);
+            debugPrint('✅ Subcomentario $subcomentarioId eliminado');
+          }
+        }
       }
-      debugPrint('❌ Error inesperado en eliminarNoticia: ${e.toString()}');
-      throw ApiException('Error inesperado: $e');
+    }
+    
+    // Paso 3: Eliminar los comentarios principales
+    if (comentariosDeNoticia.isNotEmpty) {
+      debugPrint('📝 Eliminando ${comentariosDeNoticia.length} comentarios principales');
+      
+      for (final comentario in comentariosDeNoticia) {
+        final comentarioId = comentario['id'];
+        await delete('/comentarios/$comentarioId', requireAuthToken: true);
+        debugPrint('✅ Comentario principal $comentarioId eliminado');
+      }
     }
   }
+} catch (e) {
+  debugPrint('⚠️ Error al eliminar comentarios y subcomentarios: $e');
+}
+
+// 3. Finalmente eliminamos la noticia
+try {
+  await delete('/noticias/$id', requireAuthToken: true);
+  debugPrint('✅ Noticia eliminada correctamente junto con sus datos asociados');
+} catch (e) {
+  debugPrint('❌ Error al eliminar la noticia: $e');
+  throw ApiException('Error al eliminar la noticia: $e');
+}
+    debugPrint('🗑️ Eliminación de noticia y datos asociados completada');
+  } catch (e) {
+    if (e is ApiException) {
+      rethrow;
+    }
+    debugPrint('❌ Error inesperado en eliminarNoticia: ${e.toString()}');
+    throw ApiException('Error inesperado: $e');
+  }
+}
+
 }
