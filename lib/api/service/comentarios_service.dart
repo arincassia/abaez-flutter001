@@ -112,28 +112,43 @@ class ComentariosService extends BaseService {
     }
   }
 
-  Future<int> obtenerNumeroComentarios(String noticiaId) async {
-    try {
-      final data = await get('/comentarios', requireAuthToken: false);
+  /// Obtiene el número total de comentarios (incluyendo subcomentarios) para una noticia
+Future<int> obtenerNumeroComentarios(String noticiaId) async {
+  try {
+    final data = await get('/comentarios', requireAuthToken: false);
 
-      if (data is List) {
-        final comentariosCount =
-          data.where((json) => json['noticiaId'] == noticiaId).length;
-
-        return comentariosCount;
-      } else {
-        debugPrint('❌ La respuesta no es una lista: $data');
-        return 0;
+    if (data is List) {
+      int totalComentarios = 0;
+      
+      // Filtrar comentarios principales de esta noticia
+      final comentariosPrincipales = data.where(
+        (json) => json['noticiaId'] == noticiaId
+      ).toList();
+      
+      // Contar comentarios principales
+      totalComentarios += comentariosPrincipales.length;
+      
+      // Contar subcomentarios de cada comentario principal
+      for (final comentario in comentariosPrincipales) {
+        if (comentario['subcomentarios'] != null && 
+            comentario['subcomentarios'] is List) {
+            totalComentarios += (comentario['subcomentarios'] as List).length;        }
       }
-    } on DioException catch (e) {
-      debugPrint('❌ DioException en obtenerNumeroComentarios: ${e.toString()}');
-      // En caso de error simplemente devolvemos 0 para no romper la UI
-      return 0;
-    } catch (e) {
-      debugPrint('❌ Error al obtener número de comentarios: ${e.toString()}');
+      
+      return totalComentarios;
+    } else {
+      debugPrint('❌ La respuesta no es una lista: $data');
       return 0;
     }
+  } on DioException catch (e) {
+    debugPrint('❌ DioException en obtenerNumeroComentarios: ${e.toString()}');
+    // En caso de error simplemente devolvemos 0 para no romper la UI
+    return 0;
+  } catch (e) {
+    debugPrint('❌ Error al obtener número de comentarios: ${e.toString()}');
+    return 0;
   }
+}
 
   /// Añade una reacción (like o dislike) a un comentario específico
   Future<Comentario> reaccionarComentario({
