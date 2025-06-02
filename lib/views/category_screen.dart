@@ -157,12 +157,7 @@ class _CategoryScreenContent extends StatelessWidget {
                           tooltip: 'Editar categoría',
                           onPressed: () => _showEditDialog(context, categoria),
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          tooltip: 'Eliminar categoría',
-                          onPressed:
-                              () => _showDeleteDialog(context, categoria),
-                        ),
+                        
                       ],
                     ),
                   ),
@@ -372,37 +367,5 @@ class _CategoryScreenContent extends StatelessWidget {
     );
   }
 
-  void _showDeleteDialog(BuildContext context, Categoria categoria) {
-    final categoriaBloc = context.read<CategoriaBloc>();
-
-    showDialog(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: const Text('Eliminar Categoría'),
-          content: Text(
-            '¿Estás seguro de que deseas eliminar la categoría "${categoria.nombre}"?',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancelar'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                // Enviar evento para eliminar categoría
-               
-                  categoriaBloc.add(CategoriaDeleteEvent(id: categoria.id!));
-                
-
-                Navigator.pop(dialogContext);
-              },
-              style: ElevatedButton.styleFrom(foregroundColor: Colors.white, backgroundColor: Colors.red),
-              child: const Text('Eliminar'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+ 
 }

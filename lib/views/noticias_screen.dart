@@ -77,13 +77,13 @@ void _cargarNoticiasConFiltro(BuildContext context) {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    NoticiaConstantes.tituloApp,
+                    NoticiasConstantes.tituloApp,
                     style: TextStyle(color: Colors.white),
                   ),
                   if (state
                       is NoticiasLoaded) // Check if state is NoticiasLoaded before accessing lastUpdated
                     Text(
-                      'Última actualización: ${(DateFormat(NoticiaConstantes.formatoFecha)).format(state.lastUpdated)}',
+                      'Última actualización: ${(DateFormat(AppConstants.formatoFecha)).format(state.lastUpdated)}',
                       style: const TextStyle(fontSize: 12),
                     ),
                 ],
@@ -246,7 +246,7 @@ void _cargarNoticiasConFiltro(BuildContext context) {
     } else if (state is NoticiasLoaded) {
       final noticias = state.noticiasList;
       if (noticias.isEmpty) {
-        return const Center(child: Text(NoticiaConstantes.listaVacia));
+        return const Center(child: Text(NoticiasConstantes.listaVacia));
       } else {
         return ListView.separated(
           itemCount: noticias.length,

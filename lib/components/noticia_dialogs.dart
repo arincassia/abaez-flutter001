@@ -70,7 +70,7 @@ class NoticiaModal {  static Future<void> mostrarModal({
               fuente: fuenteController.text,
               publicadaEl: fechaSeleccionada ?? DateTime.now(),
               urlImagen: imagenUrlController.text,
-              categoriaId: categoriaSeleccionada ?? CategoriaConstantes.defaultCategoriaId,
+              categoriaId: categoriaSeleccionada ?? CategoriaConstantes.defaultcategoriaId,
             );
           } else {
             // Editar noticia existente
@@ -81,7 +81,7 @@ class NoticiaModal {  static Future<void> mostrarModal({
               fuente: fuenteController.text,
                publicadaEl: fechaSeleccionada ?? DateTime.now(),
               urlImagen: imagenUrlController.text,
-              categoriaId: categoriaSeleccionada ?? CategoriaConstantes.defaultCategoriaId,
+              categoriaId: categoriaSeleccionada ?? CategoriaConstantes.defaultcategoriaId,
             );
           }
 
@@ -94,7 +94,7 @@ class NoticiaModal {  static Future<void> mostrarModal({
             'fuente': fuenteController.text,
             'publicadaEl': (fechaSeleccionada ?? DateTime.now()).toIso8601String(),
             'urlImagen': imagenUrlController.text,
-            'categoriaId': categoriaSeleccionada ?? CategoriaConstantes.defaultCategoriaId,
+            'categoriaId': categoriaSeleccionada ?? CategoriaConstantes.defaultcategoriaId,
           };
           
           // Llama al callback para actualizar la lista de noticias

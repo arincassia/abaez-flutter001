@@ -9,7 +9,7 @@ class AuthService extends BaseService {
   
   Future<LoginResponse> login(LoginRequest request) async {
     try {
-      final data = await post(
+      final data = await postUnauthorized(
         '/login',
         data: request.toJson(),   
       );
