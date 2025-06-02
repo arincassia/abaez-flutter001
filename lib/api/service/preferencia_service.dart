@@ -32,11 +32,12 @@ class PreferenciaService extends BaseService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_preferenciaIdKey, id);
   }
-  /// Obtiene las preferencias del usuario
-  Future<Preferencia> getPreferencias() async {
-    try {
-      // Si no hay ID almacenado, devolver preferencias vacías sin consultar API
-      if (_preferenciaId != null && _preferenciaId!.isNotEmpty) {      final data = await get(
+ Future<Preferencia> getPreferencias() async {
+  try {
+    // Si no hay ID almacenado, devolver preferencias vacías sin consultar API
+    if (_preferenciaId != null && _preferenciaId!.isNotEmpty) {
+      try {
+        final data = await get(
           '/preferencias/$_preferenciaId',
           requireAuthToken: false, // Operación de lectura
         );
@@ -44,24 +45,21 @@ class PreferenciaService extends BaseService {
         if (data != null && data is Map<String, dynamic>) {
           return Preferencia.fromJson(data);
         }
+      } catch (apiError) {
+        // Capturar cualquier error de API aquí y continuar con preferencias vacías
+        debugPrint('⚠️ Error al obtener preferencias existentes: $apiError');
+        // No relanzamos el error, simplemente continuamos para crear preferencias vacías
       }
-      return await _crearPreferenciasVacias();
-    } on DioException catch (e) {
-      debugPrint('❌ DioException en getPreferencias: ${e.toString()}');      if (e.response?.statusCode == 404) {
-        // Si no existe, devolver preferencias vacías
-        return await _crearPreferenciasVacias();
-      } else {
-        handleError(e);
-        return await _crearPreferenciasVacias();
-      }
-    } catch (e) {
-      debugPrint('❌ Error inesperado en getPreferencias: ${e.toString()}');
-      if (e is ApiException) {
-        rethrow;
-      }
-      throw ApiException('Error inesperado: $e');
     }
+    // Si llegamos aquí, necesitamos crear preferencias vacías
+    return await _crearPreferenciasVacias();
+  } catch (e) {
+    // Este bloque solo captura errores inesperados en la función completa
+    debugPrint('❌ Error inesperado en getPreferencias: ${e.toString()}');
+    // Devolver preferencias vacías en lugar de lanzar excepción
+    return Preferencia.empty();
   }
+}
   /// Guarda las preferencias del usuario (Actualiza)
   Future<void> guardarPreferencias(Preferencia preferencia) async {
     try {      await put(
@@ -82,32 +80,31 @@ class PreferenciaService extends BaseService {
       throw ApiException('Error inesperado: $e');
     }
   }
-  /// Método auxiliar para crear un nuevo registro de preferencias vacías
   Future<Preferencia> _crearPreferenciasVacias() async {
+  try {
+    final preferenciasVacias = Preferencia.empty();
+    // Crear un nuevo registro en la API
     try {
-      final preferenciasVacias = Preferencia.empty();      // Crear un nuevo registro en la API
       final data = await post(
         '/preferencias',
         data: preferenciasVacias.toJson(),
-        requireAuthToken: true, // Operación de escritura
+        requireAuthToken: true,
       );
 
       // Guardar el nuevo ID si existe
       if (data != null && data['id'] != null) {
         await _guardarId(data['id']);
       }
-
-      return preferenciasVacias;    } on DioException catch (e) {
-      debugPrint('❌ DioException en _crearPreferenciasVacias: ${e.toString()}');
-      handleError(e);
-      // En caso de error, retornamos preferencias vacías sin ID
-      return Preferencia.empty();
-    } catch (e) {
-      debugPrint('❌ Error inesperado en _crearPreferenciasVacias: ${e.toString()}');
-      if (e is ApiException) {
-        rethrow;
-      }
-      throw ApiException('Error inesperado: $e');
+    } catch (apiError) {
+      debugPrint('⚠️ Error al crear preferencias vacías: $apiError');
+      // No relanzamos el error, simplemente devolvemos las preferencias vacías
     }
+
+    return preferenciasVacias;
+  } catch (e) {
+    debugPrint('❌ Error inesperado en _crearPreferenciasVacias: ${e.toString()}');
+    // Siempre devolver preferencias vacías en caso de error
+    return Preferencia.empty();
   }
+}
 }

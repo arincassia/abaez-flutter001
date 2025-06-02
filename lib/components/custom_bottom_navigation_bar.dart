@@ -36,9 +36,9 @@ class CustomBottomNavigationBar extends StatelessWidget {
       currentIndex: selectedIndex,
       onTap: (index) => _onItemTapped(context, index),
       items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.home), label: "Inicio"),
+        BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
         BottomNavigationBarItem(icon: Icon(Icons.add), label: 'Tarea'),
-        BottomNavigationBarItem(icon: Icon(Icons.close), label: "Salir"),
+        BottomNavigationBarItem(icon: Icon(Icons.close), label: 'Salir'),
       ],
     );
   }

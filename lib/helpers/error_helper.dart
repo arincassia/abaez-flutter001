@@ -12,7 +12,7 @@ class ErrorHelper {
         color = Colors.green;
         break;
       case 400:
-        message = NoticiaConstantes.mensajeError;
+        message = NoticiasConstantes.mensajeError;
         color = Colors.orange;
         break;
       case 401:

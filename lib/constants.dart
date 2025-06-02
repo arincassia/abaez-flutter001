@@ -17,6 +17,7 @@ class AppConstants {
   static const String camposVacios = 'Por favor, completa todos los campos obligatorios.';
   static const String fechaLimite = 'Fecha límite: ';
   static const String pasosTitulo = 'Pasos para completar: ';
+  static const String errorCreateDefault = 'Error al crear el recurso';  
   
 
   //Constantes para la aplicación de preguntas
@@ -154,15 +155,25 @@ class ApiConstantes {
 }
 
 
-class NoticiaConstantes {
+class NoticiasConstantes {
   static const String tituloApp = 'Noticias Técnicas';
   static const String mensajeCargando = 'Cargando noticias...';
   static const String listaVacia = 'No hay noticias disponibles';
-  static const String mensajeError = 'Error al cargar noticias';
-  static const String formatoFecha = 'dd/MM/yyyy HH:mm';
-  static const int tamanoPagina = 7;
-  static const double espaciadoAlto = 10;
- 
+  static const String mensajeError = 'Error al obtener noticias';
+  static const String defaultCategoriaId = 'default';
+  static const String errorNotFound = 'Noticia no encontrada';
+  static const String successUpdated = 'Noticia actualizada exitosamente';
+  static const String successCreated = 'Noticia creada exitosamente';
+  static const String successDeleted = 'Noticia eliminada exitosamente';
+  static const String errorUnauthorized = 'No autorizado para acceder a noticia';
+  static const String errorInvalidData = 'Datos inválidos en noticia';
+  static const String errorServer = 'Error del servidor en noticia';
+  static const String errorCreated = 'Error al crear la noticia';
+  static const String errorUpdated = 'Error al editar la noticia';
+  static const String errorDelete = 'Error al eliminar la noticia';
+  static const String errorFilter = 'Error al filtrar noticias';
+  static const String errorVerificarNoticiaExiste = 'Error al verificar si la noticia existe';
+  static const String errorActualizarContadorReportes = 'Error al actualizar el contador de reportes';
 }
 
 
@@ -173,11 +184,23 @@ class ErrorConstantes {
   static const String errorUnauthorized = 'No autorizado';
 }
 
-class CategoriaConstantes {
-  static const int timeoutSeconds = 10; // Tiempo máximo de espera en segundos
-  static const String errorTimeout = 'Tiempo de espera agotado'; // Mensaje para errores de timeout
-  static const String errorNoCategoria = 'Categoría no encontrada'; // Mensaje para errores de categorías
-  static const String defaultCategoriaId = 'sin_categoria'; // ID por defecto para noticias sin categoría
-  static const String mensajeError = 'Error al cargar categorias';
+class CategoriaConstantes{
+  static const String tituloApp = 'Categorías de Noticias';
+  static const String mensajeCargando = 'Cargando categorias...';
+  static const String listaVacia = 'No hay categorias disponibles';
+  static const String mensajeError = 'Error al obtener categorías';
+  static const String errorNocategoria = 'Categoría no encontrada';
+  static const String defaultcategoriaId = 'Sin Categoria';
+  static const String successUpdated = 'Categoria actualizada exitosamente';
+  static const String errorUpdated = 'Error al editar la categoría';
+  static const String successDeleted = 'Categoria eliminada exitosamente';
+  static const String errorDelete = 'Error al eliminar la categoría';
+  static const String errorAdd = 'Error al agregar categoría';
+  static const String successCreated = 'Categoria creada exitosamente';
+  static const String errorCreated = 'Error al crear la categoría';
+  static const String errorUnauthorized = 'No autorizado para acceder a categoría';
+  static const String errorInvalidData = 'Datos inválidos en categoria';
+  static const String errorServer = 'Error del servidor en categoria';
 }
+
 

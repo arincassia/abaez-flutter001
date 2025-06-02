@@ -7,6 +7,7 @@ import 'package:abaez/helpers/error_helper.dart';
 import 'package:abaez/helpers/secure_storage_service.dart';
 import 'package:abaez/helpers/connectivity_service.dart';
 import 'package:flutter/foundation.dart';
+import 'package:watch_it/watch_it.dart' show di;
 
 /// Clase base para todos los servicios de la API.
 /// Proporciona configuración común y manejo de errores centralizado.
@@ -114,6 +115,37 @@ class BaseService {
         );
     }
   }
+
+    /// Método privado que ejecuta una petición HTTP y maneja los errores de forma centralizada
+  Future<T> _executeRequest<T>(
+  Future<Response<dynamic>> Function() requestFn,
+  String errorMessage,
+) async {
+  try {
+    final connectivityService = di<ConnectivityService>();
+    await connectivityService.checkConnectivity();
+
+    final response = await requestFn();
+
+    if (response.statusCode == 200) {
+      return response.data as T;
+    } else {
+      throw ApiException(errorMessage, statusCode: response.statusCode);
+    }
+  } on DioException catch (e) {
+    debugPrint('Error en la solicitud: ${e.message}');
+    handleError(e);
+    // Add this line to make it explicit that execution never reaches here
+    throw ApiException('Error no manejado', statusCode: 500); // This line will never be reached
+  } catch (e) {
+    if (e is ApiException) {
+      rethrow;
+    }
+    // Manejo de cualquier otro tipo de error
+    throw ApiException('Error inesperado: ${e.toString()}');
+  }
+}
+
     /// Método GET genérico
   Future<dynamic> get(String path, {
     Map<String, dynamic>? queryParameters,
@@ -242,4 +274,25 @@ class BaseService {
   
   /// Acceso al servicio de conectividad
   ConnectivityService get connectivityService => _connectivityService;
+
+
+
+   Future<dynamic> postUnauthorized(
+    String endpoint, {
+    required dynamic data,
+    Map<String, dynamic>? queryParameters,
+    String errorMessage = AppConstants.errorCreateDefault,
+  }) async {
+    final options = await _getRequestOptions(requireAuthToken: false);
+    return _executeRequest<dynamic>(
+      () => _dio.post(
+        endpoint,
+        data: data,
+        queryParameters: queryParameters,
+        options: options,
+      ),
+      errorMessage,
+    );
+}
+
 }
