@@ -6,9 +6,7 @@ import 'package:abaez/bloc/tareas/tareas_state.dart';
 import 'package:abaez/bloc/tareas_contador/tareas_contador_bloc.dart';
 import 'package:abaez/bloc/tareas_contador/tareas_contador_event.dart';
 import 'package:abaez/components/add_task_modal.dart';
-import 'package:abaez/components/custom_bottom_navigation_bar.dart';
 import 'package:abaez/components/last_updated_header.dart';
-import 'package:abaez/components/side_menu.dart';
 import 'package:abaez/components/tarea_progreso_indicator.dart';
 import 'package:abaez/constants.dart';
 import 'package:abaez/domain/tarea.dart';
@@ -115,6 +113,10 @@ class _TareaScreenContentState extends State<_TareaScreenContent> {
 
         return Scaffold(
           appBar: AppBar(
+            leading: IconButton(
+      icon: const Icon(Icons.arrow_back),
+      onPressed: () => Navigator.of(context).pop(),
+    ),
             title: Text(
               state is TareaLoaded
                   ? '${TareasConstantes.tituloAppBar} - Total: ${state.tareas.length}'
@@ -142,7 +144,7 @@ class _TareaScreenContentState extends State<_TareaScreenContent> {
               ),
             ],
           ),
-          drawer: const SideMenu(),
+ 
           backgroundColor: Colors.grey[200],
           body: Column(
             children: [
@@ -155,9 +157,6 @@ class _TareaScreenContentState extends State<_TareaScreenContent> {
             onPressed: () => _mostrarModalAgregarTarea(context),
             tooltip: 'Agregar Tarea',
             child: const Icon(Icons.add),
-          ),
-          bottomNavigationBar: const CustomBottomNavigationBar(
-            selectedIndex: 0,
           ),
         );
       },

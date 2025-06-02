@@ -1,8 +1,9 @@
+import 'dart:async';
+
 import 'package:abaez/constants.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:abaez/exceptions/api_exception.dart';
-import 'package:abaez/helpers/snackbar_helper.dart';
 
 /// Servicio para verificar la conectividad a Internet
 class ConnectivityService {
@@ -29,11 +30,70 @@ class ConnectivityService {
     }
   }
   /// Muestra un SnackBar con un mensaje de error de conectividad que permanece hasta que hay conexión
+ // ...existing code...
+  
+  /// Muestra un banner de conectividad en la parte superior de la pantalla
+  /// que permanece visible hasta que se restablezca la conexión
   void showConnectivityError(BuildContext context) {
-    SnackBarHelper.showServerError(
-      context, 
-      ApiConstantes.errorNoInternet,
-      duration: const Duration(days: 1) // Virtualmente infinito
+    // Verificar si el contexto sigue siendo válido
+    if (!context.mounted) return;
+    
+    // Mostrar el banner de conectividad
+    ScaffoldMessenger.of(context).showMaterialBanner(
+      MaterialBanner(
+        backgroundColor: Colors.red[100],
+        leading: const Icon(Icons.wifi_off, color: Colors.red),
+        content: const Text(
+          ApiConstantes.errorNoInternet,
+          style: TextStyle(color: Colors.red),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              // Intentar verificar la conexión nuevamente
+              
+              if (await hasInternetConnection()) {
+                // Si hay conexión, cerrar el banner
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
+              }
+            },
+            child: const Text('Reintentar'),
+          ),
+        ],
+        padding: const EdgeInsets.all(16),
+        elevation: 5,
+      ),
     );
+    
+    // Configurar una verificación periódica de conexión para cerrar el banner automáticamente
+    _startConnectivityCheck(context);
+  }
+  
+  // Una referencia para cancelar el timer si es necesario
+  Timer? _connectivityTimer;
+  
+  /// Inicia una verificación periódica de la conectividad
+  void _startConnectivityCheck(BuildContext context) {
+    // Cancelar cualquier timer existente
+    _connectivityTimer?.cancel();
+    
+    // Crear un nuevo timer que verifica la conexión cada 5 segundos
+    _connectivityTimer = Timer.periodic(const Duration(seconds: 5), (timer) async {
+      if (await hasInternetConnection()) {
+        // Si hay conexión, cerrar el banner y detener el timer
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
+        }
+        timer.cancel();
+        _connectivityTimer = null;
+      }
+    });
+  }
+  
+  /// Método para limpiar recursos cuando el servicio ya no es necesario
+  void dispose() {
+    _connectivityTimer?.cancel();
+    _connectivityTimer = null;
   }
 }

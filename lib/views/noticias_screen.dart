@@ -90,32 +90,7 @@ void _cargarNoticiasConFiltro(BuildContext context) {
               ),
               backgroundColor: const Color.fromARGB(255, 248, 174, 206),
               actions: [
-                IconButton(
-                  icon: const Icon(Icons.add),
-                  tooltip: 'Agregar Noticia',
-                  onPressed: () async {                    try {
-                      await NoticiaModal.mostrarModal(
-                        context: context,
-                        noticia: null,
-                        onSave: (_, noticiaActualizada) {
-                          // Para el caso de crear, simplemente recargamos las noticias
-                          _cargarNoticiasConFiltro(context);
-  
-                          SnackBarHelper.showSnackBar(
-                            context,
-                            ApiConstantes.newssuccessCreated,
-                            statusCode: 200,
-                          );
-                        },
-                      );
-                      if (!context.mounted) return;
-                    } catch (e) {
-                      if (e is ApiException) {
-                        _mostrarError(context, e.statusCode);
-                      }
-                    }
-                  },
-                ),
+               
                 IconButton(
                   icon: const Icon(Icons.category),
                   tooltip: 'Categorías',
@@ -181,6 +156,34 @@ void _cargarNoticiasConFiltro(BuildContext context) {
                   },
                 ),
               ],
+            ),
+            floatingActionButton: FloatingActionButton(
+              backgroundColor: const Color.fromARGB(255, 248, 174, 206),
+              tooltip: 'Agregar Noticia',
+              onPressed: () async {
+                try {
+                  await NoticiaModal.mostrarModal(
+                    context: context,
+                    noticia: null,
+                    onSave: (_, noticiaActualizada) {
+                      // Para el caso de crear, simplemente recargamos las noticias
+                      _cargarNoticiasConFiltro(context);
+                      
+                      SnackBarHelper.showSnackBar(
+                        context,
+                        ApiConstantes.newssuccessCreated,
+                        statusCode: 200,
+                      );
+                    },
+                  );
+                  if (!context.mounted) return;
+                } catch (e) {
+                  if (e is ApiException) {
+                    _mostrarError(context, e.statusCode);
+                  }
+                }
+              },
+              child: const Icon(Icons.add),
             ),
             body: Column(
               children: [
