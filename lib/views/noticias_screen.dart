@@ -81,14 +81,13 @@ void _cargarNoticiasConFiltro(BuildContext context) {
                     style: TextStyle(color: Colors.white),
                   ),
                   if (state
-                      is NoticiasLoaded) // Check if state is NoticiasLoaded before accessing lastUpdated
+                      is NoticiasLoaded) 
                     Text(
                       'Última actualización: ${(DateFormat(AppConstants.formatoFecha)).format(state.lastUpdated)}',
                       style: const TextStyle(fontSize: 12),
                     ),
                 ],
               ),
-              backgroundColor: const Color.fromARGB(255, 248, 174, 206),
               actions: [
                
                 IconButton(
@@ -158,7 +157,7 @@ void _cargarNoticiasConFiltro(BuildContext context) {
               ],
             ),
             floatingActionButton: FloatingActionButton(
-              backgroundColor: const Color.fromARGB(255, 248, 174, 206),
+            
               tooltip: 'Agregar Noticia',
               onPressed: () async {
                 try {
