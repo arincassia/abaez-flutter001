@@ -31,7 +31,6 @@ class _CategoryScreenContent extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Categorías'),
-        backgroundColor: const Color.fromARGB(255, 248, 174, 206),
         actions: [
           BlocBuilder<CategoriaBloc, CategoriaState>(
             builder: (context, state) {
